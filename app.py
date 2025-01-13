@@ -77,7 +77,7 @@ def speech_to_text():
             st.write("Could not request results, check your internet connection")
             return ""
 
-# Input from text or speech
+# Input from text or speeches
 query=""
 input_method = st.radio("Choose input method:", ("Text", "Speech"))
 
