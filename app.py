@@ -37,6 +37,7 @@ if "conversation_history" not in st.session_state:
 
 
 # RAG Pipeline with DialogGPT class
+
 class RAGPipelineWithDialogGPT:
     def __init__(self, retriever, embedding_model, data, dialoggpt_model, dialoggpt_tokenizer):
         self.retriever = retriever
@@ -55,15 +56,16 @@ class RAGPipelineWithDialogGPT:
                 contexts.append(self.data.iloc[idx]['answerText'])
 
         retrieved_context = "\n".join(contexts) if contexts else "I'm here to help. Please tell me more about your issue."
-        st.write("Retrieved context:", retrieved_context)  # Debugging output
+        # st.write("Retrieved context:", retrieved_context)  # Debugging output
         return retrieved_context
+
 
     def generate_response(self, user_query, detected_emotion):
         # Retrieve context
         context = self.retrieve(user_query)
 
         # Prepare conversation history
-        history_length = 3
+        history_length = 5
         conversation_history = "\n".join(st.session_state.get("conversation_history", [])[-history_length:])
 
         # Input prompt for DialogGPT
@@ -76,18 +78,20 @@ class RAGPipelineWithDialogGPT:
         User: {user_query}
         Bot:"""
 
-        st.write("Dialog input for the model:", dialog_input)  # Debugging output
+        # Ensure dialog_input is within the model's capacity
+        max_context_length = 800
+        if len(dialog_input) > max_context_length:
+            dialog_input = dialog_input[-max_context_length:]
 
         # Tokenize input with truncation
         inputs = self.dialoggpt_tokenizer(
             dialog_input,
             return_tensors="pt",
             truncation=True,
-            padding=True,
-            max_length=1024
+            padding="max_length",
+            max_length=self.dialoggpt_model.config.n_positions,
         )
-        st.write("Tokenized input IDs:", inputs["input_ids"])  # Debugging tokenized input
-        st.write("Tokenized attention mask:", inputs["attention_mask"])  # Debugging attention mask
+
         # Generate response
         outputs = self.dialoggpt_model.generate(
             inputs["input_ids"],
@@ -96,29 +100,19 @@ class RAGPipelineWithDialogGPT:
             do_sample=True,
             temperature=0.9,
             top_k=40,
-            top_p=0.85
+            top_p=0.85,
         )
-        st.write("Raw model output (token IDs):", outputs)  # Debugging raw model output
 
         # Decode response
         response_text = self.dialoggpt_tokenizer.decode(outputs[0], skip_special_tokens=True)
-
-        st.write("Decoded response before cleanup:", response_text)
         response_text = response_text.split("Bot:")[-1].strip()
 
         # Fallback for empty response
         if not response_text:
             response_text = "I am here to help. Could you tell me more about your situation?"
 
-        # Update conversation history
-        st.session_state["conversation_history"].append(f"User: {user_query}")
-        st.session_state["conversation_history"].append(f"Bot: {response_text}")
-
-        st.write("Generated response:", response_text)  # Debugging output
         return response_text
 
-
-# Function to classify emotion
 def detect_emotion(text):
     emotions = emotion_classifier(text)
     emotion = emotions[0]["label"]
