@@ -13,7 +13,17 @@ const Signup = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      // Add your signup logic here
+      const response=await axios.post('http://localhost:4000/api/auth/signup',values);
+      const {token,user}=response.data;
+      console.log(response.data);
+
+      // Store token and user details in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      message.success('SignUp successful!');
+      navigate('/chat'); // Redirect user after login
+
       console.log('Received values:', values);
       await new Promise(resolve => setTimeout(resolve, 1000));
       alert('Signup successful!');
