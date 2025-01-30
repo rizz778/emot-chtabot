@@ -18,7 +18,8 @@ const ChatPage = () => {
 
   const handleSendMessage = () => {
     if (input.trim() !== "") {
-      setMessages([...messages, { text: input, sender: "user" }]);
+      const newMessage = { text: input, sender: "user" };
+      setMessages([...messages, newMessage]);
       setInput("");
       // Simulate bot response
       setTimeout(() => {
@@ -39,61 +40,67 @@ const ChatPage = () => {
 
   return (
     <Layout className="chat-layout">
-  {/* Sidebar (Chats List) */}
-  <Sider width={250} className="chat-sidebar">
-    <div className="sidebar-header">Chats</div>
-    <Menu
-      theme="dark"
-      mode="inline"
-      selectedKeys={[activeSession]}
-      onClick={({ key }) => setActiveSession(key)}
-      items={chatSessions.map((session) => ({
-        key: session,
-        icon: <MessageOutlined />,
-        label: session,
-      }))}
-    />
-    <Button
-      type="primary"
-      icon={<PlusOutlined />}
-      className="new-session-button"
-      onClick={handleNewSession}
-    >
-      New Chat
-    </Button>
-  </Sider>
-
-  {/* Main Chat Section */}
-  <Layout style={{ flex: 1 }}> {/* Ensure it takes up the remaining space */}
-    <Header className="chat-header">AI Virtual Counselor</Header>
-    <Content className="chat-content">
-      <motion.div className="chat-messages">
-        {messages.map((msg, index) => (
-          <motion.div
-            key={index}
-            className={`chat-message ${msg.sender}`}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-          >
-            {msg.text}
-          </motion.div>
-        ))}
-      </motion.div>
-      <div className="chat-input-container">
-        <Input
-          className="chat-input"
-          placeholder="Type a message..."
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onPressEnter={handleSendMessage}
+      {/* Sidebar (Chats List) */}
+      <Sider width={250} className="chat-sidebar">
+        <div className="sidebar-header">Chats</div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[activeSession]}
+          onClick={({ key }) => setActiveSession(key)}
+          items={chatSessions.map((session) => ({
+            key: session,
+            icon: <MessageOutlined />,
+            label: session,
+          }))}
         />
-        <Button type="primary" icon={<SendOutlined />} onClick={handleSendMessage} />
-      </div>
-    </Content>
-  </Layout>
-</Layout>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          className="new-session-button"
+          onClick={handleNewSession}
+        >
+          New Chat
+        </Button>
+      </Sider>
 
+      {/* Main Chat Section */}
+      <Layout style={{ flex: 1 }}>
+        <Header className="chat-header">AI Virtual Counselor</Header>
+        <Content className="chat-content">
+          {/* Chat Messages Container */}
+          <motion.div className="chat-messages">
+            {messages.map((msg, index) => (
+              <motion.div
+                key={index}
+                className={`chat-message ${msg.sender}`}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.1 }}
+              >
+                {msg.text}
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Input Area */}
+          <div className="chat-input-container">
+            <Input
+              className="chat-input"
+              placeholder="Type a message..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onPressEnter={handleSendMessage}
+            />
+            <Button
+              type="primary"
+              icon={<SendOutlined />}
+              onClick={handleSendMessage}
+            />
+          </div>
+        </Content>
+      </Layout>
+    </Layout>
   );
 };
 
