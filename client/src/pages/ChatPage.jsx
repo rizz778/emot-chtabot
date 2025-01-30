@@ -19,9 +19,12 @@ const ChatPage = () => {
   }, []);
 
   //Fetch all chat sessions
+
+
   const fetchSessions=async()=>{
     try {
       const token=localStorage.getItem('token');
+      console.log("Token being sent:", token); 
       const response= await axios.get('http://localhost:4000/api/chat/sessions',{
         headers:{
           Authorization:`Bearer ${token}`
@@ -36,10 +39,14 @@ const ChatPage = () => {
       console.log('Fetch sessions error:',error);
     }
   };
+  const handleSessionClick = (sessionId) => {
+    setActiveSession(sessionId);
+    fetchMessages(sessionId);
+};
   const fetchMessages=async(sessionId)=>{
     try {
       const token=localStorage.getItem('token');
-      const response= await axios.get(`http://localhost:4000/api/chat/messages/${sessionId}`,{
+      const response= await axios.get(`http://localhost:4000/api/chat/sessions/${sessionId}`,{
         headers:{Authorization:`Bearer ${token}`},
       });
       setMessages(response.data.messages);  
@@ -52,7 +59,7 @@ const ChatPage = () => {
     try {
       const token=localStorage.getItem('token');
       const newSession = `Session ${chatSessions.length + 1}`;
-      const response= await axios.post('http://localhost:4000/api/chat/session',{sessionName:newSession},{
+      const response= await axios.post('http://localhost:4000/api/chat/sessions',{sessionName:newSession},{
         headers:{Authorization:`Bearer ${token}`}});
       setChatSessions([...chatSessions, newSession]);
       setActiveSession(response.data._id);
@@ -64,34 +71,41 @@ const ChatPage = () => {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    const newMessage = { sender: "user", text: input };
+    const userMessage = { sender: "user", text: input };
 
-    
-      
+    setMessages((prev) => [...prev, userMessage]);
 
-      try {
+    try {
         const response = await fetch("http://127.0.0.1:5000/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: input }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: input }),
         });
 
-        if (!response.ok) {
-          throw new Error("Failed to fetch response");
-        }
+        if (!response.ok) throw new Error("Failed to fetch response");
 
         const data = await response.json();
-        setMessages((prev) => [
-          ...prev,
-          { text: data.response, sender: "bot" },
-        ]);
-      } catch (error) {
+        const botMessage = { sender: "bot", text: data.response };
+
+        setMessages((prev) => [...prev, botMessage]);
+
+        // Store messages in MongoDB
+        await axios.post(`http://localhost:4000/api/chat/sessions/${activeSession}/messages`, 
+            { sender: "user", text: input },
+            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+
+        await axios.post(`http://localhost:4000/api/chat/sessions/${activeSession}/messages`, 
+            { sender: "bot", text: data.response },
+            { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+        );
+
+    } catch (error) {
         console.error("Error fetching bot response:", error);
-        setMessages((prev) => [
-          ...prev,
-          { text: "Error: Unable to get response", sender: "bot" },
-        ]);
-      }
+        setMessages((prev) => [...prev, { sender: "bot", text: "Error: Unable to get response" }]);
+    }
+
+    setInput(""); // Clear input field
     };
 
 
@@ -105,11 +119,11 @@ const ChatPage = () => {
           theme="dark"
           mode="inline"
           selectedKeys={[activeSession]}
-          onClick={({ key }) => setActiveSession(key)}
+          onClick={({ key }) => handleSessionClick(key)}
           items={chatSessions.map((session) => ({
-            key: session,
+            key: session._id,
             icon: <MessageOutlined />,
-            label: session,
+            label: session.sessionName,
           }))}
         />
         <Button
