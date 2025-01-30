@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Checkbox, Row, Col, Typography, Divider } from 'antd';
 import { UserOutlined, LockOutlined, GoogleOutlined, FacebookFilled } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
+import { Link,useNavigate} from 'react-router-dom';
+import axios from 'axios';
 import './Login.css';
 
 const { Title, Text } = Typography;
@@ -9,16 +10,28 @@ const { Title, Text } = Typography;
 const Login = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const navigate = useNavigate();
 
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      // Add your authentication logic here
+      const response=await axios.post('http://localhost:4000/api/auth/login',values);
+      const {token,user}=response.data;
+      console.log(response.data);
+
+      // Store token and user details in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+
+      message.success('Login successful!');
+      navigate('/chat'); // Redirect user after login
+
       console.log('Received values:', values);
       await new Promise(resolve => setTimeout(resolve, 1000));
       alert('Login successful!');
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('Login error:', error.response?.data?.message || error.message);
+      message.error(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
