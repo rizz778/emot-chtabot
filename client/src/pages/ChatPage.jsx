@@ -1,11 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Layout, Menu, Input, Button } from "antd";
 import { motion } from "framer-motion";
-import {
-  MessageOutlined,
-  PlusOutlined,
-  SendOutlined,
-} from "@ant-design/icons";
+import { MessageOutlined, PlusOutlined, SendOutlined } from "@ant-design/icons";
 import "./ChatPage.css";
 import axios from "axios";
 
@@ -17,6 +13,7 @@ const ChatPage = () => {
   const [chatSessions, setChatSessions] = useState(["Session 1"]);
   const [activeSession, setActiveSession] = useState("Session 1");
 
+  
   useEffect(() => {
     fetchSessions();
   }, []);
@@ -69,29 +66,35 @@ const ChatPage = () => {
 
     const newMessage = { sender: "user", text: input };
 
-    try {
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `http://localhost:5000/api/chat/session/${activeSession}/message`,
-        newMessage,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    
+      
 
-      setMessages([...messages, newMessage]);
-      setInput("");
+      try {
+        const response = await fetch("http://127.0.0.1:5000/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: input }),
+        });
 
-      // Simulate bot response
-      setTimeout(() => {
-        setMessages((prev) => [...prev, { text: "This is a bot response!", sender: "bot" }]);
-      }, 1000);
-    } catch (error) {
-      console.error("Error sending message:", error);
-      message.error("Failed to send message.");
-    }
-  };
+        if (!response.ok) {
+          throw new Error("Failed to fetch response");
+        }
+
+        const data = await response.json();
+        setMessages((prev) => [
+          ...prev,
+          { text: data.response, sender: "bot" },
+        ]);
+      } catch (error) {
+        console.error("Error fetching bot response:", error);
+        setMessages((prev) => [
+          ...prev,
+          { text: "Error: Unable to get response", sender: "bot" },
+        ]);
+      }
+    };
 
 
-  
 
   return (
     <Layout className="chat-layout">
@@ -157,6 +160,6 @@ const ChatPage = () => {
       </Layout>
     </Layout>
   );
-};
+}
 
 export default ChatPage;
