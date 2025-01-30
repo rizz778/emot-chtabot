@@ -1,11 +1,7 @@
 import React, { useState } from "react";
 import { Layout, Menu, Input, Button } from "antd";
 import { motion } from "framer-motion";
-import {
-  MessageOutlined,
-  PlusOutlined,
-  SendOutlined,
-} from "@ant-design/icons";
+import { MessageOutlined, PlusOutlined, SendOutlined } from "@ant-design/icons";
 import "./ChatPage.css";
 
 const { Header, Sider, Content } = Layout;
@@ -16,18 +12,35 @@ const ChatPage = () => {
   const [chatSessions, setChatSessions] = useState(["Session 1"]);
   const [activeSession, setActiveSession] = useState("Session 1");
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (input.trim() !== "") {
-      const newMessage = { text: input, sender: "user" };
-      setMessages([...messages, newMessage]);
+      const userMessage = { text: input, sender: "user" };
+      setMessages([...messages, userMessage]);
       setInput("");
-      // Simulate bot response
-      setTimeout(() => {
+
+      try {
+        const response = await fetch("http://127.0.0.1:5000/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: input }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch response");
+        }
+
+        const data = await response.json();
         setMessages((prev) => [
           ...prev,
-          { text: "This is a bot response!", sender: "bot" },
+          { text: data.response, sender: "bot" },
         ]);
-      }, 1000);
+      } catch (error) {
+        console.error("Error fetching bot response:", error);
+        setMessages((prev) => [
+          ...prev,
+          { text: "Error: Unable to get response", sender: "bot" },
+        ]);
+      }
     }
   };
 
