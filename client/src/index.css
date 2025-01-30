@@ -24,8 +24,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
 }
@@ -65,4 +63,14 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+* {
+  box-sizing: border-box; /* Include padding and borders in element dimensions */
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  overflow-x: hidden; /* Prevent horizontal overflow */
 }

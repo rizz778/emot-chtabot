@@ -8,7 +8,12 @@ body {
   .landing-page {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch; /* Center content horizontally */
+    width: 100%; /* Ensure the landing page takes full width */
+  }
+  
+  .navbar, .hero, .features, .footer {
+    width: 100%; /* Ensure all sections take full width */
   }
   
   /* Navbar */
@@ -37,6 +42,7 @@ body {
     padding: 4rem 2rem;
     background: linear-gradient(to bottom, #6ecae8, #2ddabb);
     color: white;
+    width: 100%; /* Ensure it takes full width */
   }
   
   .hero-title {
@@ -58,6 +64,7 @@ body {
   .features {
     text-align: center;
     padding: 4rem 2rem;
+    width: 100%; /* Ensure it takes full width */
   }
   
   .features-title {
@@ -71,6 +78,7 @@ body {
     justify-content: center;
     gap: 1.5rem;
     flex-wrap: wrap;
+    width: 100%;
   }
   
   .feature-card {
