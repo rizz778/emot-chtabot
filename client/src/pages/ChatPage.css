@@ -7,8 +7,7 @@
   /* Sidebar */
   .chat-sidebar {
     width: 20%;
-    min-width: 250px;
-    max-width: 300px;
+    min-width: 30vw;
     background: #a2d5f2; /* Light blue */
     display: flex;
     flex-direction: column;
