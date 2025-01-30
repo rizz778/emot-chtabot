@@ -1,17 +1,22 @@
+from flask import Flask, request, jsonify
+from flask_cors import CORS
 import faiss
 from sentence_transformers import SentenceTransformer
-import streamlit as st
-import pandas as pd
-import speech_recognition as sr
+import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 from gtts import gTTS
 import numpy as np
 from io import BytesIO
 import base64
+import speech_recognition as sr
 import logging
 
-# Enable logging for debugging
+# Enable logging
 logging.basicConfig(level=logging.INFO)
+
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)
 
 # Load GPT-2 model and tokenizer
 gpt2_model_name = "gpt2"
@@ -24,191 +29,36 @@ gpt2_model.config.pad_token_id = gpt2_tokenizer.eos_token_id
 retriever_index = faiss.read_index("rag_index.faiss")
 embedding_model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
 
-# Load dataset and preprocess
-data = pd.read_csv('cleaned_counsel_chat.csv')
-data = data.dropna(subset=['questionText', 'answerText'])
-data = data.reset_index(drop=True)
-
-# Recognizer for speech input
-recognizer = sr.Recognizer()
-
 # Load emotion classification pipeline
 emotion_classifier = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion")
 
-# Initialize session state for conversation history
-if "conversation_history" not in st.session_state:
-    st.session_state["conversation_history"] = []
-
-
-
-
-class RAGPipelineWithGPT2:
-    def __init__(self, retriever, embedding_model, data, gpt2_model, gpt2_tokenizer):
+class RAGPipelineWithLLM:
+    def __init__(self, retriever, embedding_model, gpt2_model, gpt2_tokenizer):
         self.retriever = retriever
         self.embedding_model = embedding_model
-        self.data = data
         self.gpt2_model = gpt2_model
         self.gpt2_tokenizer = gpt2_tokenizer
 
-    def retrieve(self, user_query):
-        query_embedding = self.embedding_model.encode(user_query)
-        _, indices = self.retriever.search(np.array([query_embedding]).astype('float32'), k=5)
-
-        contexts = []
-        for idx in indices[0]:
-            if idx < len(self.data):
-                contexts.append(self.data.iloc[idx]['answerText'])
-
-        retrieved_context = "\n".join(contexts) if contexts else "I'm here to help. Please tell me more about your issue."
-        return retrieved_context
-
-    def find_exact_match(self, user_query):
-        match = self.data[self.data['questionText'].str.contains(user_query, case=False, na=False)]
-        if not match.empty:
-            return match.iloc[0]['answerText']
-        return None
-
     def generate_response(self, user_query, detected_emotion):
-        # Retrieve context
-        context = self.retrieve(user_query)
-
-        # Prepare conversation history
-        history_length = 5
-        conversation_history = "\n".join(st.session_state.get("conversation_history", [])[-history_length:])
-
-        # Dynamic input prompt
-        dialog_input = f"""
-        Context: {context}
-        Emotion: {detected_emotion}
-        The following is a conversation between a helpful, empathetic chatbot and a user seeking advice. 
-        The chatbot provides thoughtful, empathetic, and actionable suggestions tailored to the user's emotional state.
-
-        {conversation_history}
-        User: {user_query}
-        Bot:"""
-
-        # Ensure dialog_input fits within the model's capacity
-        max_tokens = self.gpt2_model.config.n_positions
-        if len(dialog_input) > max_tokens:
-            dialog_input = dialog_input[-max_tokens:]
-
-        # Tokenize input
-        inputs = self.gpt2_tokenizer(
-            dialog_input,
-            return_tensors="pt",
-            truncation=True,
-            padding="max_length",
-            max_length=max_tokens,
-        )
-
-        # Generate response
-        outputs = self.gpt2_model.generate(
-            inputs["input_ids"],
-            attention_mask=inputs["attention_mask"],
-            max_new_tokens=150,
-            do_sample=True,
-            temperature=0.8,  # Balanced creativity and relevance
-            top_k=50,
-            top_p=0.9,
-        )
-
-        # Decode response
-        response_text = self.gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True)
-        response_text = response_text.split("Bot:")[-1].strip()
-
-        # Validate response and fallback for empty or inappropriate responses
+        dialog_input = f"User: {user_query}\nBot:"
+        inputs = self.gpt2_tokenizer(dialog_input, return_tensors="pt", truncation=True, padding="max_length", max_length=self.gpt2_model.config.n_positions)
+        outputs = self.gpt2_model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], max_new_tokens=150, do_sample=True, temperature=0.8, top_k=50, top_p=0.9)
+        response_text = self.gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True).split("Bot:")[-1].strip()
         if len(response_text.split()) < 5:
-            response_text = (
-                "I'm here to help. It sounds like you're going through a tough time. "
-                "Have you considered speaking with a professional or trying mindfulness exercises?"
-            )
-
-        # Update conversation history in session state
-        st.session_state["conversation_history"].append(f"User: {user_query}\nBot: {response_text}")
-
+            response_text = "I'm here to help. It sounds like you're going through a tough time. Have you considered speaking with a professional or trying mindfulness exercises?"
         return response_text
 
-def detect_emotion(text):
-    emotions = emotion_classifier(text)
-    emotion = emotions[0]["label"]
-    st.write("Detected emotion:", emotion)
-    return emotion
+rag_pipeline = RAGPipelineWithLLM(retriever=retriever_index, embedding_model=embedding_model, gpt2_model=gpt2_model, gpt2_tokenizer=gpt2_tokenizer)
 
+@app.route("/chat", methods=["POST"])
+def chat():
+    data = request.json
+    user_query = data.get("message", "")
+    if not user_query:
+        return jsonify({"error": "No message provided"}), 400
+    emotion = emotion_classifier(user_query)[0]["label"]
+    response_text = rag_pipeline.generate_response(user_query, emotion)
+    return jsonify({"response": response_text, "emotion": emotion})
 
-def generate_emotional_audio(response_text, emotion):
-    emotion_to_voice = {
-        "joy": "en-au",
-        "anger": "en-us",
-        "sadness": "en-uk",
-        "fear": "en-in",
-        "surprise": "en-za",
-        "neutral": "en"
-    }
-    voice = emotion_to_voice.get(emotion, "en")
-    tts = gTTS(response_text, lang=voice)
-    audio_buffer = BytesIO()
-    tts.write_to_fp(audio_buffer)
-    audio_buffer.seek(0)
-    st.write("Generated audio for emotion:", emotion)
-    return audio_buffer
-
-
-def play_audio(audio_buffer):
-    audio_data = audio_buffer.read()
-    b64_audio = base64.b64encode(audio_data).decode()
-    audio_tag = f'<audio controls autoplay><source src="data:audio/mpeg;base64,{b64_audio}" type="audio/mpeg"></audio>'
-    st.markdown(audio_tag, unsafe_allow_html=True)
-
-
-# Initialize RAG pipeline
-rag_pipeline = RAGPipelineWithGPT2(
-    retriever=retriever_index,
-    embedding_model=embedding_model,
-    data=data,
-    gpt2_model=gpt2_model,
-    gpt2_tokenizer=gpt2_tokenizer
-)
-
-# Streamlit UI setup
-st.title("Emotion-Aware Chatbot with Audio Responses")
-st.header("Interactive Chatbot with Emotional Speech Output")
-
-
-def speech_to_text():
-    with sr.Microphone() as source:
-        st.write("Listening for your question...")
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
-        try:
-            st.write("Recognizing...")
-            return recognizer.recognize_google(audio)
-        except sr.UnknownValueError:
-            st.write("Sorry, could not understand the audio.")
-            return ""
-        except sr.RequestError:
-            st.write("Could not request results, check your internet connection.")
-            return ""
-
-
-query = ""
-input_method = st.radio("Choose input method:", ("Text", "Speech"))
-
-if input_method == "Text":
-    query = st.text_input("Enter your query:")
-elif input_method == "Speech":
-    if st.button("Start Recording"):
-        query = speech_to_text()
-        if query:
-            st.write(f"You said: {query}")
-
-if st.button("Reset Conversation"):
-    st.session_state["conversation_history"] = []
-    st.write("Conversation history has been cleared.")
-
-if query:
-    emotion = detect_emotion(query)
-    response = rag_pipeline.generate_response(query, emotion)
-    st.write(f"Bot: {response}")
-
-    audio_buffer = generate_emotional_audio(response, emotion)
-    play_audio(audio_buffer)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
