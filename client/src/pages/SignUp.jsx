@@ -1,19 +1,26 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Row, Col, Typography, Divider, Checkbox } from 'antd';
+import { Form, Input, Button, Row, Col, Typography, Divider, Checkbox,message} from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined, GoogleOutlined, FacebookFilled } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import './Signup.css';
-
+import axios from "axios"
 const { Title, Text } = Typography;
 
 const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
-
+ const navigate = useNavigate();
   const handleSubmit = async (values) => {
+    const { username, email, password } = values;
     setLoading(true);
     try {
-      const response=await axios.post('http://localhost:4000/api/auth/signup',values);
+      console.log("Sending:", username, email, password);
+
+      const response=await axios.post('http://localhost:4000/api/auth/signup',{
+        username, email, password
+      });
+
       const {token,user}=response.data;
       console.log(response.data);
 
@@ -53,7 +60,7 @@ const Signup = () => {
               className="signup-form"
             >
               <Form.Item
-                name="name"
+                name="username"
                 rules={[{ required: true, message: 'Please input your full name!' }]}
               >
                 <Input

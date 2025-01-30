@@ -5,12 +5,12 @@ export const createSession = async (req,res)=>{
 
     try {
         const newSession=await Chat.create({
-            user:req.user_id,
+            user:req.user._id,
             sessionName,
             message:[],
         });
 
-        res.status(500).json(newSession);
+        res.status(201).json(newSession);
     } catch (error) {
         console.error("Error creating session:",error);
         res.status(500).json({message:"Server Error" });

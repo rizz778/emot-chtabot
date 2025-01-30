@@ -12,8 +12,8 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/chat" element={<PrivateRoute/>} />
-        <Route path="/token" element={<PrivateRoute />} />
+        <Route path="/chat" element={<PrivateRoute component={ChatPage}/>} />
+        <Route path="/token" element={<PrivateRoute component={BuyToken}/>} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>
