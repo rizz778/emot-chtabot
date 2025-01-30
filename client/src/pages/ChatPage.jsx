@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Layout, Menu, Input, Button } from "antd";
 import { motion } from "framer-motion";
 import {
@@ -7,6 +7,7 @@ import {
   SendOutlined,
 } from "@ant-design/icons";
 import "./ChatPage.css";
+import axios from "axios";
 
 const { Header, Sider, Content } = Layout;
 
@@ -16,27 +17,81 @@ const ChatPage = () => {
   const [chatSessions, setChatSessions] = useState(["Session 1"]);
   const [activeSession, setActiveSession] = useState("Session 1");
 
-  const handleSendMessage = () => {
-    if (input.trim() !== "") {
-      const newMessage = { text: input, sender: "user" };
+  useEffect(() => {
+    fetchSessions();
+  }, []);
+
+  //Fetch all chat sessions
+  const fetchSessions=async()=>{
+    try {
+      const token=localStorage.getItem('token');
+      const response= await axios.get('http://localhost:4000/api/chat/sessions',{
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
+      });
+      setChatSessions(response.data);
+      if(response.data.length>0){
+        setActiveSession(response.data[0]);
+        fetchMessages(response.data[0]);
+      }
+    } catch (error) {
+      console.log('Fetch sessions error:',error);
+    }
+  };
+  const fetchMessages=async(sessionId)=>{
+    try {
+      const token=localStorage.getItem('token');
+      const response= await axios.get(`http://localhost:4000/api/chat/messages/${sessionId}`,{
+        headers:{Authorization:`Bearer ${token}`},
+      });
+      setMessages(response.data.messages);  
+    } catch (error) {
+      console.log('Fetch messages error:',error);
+    }
+  }
+
+  const handleNewSession = async () => {
+    try {
+      const token=localStorage.getItem('token');
+      const newSession = `Session ${chatSessions.length + 1}`;
+      const response= await axios.post('http://localhost:4000/api/chat/session',{sessionName:newSession},{
+        headers:{Authorization:`Bearer ${token}`}});
+      setChatSessions([...chatSessions, newSession]);
+      setActiveSession(response.data._id);
+      setMessages([]);
+    } catch (error) {
+      console.error('New session error:',error);
+    }
+  }
+  const handleSendMessage = async () => {
+    if (!input.trim()) return;
+
+    const newMessage = { sender: "user", text: input };
+
+    try {
+      const token = localStorage.getItem("token");
+      await axios.post(
+        `http://localhost:5000/api/chat/session/${activeSession}/message`,
+        newMessage,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
       setMessages([...messages, newMessage]);
       setInput("");
+
       // Simulate bot response
       setTimeout(() => {
-        setMessages((prev) => [
-          ...prev,
-          { text: "This is a bot response!", sender: "bot" },
-        ]);
+        setMessages((prev) => [...prev, { text: "This is a bot response!", sender: "bot" }]);
       }, 1000);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      message.error("Failed to send message.");
     }
   };
 
-  const handleNewSession = () => {
-    const newSession = `Session ${chatSessions.length + 1}`;
-    setChatSessions([...chatSessions, newSession]);
-    setActiveSession(newSession);
-    setMessages([]);
-  };
+
+  
 
   return (
     <Layout className="chat-layout">

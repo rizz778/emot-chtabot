@@ -1,6 +1,6 @@
 import Chat from '../models/Chat.js'
 
-exports.createSession = async (req,res)=>{
+export const createSession = async (req,res)=>{
     const {sessionName}=req.body;
 
     try {
@@ -18,7 +18,7 @@ exports.createSession = async (req,res)=>{
 };
 
 //Retreive all sessions for a user
-exports.getSessions = async (req, res) => {
+export const getSessions = async (req, res) => {
     try {
       const sessions = await Chat.find({ user: req.user._id }).select("sessionName createdAt");
       res.status(200).json(sessions);
@@ -29,7 +29,7 @@ exports.getSessions = async (req, res) => {
   };
 
 // Retrieve a specific session's messages
-exports.getSessionMessages = async (req, res) => {
+export const getSessionMessages = async (req, res) => {
     const { sessionId } = req.params;
   
     try {
@@ -47,7 +47,7 @@ exports.getSessionMessages = async (req, res) => {
   };
 
   // Add a message to a session
-  exports.addMessage = async (req, res) => {
+  export const addMessage = async (req, res) => {
     const { sessionId } = req.params;
     const { sender, text } = req.body;
   
