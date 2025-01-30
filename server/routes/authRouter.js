@@ -1,7 +1,7 @@
 import express from 'express'
-import errorHandler from '../middlewares/errorHandler';
-import { Signup } from '../controllers/authController';
-import { Login } from '../controllers/authController';
+import errorHandler from '../middlewares/errorHandler.js';
+import { Signup } from '../controllers/authController.js';
+import { Login } from '../controllers/authController.js';
 const router = express.Router();
 
 // Routes
