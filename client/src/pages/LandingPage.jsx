@@ -1,6 +1,7 @@
 import React from "react";
 import { Button, Card } from "antd";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import "./LandingPage.css";
 
 const LandingPage = () => {
@@ -22,10 +23,14 @@ const LandingPage = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8 }}
         >
-          <Button type="primary" className="nav-button">
-            Login
-          </Button>
-          <Button className="nav-button">Sign Up</Button>
+          <Link to="/login">
+            <Button type="primary" className="nav-button">
+              Login
+            </Button>
+          </Link>
+          <Link to="/signup">
+            <Button className="nav-button">Sign Up</Button>
+          </Link>
         </motion.div>
       </header>
 
@@ -58,12 +63,16 @@ const LandingPage = () => {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.5 }}
         >
-          <Button type="primary" className="hero-button">
-            Get Started
-          </Button>
-          <Button className="hero-button">
-            Buy Tokens
-          </Button>
+           <Link to="/chat">
+            <Button type="primary" className="hero-button">
+              Get Started
+            </Button>
+          </Link>
+          <Link to="/token">
+            <Button className="hero-button">
+              Buy Tokens
+            </Button>
+          </Link>
         </motion.div>
       </motion.section>
 
