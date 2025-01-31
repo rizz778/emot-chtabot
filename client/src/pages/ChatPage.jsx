@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Input, Button } from "antd";
+import { Layout, Menu, Input, Button, message as antdMessage } from "antd";
 import { motion } from "framer-motion";
 import {
   MessageOutlined,
@@ -20,11 +20,11 @@ const ChatPage = () => {
   const [input, setInput] = useState("");
   const [chatSessions, setChatSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
-  const { transcript, resetTranscript } = useSpeechRecognition();
+  const { transcript,listening ,resetTranscript } = useSpeechRecognition();
 
   useEffect(() => {
     if (transcript) {
-      setInput(transcript);
+      setInput((prev) => (prev ? prev + " " + transcript : transcript));
     }
   }, [transcript]);
 
@@ -47,6 +47,8 @@ const ChatPage = () => {
         fetchMessages(response.data[0]._id);
       }
     } catch (error) {
+      antdMessage.error("Failed to fetch chat sessions.");
+
       console.error("Failed to fetch sessions:", error);
     }
   };
@@ -83,43 +85,42 @@ const ChatPage = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!input.trim() || !activeSession) return;
+    if (!input.trim()) return;
 
-    const userMessage = { sender: "user", text: input };
-    setMessages((prev) => [...prev, userMessage]);
+    setMessages((prevMessages) => [...prevMessages, { sender: "user", text: input }]);
 
     try {
-      const formData = new FormData();
-      if (input) {
-        formData.append("message", input);
-      } else {
-        formData.append("audio_file", audioBlob);
-      }
+        const response = await fetch("http://127.0.0.1:5000/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: input }),
+        });
 
-      const response = await fetch("http://127.0.0.1:5000/chat", {
-        method: "POST",
-        body: formData,
-      });
+        const data = await response.json();
+        setMessages((prevMessages) => [...prevMessages, { sender: "bot", text: data.response }]);
+        await axios.post(`http://localhost:4000/api/chat/sessions/${activeSession}/messages`, 
+          { sender: "user", text: input },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
+  
+      await axios.post(`http://localhost:4000/api/chat/sessions/${activeSession}/messages`, 
+          { sender: "bot", text: data.response },
+          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
+      );
 
-      if (!response.ok) throw new Error("Failed to fetch response");
-
-      const data = await response.json();
-      const botMessage = { sender: "bot", text: data.response };
-
-      setMessages((prev) => [...prev, botMessage]);
-
-      if (data.audio_file) {
-        const audio = new Audio(
-          `http://127.0.0.1:5000/audio/${data.audio_file}`
-        );
-        audio.play();
-      }
+        // Play received audio response
+        if (data.audio_url) {
+            const audio = new Audio(data.audio_url);
+            audio.play();
+        }
     } catch (error) {
-      console.error("Error fetching bot response:", error);
+        console.error("Error fetching bot response:", error);
+        setMessages([...messages, { sender: "bot", text: "Error: Unable to get response" }]);
     }
 
-    setInput("");
-  };
+    setInput("");  // Clear input field
+};
+
 
   return (
     <Layout>
@@ -161,7 +162,9 @@ const ChatPage = () => {
             <Input value={input} onChange={(e) => setInput(e.target.value)} />
             <Button
               icon={<AudioOutlined />}
-              onClick={SpeechRecognition.startListening}
+              onClick={() => {
+                listening ? SpeechRecognition.stopListening() : SpeechRecognition.startListening();
+              }}
             />
             <Button icon={<SendOutlined />} onClick={handleSendMessage} />
           </div>
