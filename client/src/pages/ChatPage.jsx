@@ -7,7 +7,9 @@ import {
   SendOutlined,
   AudioOutlined,
 } from "@ant-design/icons";
-import SpeechRecognition, { useSpeechRecognition } from "react-speech-recognition";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
 import axios from "axios"; // Missing import
 
 const { Header, Sider, Content } = Layout;
@@ -35,9 +37,12 @@ const ChatPage = () => {
       const token = localStorage.getItem("token");
       console.log("Token being sent:", token);
 
-      const response = await axios.get("http://localhost:4000/api/chat/sessions", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://localhost:4000/api/chat/sessions",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       setChatSessions(response.data);
       if (response.data.length > 0) {
@@ -53,9 +58,12 @@ const ChatPage = () => {
   const fetchMessages = async (sessionId) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(`http://localhost:4000/api/chat/sessions/${sessionId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `http://localhost:4000/api/chat/sessions/${sessionId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setMessages(response.data.messages);
     } catch (error) {
       console.log("Fetch messages error:", error);
@@ -124,7 +132,10 @@ const ChatPage = () => {
       }
     } catch (error) {
       console.error("Error fetching bot response:", error);
-      setMessages((prev) => [...prev, { sender: "bot", text: "Error: Unable to get response" }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "Error: Unable to get response" },
+      ]);
     }
 
     setInput(""); // Clear input field
@@ -148,7 +159,11 @@ const ChatPage = () => {
             label: session.sessionName,
           }))}
         />
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleNewSession}>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleNewSession}
+        >
           New Chat
         </Button>
       </Sider>
@@ -166,7 +181,10 @@ const ChatPage = () => {
 
           <div className="chat-input-container">
             <Input value={input} onChange={(e) => setInput(e.target.value)} />
-            <Button icon={<AudioOutlined />} onClick={SpeechRecognition.startListening} />
+            <Button
+              icon={<AudioOutlined />}
+              onClick={SpeechRecognition.startListening}
+            />
             <Button icon={<SendOutlined />} onClick={handleSendMessage} />
           </div>
         </Content>

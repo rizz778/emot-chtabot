@@ -1,67 +1,184 @@
-import faiss
-from sentence_transformers import SentenceTransformer
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
+import requests
+import pandas as pd
+from sentence_transformers import SentenceTransformer, util
+from transformers import pipeline
 from gtts import gTTS
-import numpy as np
+import logging
 from io import BytesIO
 import base64
-import speech_recognition as sr
-import logging
-import pyaudio
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import faiss
+import numpy as np
 
-# Enable logging
 logging.basicConfig(level=logging.INFO)
 
-# Initialize Flask app
 app = Flask(__name__)
 CORS(app)
 
-# Load GPT-2 model and tokenizer
-gpt2_model_name = "gpt2"
-gpt2_tokenizer = AutoTokenizer.from_pretrained(gpt2_model_name)
-gpt2_model = AutoModelForCausalLM.from_pretrained(gpt2_model_name)
-gpt2_tokenizer.pad_token = gpt2_tokenizer.eos_token
-gpt2_model.config.pad_token_id = gpt2_tokenizer.eos_token_id
 
-# Load retriever index and embedding model
-retriever_index = faiss.read_index("rag_index.faiss")
-embedding_model = SentenceTransformer('multi-qa-MiniLM-L6-cos-v1')
+API_URL = "https://api-inference.huggingface.co/models/openai-community/gpt2"
+HEADERS = {"Authorization": "Bearer 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"}
 
-# Load emotion classification pipeline
+
+embedding_model = SentenceTransformer('sentence-transformers/multi-qa-MiniLM-L6-cos-v1', use_auth_token="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")
+
+df = pd.read_csv("cleaned_counsel_chat.csv")
+
+corpus = (df["answerText"]).tolist()  
+corpus_embeddings = embedding_model.encode(corpus, convert_to_numpy=True)
+
+
+retriever_index = faiss.IndexFlatL2(corpus_embeddings.shape[1])
+retriever_index.add(corpus_embeddings)
+logging.info("FAISS index created with cleaned_counsel_chat.csv data.")
+
 emotion_classifier = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion")
 
-# Initialize session state for conversation history
-if "conversation_history" not in st.session_state:
-    st.session_state["conversation_history"] = []
 
 
-
-
-class RAGPipelineWithGPT2:
-    def __init__(self, retriever, embedding_model, data, gpt2_model, gpt2_tokenizer):
+class RAGPipelineWithAPI:
+    def __init__(self, retriever, embedding_model, corpus, corpus_df):
         self.retriever = retriever
         self.embedding_model = embedding_model
-        self.gpt2_model = gpt2_model
-        self.gpt2_tokenizer = gpt2_tokenizer
+        self.corpus = corpus
+        self.corpus_df = corpus_df  
+
+    def retrieve_context(self, query, top_k=3):
+        """Retrieve the most relevant context from the FAISS index."""
+        query_embedding = self.embedding_model.encode([query], convert_to_numpy=True)
+        distances, indices = self.retriever.search(query_embedding, top_k)
+        
+
+        retrieved_contexts = []
+        for i in indices[0]:
+            question = self.corpus_df.iloc[i]["questionText"]
+            answer = self.corpus_df.iloc[i]["answerText"]
+            retrieved_contexts.append(f"Q: {question}\nA: {answer}")
+        
+        return " ".join(retrieved_contexts)
+
+    def query_gpt2_api(self, prompt):
+        """Call GPT-2 API with the given prompt."""
+        payload = {"inputs": prompt}
+        response = requests.post(API_URL, headers=HEADERS, json=payload)
+        response_data = response.json()
+
+        # Log the entire response to see its structure
+        logging.info(f"GPT-2 API Response: {response_data}")
+
+        # Check if the response is a list or dict
+        if isinstance(response_data, list):
+            if len(response_data) > 0 and "generated_text" in response_data[0]:
+                return response_data[0]["generated_text"]
+            else:
+                logging.error("Error: Expected 'generated_text' in response, but none found.")
+                return "I'm here to help. Could you please provide more details?"
+        elif isinstance(response_data, dict) and "generated_text" in response_data:
+            return response_data["generated_text"]
+        else:
+            logging.error("Unexpected response format: Missing 'generated_text'.")
+            return "I'm here to help. Could you please provide more details?"
 
     def generate_response(self, user_query, detected_emotion):
-        dialog_input = f"User: {user_query}\nBot:"
-        inputs = self.gpt2_tokenizer(dialog_input, return_tensors="pt", truncation=True, padding="max_length", max_length=self.gpt2_model.config.n_positions)
-        outputs = self.gpt2_model.generate(inputs["input_ids"], attention_mask=inputs["attention_mask"], max_new_tokens=150, do_sample=True, temperature=0.8, top_k=50, top_p=0.9)
-        response_text = self.gpt2_tokenizer.decode(outputs[0], skip_special_tokens=True).split("Bot:")[-1].strip()
+        """Generate response by augmenting the query with retrieved context."""
+        retrieved_context = self.retrieve_context(user_query)
+        dialog_input = f"Context: {retrieved_context}\nUser: {user_query}\nBot:"
+        response_text = self.query_gpt2_api(dialog_input)
+
         if len(response_text.split()) < 5:
-            response_text = "I'm here to help. It sounds like you're going through a tough time. Have you considered speaking with a professional or trying mindfulness exercises?"
+            response_text = (
+                "I'm here to help. It sounds like you're going through a tough time. "
+                "Have you considered speaking with a professional or trying mindfulness exercises?"
+            )
+
+        return response_text
+
+class RAGPipelineWithAPI:
+    def __init__(self, retriever, embedding_model, corpus, corpus_df):
+        self.retriever = retriever
+        self.embedding_model = embedding_model
+        self.corpus = corpus
+        self.corpus_df = corpus_df  # Added the corpus DataFrame for reference
+
+    def retrieve_context(self, query, top_k=3, similarity_threshold=0.5):
+        """
+        Retrieve the most relevant context from the FAISS index to guide the chatbot's response.
+        
+        Parameters:
+            query (str): The user's input query.
+            top_k (int): The number of top similar contexts to retrieve.
+            similarity_threshold (float): Minimum similarity score to consider a context relevant.
+        
+        Returns:
+            str: Retrieved context as a guide for the chatbot's response or a fallback message.
+        """
+        # Generate the embedding for the query
+        query_embedding = self.embedding_model.encode([query], convert_to_numpy=True)
+        
+        # Search for similar contexts in the FAISS index
+        distances, indices = self.retriever.search(query_embedding, top_k)
+        
+        # Retrieve the corresponding questionText and answerText pairs
+        retrieved_contexts = []
+        for i, dist in zip(indices[0], distances[0]):
+            if dist >= similarity_threshold:
+                question = self.corpus_df.iloc[i]["questionText"]
+                answer = self.corpus_df.iloc[i]["answerText"]
+                retrieved_contexts.append(f"Q: {question}\nA: {answer}")
+        
+        # If no context meets the similarity threshold, provide a fallback
+        if not retrieved_contexts:
+            return "I'm not sure how to respond to that. Could you clarify or provide more details?"
+
+        # Combine the retrieved contexts into a single response
+        return "\n\n".join(retrieved_contexts)
+
+
+    def query_gpt2_api(self, prompt):
+        """Call GPT-2 API with the given prompt."""
+        payload = {"inputs": prompt}
+        response = requests.post(API_URL, headers=HEADERS, json=payload)
+        response_data = response.json()
+
+        # Log the entire response to see its structure
+        logging.info(f"GPT-2 API Response: {response_data}")
+
+        # Check if the response is a list or dict
+        if isinstance(response_data, list):
+            if len(response_data) > 0 and "generated_text" in response_data[0]:
+                return response_data[0]["generated_text"]
+            else:
+                logging.error("Error: Expected 'generated_text' in response, but none found.")
+                return "I'm here to help. Could you please provide more details?"
+        elif isinstance(response_data, dict) and "generated_text" in response_data:
+            return response_data["generated_text"]
+        else:
+            logging.error("Unexpected response format: Missing 'generated_text'.")
+            return "I'm here to help. Could you please provide more details?"
+
+    def generate_response(self, user_query, detected_emotion):
+        """Generate response by augmenting the query with retrieved context."""
+        retrieved_context = self.retrieve_context(user_query)
+        dialog_input = f"Context: {retrieved_context}\nUser: {user_query}\nBot:"
+        response_text = self.query_gpt2_api(dialog_input)
+
+        if len(response_text.split()) < 5:
+            response_text = (
+                "I'm here to help. It sounds like you're going through a tough time. "
+                "Have you considered speaking with a professional or trying mindfulness exercises?"
+            )
+
         return response_text
 
 def detect_emotion(text):
+    """Detect emotion from text using the emotion classifier."""
     emotions = emotion_classifier(text)
-    emotion = emotions[0]["label"]
-    st.write("Detected emotion:", emotion)
-    return emotion
+    return emotions[0]["label"]
 
 
 def generate_emotional_audio(response_text, emotion):
+    """Generate emotional audio response using gTTS."""
     emotion_to_voice = {
         "joy": "en-au",
         "anger": "en-us",
@@ -75,66 +192,40 @@ def generate_emotional_audio(response_text, emotion):
     audio_buffer = BytesIO()
     tts.write_to_fp(audio_buffer)
     audio_buffer.seek(0)
-    st.write("Generated audio for emotion:", emotion)
-    return audio_buffer
-
-
-def play_audio(audio_buffer):
     audio_data = audio_buffer.read()
     b64_audio = base64.b64encode(audio_data).decode()
-    audio_tag = f'<audio controls autoplay><source src="data:audio/mpeg;base64,{b64_audio}" type="audio/mpeg"></audio>'
-    st.markdown(audio_tag, unsafe_allow_html=True)
+    return b64_audio
 
 
 # Initialize RAG pipeline
-rag_pipeline = RAGPipelineWithGPT2(
+rag_pipeline = RAGPipelineWithAPI(
     retriever=retriever_index,
     embedding_model=embedding_model,
-    data=data,
-    gpt2_model=gpt2_model,
-    gpt2_tokenizer=gpt2_tokenizer
+    corpus=corpus,
+    corpus_df=df
 )
 
-# Streamlit UI setup
-st.title("Emotion-Aware Chatbot with Audio Responses")
-st.header("Interactive Chatbot with Emotional Speech Output")
 
+@app.route("/chat", methods=["POST"])
+def chat():
+    """Chat endpoint for the Flask app."""
+    data = request.json
+    query = data.get("query", "")
+    if not query:
+        return jsonify({"error": "Query is required"}), 400
 
-def speech_to_text():
-    with sr.Microphone() as source:
-        st.write("Listening for your question...")
-        recognizer.adjust_for_ambient_noise(source)
-        audio = recognizer.listen(source)
-        try:
-            st.write("Recognizing...")
-            return recognizer.recognize_google(audio)
-        except sr.UnknownValueError:
-            st.write("Sorry, could not understand the audio.")
-            return ""
-        except sr.RequestError:
-            st.write("Could not request results, check your internet connection.")
-            return ""
-
-
-query = ""
-input_method = st.radio("Choose input method:", ("Text", "Speech"))
-
-if input_method == "Text":
-    query = st.text_input("Enter your query:")
-elif input_method == "Speech":
-    if st.button("Start Recording"):
-        query = speech_to_text()
-        if query:
-            st.write(f"You said: {query}")
-
-if st.button("Reset Conversation"):
-    st.session_state["conversation_history"] = []
-    st.write("Conversation history has been cleared.")
-
-if query:
     emotion = detect_emotion(query)
     response = rag_pipeline.generate_response(query, emotion)
-    st.write(f"Bot: {response}")
+    audio = generate_emotional_audio(response, emotion)
 
-    audio_buffer = generate_emotional_audio(response, emotion)
-    play_audio(audio_buffer)
+    return jsonify({
+        "response": response,
+        "emotion": emotion,
+        "audio": audio  # Base64 encoded audio
+    })
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000)
+
+
