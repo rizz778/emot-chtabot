@@ -1,5 +1,6 @@
 venv/
 env/
+audio_responses/
 __pycache__/
 *.pyc
 *.pyo
