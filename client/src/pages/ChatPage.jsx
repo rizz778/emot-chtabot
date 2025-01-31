@@ -10,7 +10,8 @@ import {
 import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
-import axios from "axios"; // Missing import
+import axios from "axios";
+import "./ChatPage.css"; // Add custom styles if needed
 
 const { Header, Sider, Content } = Layout;
 
@@ -31,30 +32,25 @@ const ChatPage = () => {
     fetchSessions();
   }, []);
 
-  // Fetch all chat sessions
   const fetchSessions = async () => {
     try {
       const token = localStorage.getItem("token");
-      console.log("Token being sent:", token);
-
       const response = await axios.get(
         "http://localhost:4000/api/chat/sessions",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
       setChatSessions(response.data);
       if (response.data.length > 0) {
-        setActiveSession(response.data[0]._id); // Ensure you set ID
+        setActiveSession(response.data[0]._id);
         fetchMessages(response.data[0]._id);
       }
     } catch (error) {
-      console.log("Fetch sessions error:", error);
+      console.error("Failed to fetch sessions:", error);
     }
   };
 
-  // Fetch messages for a session
   const fetchMessages = async (sessionId) => {
     try {
       const token = localStorage.getItem("token");
@@ -66,42 +62,43 @@ const ChatPage = () => {
       );
       setMessages(response.data.messages);
     } catch (error) {
-      console.log("Fetch messages error:", error);
+      console.error("Failed to fetch messages:", error);
     }
   };
 
-  // Create a new session
   const handleNewSession = async () => {
     try {
       const token = localStorage.getItem("token");
-
       const response = await axios.post(
         "http://localhost:4000/api/chat/sessions",
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      setChatSessions([...chatSessions, response.data]); // Store complete session object
+      setChatSessions([...chatSessions, response.data]);
       setActiveSession(response.data._id);
       setMessages([]);
     } catch (error) {
-      console.error("New session error:", error);
+      console.error("Failed to create session:", error);
     }
   };
 
-  // Send a message
   const handleSendMessage = async () => {
     if (!input.trim() || !activeSession) return;
 
     const userMessage = { sender: "user", text: input };
-
     setMessages((prev) => [...prev, userMessage]);
 
     try {
+      const formData = new FormData();
+      if (input) {
+        formData.append("message", input);
+      } else {
+        formData.append("audio_file", audioBlob);
+      }
+
       const response = await fetch("http://127.0.0.1:5000/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: formData,
       });
 
       if (!response.ok) throw new Error("Failed to fetch response");
@@ -111,38 +108,21 @@ const ChatPage = () => {
 
       setMessages((prev) => [...prev, botMessage]);
 
-      // Store messages in MongoDB
-      const token = localStorage.getItem("token");
-      await axios.post(
-        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
-        { sender: "user", text: input },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      await axios.post(
-        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
-        { sender: "bot", text: data.response },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      // Play received audio response
-      if (data.audio) {
-        const audio = new Audio(`data:audio/mpeg;base64,${data.audio}`);
+      if (data.audio_file) {
+        const audio = new Audio(
+          `http://127.0.0.1:5000/audio/${data.audio_file}`
+        );
         audio.play();
       }
     } catch (error) {
       console.error("Error fetching bot response:", error);
-      setMessages((prev) => [
-        ...prev,
-        { sender: "bot", text: "Error: Unable to get response" },
-      ]);
     }
 
-    setInput(""); // Clear input field
+    setInput("");
   };
 
   return (
-    <Layout className="chat-layout">
+    <Layout>
       <Sider width={250} className="chat-sidebar">
         <div className="sidebar-header">Chats</div>
         <Menu
@@ -167,8 +147,7 @@ const ChatPage = () => {
           New Chat
         </Button>
       </Sider>
-
-      <Layout style={{ flex: 1 }}>
+      <Layout>
         <Header className="chat-header">AI Virtual Counselor</Header>
         <Content className="chat-content">
           <motion.div className="chat-messages">
@@ -178,7 +157,6 @@ const ChatPage = () => {
               </motion.div>
             ))}
           </motion.div>
-
           <div className="chat-input-container">
             <Input value={input} onChange={(e) => setInput(e.target.value)} />
             <Button

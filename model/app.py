@@ -35,8 +35,6 @@ logging.info("FAISS index created with cleaned_counsel_chat.csv data.")
 
 emotion_classifier = pipeline("text-classification", model="bhadresh-savani/distilbert-base-uncased-emotion")
 
-
-
 class RAGPipelineWithAPI:
     def __init__(self, retriever, embedding_model, corpus, corpus_df):
         self.retriever = retriever
