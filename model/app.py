@@ -92,6 +92,7 @@ class RAGPipelineWithAPI:
 
         return response_text
 
+
 def detect_emotion(text):
     """Detect emotion from text using the emotion classifier."""
     emotions = emotion_classifier(text)
