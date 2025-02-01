@@ -1,6 +1,4 @@
-@import "tailwindcss";
-/* Typing Effect */
-.typing-effect {
+@import "tailwindcss";.typing-effect {
   display: inline-block;
   overflow: hidden;
   border-right: 0.15em solid white; /* Cursor */
@@ -29,4 +27,11 @@
   50% {
     border-color: white;
   }
+}
+.testimonial-section {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  padding: 50px 0; /* Adjust spacing as needed */
+  background-color : #fffafc;
 }
