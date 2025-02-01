@@ -3,9 +3,17 @@ import logo6 from '../assets/images/logo6.jpg';
 
 const Navbar = () => {
   return (
-    <header className='flex items-center justify-between p-4 bg-gradient-to-r from-pink-300 via-[#f64a8a] to-purple-400 h-20'>
+    <header className='flex items-center justify-between p-4 bg-gradient-to-r from-pink-300 to-[#ffc0cb] h-20'>
       {/* Navigation Links (Left) */}
       <nav className='flex gap-8 font-medium text-lg'>
+      <NavLink
+          to='/'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          Home
+        </NavLink>
         <NavLink
           to='/about'
           className={({ isActive }) =>

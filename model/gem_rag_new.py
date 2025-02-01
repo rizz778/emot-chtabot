@@ -4,7 +4,7 @@ import numpy as np
 import re
 import os
 import uuid
-from flask import Flask, request, jsonify, send_file, url_for
+from flask import Flask, request, jsonify, send_file, url_for, session
 from flask_cors import CORS
 import google.generativeai as genai
 from gtts import gTTS
@@ -28,6 +28,7 @@ for i in range(len(df)):
     tag = df.iloc[i]['tag']
     ptrns = df.iloc[i]['patterns']
     rspns = df.iloc[i]['responses']
+    
     for p in ptrns:
         dic['tag'].append(tag)
         dic['patterns'].append(p)
@@ -54,6 +55,7 @@ model = genai.GenerativeModel("gemini-1.5-flash")
 
 # Initialize Flask app
 app = Flask(__name__)
+app.secret_key = os.getenv("FLASK_SECRET_KEY")  # Set this in .env to keep it secure
 CORS(app)
 
 # TF-IDF Vectorization
@@ -69,58 +71,53 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # Speech recognition setup
 recognizer = sr.Recognizer()
 
-# User context storage for tracking the conversation history
-user_context = {}
-
 def find_best_match(user_input):
     input_vec = vectorizer.transform([user_input])
     similarities = cosine_similarity(input_vec, X).flatten()
     best_match_idx = similarities.argmax()
     
-    if similarities[best_match_idx] < 0.5:
+    if similarities[best_match_idx] < 0.55:
         return None
     
     responses = df.iloc[best_match_idx]["responses"]
     return random.choice(responses) if isinstance(responses, list) else responses
 
 def generate_response_with_rag(user_input, user_id=None):
-    # Retrieve conversation history if any
-    context = user_context.get(user_id, "")
-    # Append the context to the input to maintain conversation flow
+    context = session.get('conversation_history', "")
+    print(f"[DEBUG] Retrieved Context: {context}")  # Print current conversation context
+    
     full_input = f"{context} {user_input}".strip()
-
+    print(f"[DEBUG] Full Input Sent to Model: {full_input}")
+    
     retrieved_document = find_best_match(full_input)
     if retrieved_document:
         response = retrieved_document
     else:
         try:
-            # Generate response without truncating the text
             response = model.generate_content(full_input)
-            response = response.text.strip()  # Removed the limit of 200 characters
+            response = response.text.strip()
         except Exception as e:
             response = f"Error generating response: {str(e)}"
     
-    # Remove asterisks from the response
     response = re.sub(r'\*+', '', response)
     
-    # Update conversation history
-    if user_id:
-        user_context[user_id] = f"{context} {user_input} {response}".strip()
+    # **Add line breaks for readability**
+    formatted_response = response.replace("1.", "\n\n1.").replace("2.", "\n\n2.").replace("3.", "\n\n3.")
     
-    return response
-
+    session['conversation_history'] = f"{context} {user_input} {formatted_response}".strip()
+    print(f"[DEBUG] Updated Context: {session['conversation_history']}")  # Print updated conversation history
+    
+    return formatted_response
 
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
         user_message = None
-        user_id = request.cookies.get('user_id') or str(uuid.uuid4())  # Retrieve or generate a unique user ID
+        user_id = request.cookies.get('user_id') or str(uuid.uuid4())
         
-        # Handling audio input
         if "audio_file" in request.files:
             audio_file = request.files["audio_file"]
             
-            # Check for file extension and ensure it's a valid audio file (wav, mp3)
             if audio_file.filename.split('.')[-1].lower() not in ['wav', 'mp3']:
                 return jsonify({"response": "Invalid file type. Please upload a valid audio file (wav/mp3)."}), 400
             
@@ -131,24 +128,14 @@ def chat():
                 audio_data = recognizer.record(source)
                 
                 try:
-                    # Use Google recognizer to extract the text from audio
                     user_message = recognizer.recognize_google(audio_data)
-                    print(f"Recognized message: {user_message}")  # Debugging statement
-                    
-                    # Clean up repeated phrases or unwanted noise (basic example)
-                    # user_message = re.sub(r"(hello\s+){2,}", "hello ", user_message)  # Example cleanup
-                    
-                    # Clean up repeated words (immediate repetition)
-                    user_message = re.sub(r'\b(\w+)( \1)+\b', r'\1', user_message)   # Prevent repeated words
-                    
+                    print(f"\n[DEBUG] Recognized message: {user_message}\n")
+                    user_message = re.sub(r'\b(\w+)( \1)+\b', r'\1', user_message)
                 except sr.UnknownValueError:
                     user_message = "Sorry, I could not understand the audio."
-                    print("Could not understand audio.")
                 except sr.RequestError as e:
                     user_message = f"Sorry, there was an error with the speech recognition service: {e}"
-                    print(f"Speech recognition service error: {e}")
-
-
+        
         if not user_message:
             data = request.get_json()
             user_message = data.get("message")
@@ -167,9 +154,13 @@ def chat():
         
         audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
         
-        # Set user ID cookie for next conversation
-        response = jsonify({"response": response_text, "audio_url": audio_url, "follow_up": "Is there anything else you'd like to ask?"})
-        response.set_cookie('user_id', user_id, max_age=60*60*24*365)  # Store user ID for a year
+        response = jsonify({
+            "response": response_text,
+            "audio_url": audio_url,
+            "follow_up": "Is there anything else you'd like to ask?"
+        })
+        
+        response.set_cookie('user_id', user_id, max_age=60*60*24*365)
         
         return response
     except Exception as e:
