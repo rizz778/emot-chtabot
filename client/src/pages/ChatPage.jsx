@@ -24,6 +24,7 @@ const ChatPage = () => {
   const [activeSession, setActiveSession] = useState(null);
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null); // State to store audio URL
+  const [tokenBalance, setTokenBalance] = useState(0);
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
 
   useEffect(() => {
