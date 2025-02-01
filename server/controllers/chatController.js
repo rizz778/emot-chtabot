@@ -1,16 +1,24 @@
 import Chat from '../models/Chat.js'
 
 export const createSession = async (req,res)=>{
-    const {sessionName}=req.body;
+    
 
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized: User not found" });
+      }
+      const { sessionName } = req.body;
+      if (!sessionName) {
+        return res.status(400).json({ message: "Session name is required" });
+      }
         const newSession=await Chat.create({
             user:req.user._id,
             sessionName,
             message:[],
         });
-
+        await newSession.save();
         res.status(201).json(newSession);
+        console.log("New session created:", newSession);
     } catch (error) {
         console.error("Error creating session:",error);
         res.status(500).json({message:"Server Error" });
@@ -20,6 +28,10 @@ export const createSession = async (req,res)=>{
 //Retreive all sessions for a user
 export const getSessions = async (req, res) => {
     try {
+      if (!req.user || !req.user.id) {
+        return res.status(401).json({ message: "Unauthorized: User not found" });
+      }
+
       const sessions = await Chat.find({ user: req.user._id }).select("sessionName createdAt");
       res.status(200).json(sessions);
     } catch (error) {
