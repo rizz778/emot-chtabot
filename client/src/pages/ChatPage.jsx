@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Input, Button, message as antdMessage,Spin } from "antd";
+import {
+  Layout,
+  Menu,
+  Input,
+  Button,
+  message as antdMessage,
+  Spin,
+} from "antd";
 import { motion } from "framer-motion";
 import {
   MessageOutlined,
@@ -21,7 +28,8 @@ const ChatPage = () => {
   const [chatSessions, setChatSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [loading, setLoading] = useState(false);
-  const { transcript,listening ,resetTranscript } = useSpeechRecognition();
+  const [audioUrl, setAudioUrl] = useState(null); // State to store audio URL
+  const { transcript, listening, resetTranscript } = useSpeechRecognition();
 
   useEffect(() => {
     if (transcript) {
@@ -37,6 +45,7 @@ const ChatPage = () => {
       fetchMessages(activeSession);
     }
   }, [activeSession]);
+
   const fetchSessions = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -48,28 +57,27 @@ const ChatPage = () => {
       );
       setChatSessions(response.data);
       const savedSession = localStorage.getItem("activeSession");
-      const validSession = response.data.find((session) => session._id === savedSession);
+      const validSession = response.data.find(
+        (session) => session._id === savedSession
+      );
 
       if (validSession) {
         setActiveSession(savedSession);
       } else if (response.data.length > 0) {
         setActiveSession(response.data[0]._id);
         localStorage.setItem("activeSession", response.data[0]._id);
-      }else {
+      } else {
         const newSession = await axios.post(
           "http://localhost:4000/api/chat/sessions",
           { sessionName: "Session 1" },
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setChatSessions([newSession.data]);
-      setActiveSession(newSession.data._id);
-      localStorage.setItem("activeSession", newSession.data._id);
-
+        setActiveSession(newSession.data._id);
+        localStorage.setItem("activeSession", newSession.data._id);
       }
-      
     } catch (error) {
       antdMessage.error("Failed to fetch chat sessions.");
-
       console.error("Failed to fetch sessions:", error);
     }
   };
@@ -109,48 +117,65 @@ const ChatPage = () => {
   const handleSendMessage = async () => {
     if (!input.trim()) return;
 
-    setMessages((prevMessages) => [...prevMessages, { sender: "user", text: input }]);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: "user", text: input },
+    ]);
     setInput(""); // Clear input field immediately after sending
     setLoading(true); // Show "Model is typing...
     try {
-        const response = await fetch("http://127.0.0.1:5000/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: input }),
-        });
+      const response = await fetch("http://127.0.0.1:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: input }),
+      });
 
-        const data = await response.json();
-        setMessages((prevMessages) => [...prevMessages, { sender: "bot", text: data.response }]);
-        setLoading(false); // Hide "Model is typing..." 
-        await axios.post(`http://localhost:4000/api/chat/sessions/${activeSession}/messages`, 
-          { sender: "user", text: input },
-          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-  
-      await axios.post(`http://localhost:4000/api/chat/sessions/${activeSession}/messages`, 
-          { sender: "bot", text: data.response },
-          { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
-      );
-
-        // Play received audio response
-        if (data.audio_url) {
-            const audio = new Audio(data.audio_url);
-            audio.play();
+      const data = await response.json();
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { sender: "bot", text: data.response },
+      ]);
+      setAudioUrl(data.audio_url); // Store the audio URL in state
+      setLoading(false); // Hide "Model is typing..."
+      await axios.post(
+        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        { sender: "user", text: input },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
+      );
+
+      await axios.post(
+        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        { sender: "bot", text: data.response },
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
     } catch (error) {
-        console.error("Error fetching bot response:", error);
-        setMessages([...messages, { sender: "bot", text: "Error: Unable to get response" }]);
-        setLoading(false); // Hide "Model
+      console.error("Error fetching bot response:", error);
+      setMessages([
+        ...messages,
+        { sender: "bot", text: "Error: Unable to get response" },
+      ]);
+      setLoading(false); // Hide "Model is typing..."
     }
+    setInput(""); // Clear input field
+  };
 
-    setInput("");  // Clear input field
-};
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleSendMessage();
+    }
+  };
 
-const handleKeyPress = (event) => {
-  if (event.key === "Enter") {
-    handleSendMessage();
-  }
-};
+  const handlePlayAudio = () => {
+    if (audioUrl) {
+      const audio = new Audio(audioUrl);
+      audio.play();
+    }
+  };
+
   return (
     <Layout>
       <Sider width={250} className="chat-sidebar">
@@ -187,25 +212,33 @@ const handleKeyPress = (event) => {
                 {msg.text}
               </motion.div>
             ))}
-
             {loading && (
               <motion.div className="chat-message bot">
-                <Spin size="small"/><span>Model is typing...</span>
-                </motion.div>
-              )}
+                <Spin size="small" />
+                <span>Model is typing...</span>
+              </motion.div>
+            )}
           </motion.div>
           <div className="chat-input-container">
-            <Input value={input} onChange={(e) => setInput(e.target.value)} 
-            onKeyPress={handleKeyPress}
-            placeholder="Ask what you want..."/>
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask what you want..."
+            />
             <Button
               icon={<AudioOutlined />}
               onClick={() => {
-                listening ? SpeechRecognition.stopListening() : SpeechRecognition.startListening();
+                listening
+                  ? SpeechRecognition.stopListening()
+                  : SpeechRecognition.startListening();
               }}
             />
             <Button icon={<SendOutlined />} onClick={handleSendMessage} />
           </div>
+          {audioUrl && (
+            <Button onClick={handlePlayAudio}>Play Audio Response</Button>
+          )}
         </Content>
       </Layout>
     </Layout>

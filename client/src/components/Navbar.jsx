@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import logo6 from '../assets/images/logo6.jpg';
+import logo6 from "../assets/images/logo6.jpg";
 
 const Navbar = () => {
   return (
@@ -20,20 +20,28 @@ const Navbar = () => {
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
           }
         >
+          Home
+        </NavLink>
+        <NavLink
+          to="/about"
+          className={({ isActive }) =>
+            isActive ? "text-black font-bold" : "text-black hover:text-blue-200"
+          }
+        >
           About
         </NavLink>
         <NavLink
-          to='/login'
+          to="/login"
           className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+            isActive ? "text-black font-bold" : "text-black hover:text-blue-200"
           }
         >
           Login
         </NavLink>
         <NavLink
-          to='/signup'
+          to="/signup"
           className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+            isActive ? "text-black font-bold" : "text-black hover:text-blue-200"
           }
         >
           Signup
@@ -41,9 +49,9 @@ const Navbar = () => {
       </nav>
 
       {/* Logo (Center) */}
-      <div className='absolute left-1/2 transform -translate-x-1/2'>
-        <NavLink to='/'>
-          <img src={logo6} alt='logo' className='w-28 h-18 object-contain' />
+      <div className="absolute left-1/2 transform -translate-x-1/2">
+        <NavLink to="/">
+          <img src={logo6} alt="logo" className="w-28 h-18 object-contain" />
         </NavLink>
       </div>
     </header>

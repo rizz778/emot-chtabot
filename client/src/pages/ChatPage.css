@@ -37,13 +37,18 @@
   
   /* Chat Header */
   .chat-header {
-    background: paleturquoise; /* Soft green */
-    color: white;
-    font-size: 20px;
+    background: #448dc9; /* Soft blue */
+    color: rgb(7, 6, 6);
+    font-size: 30px;
+    font-weight: bold; /* Makes text bold */
     padding: 16px;
     text-align: center;
     min-width: 70vw;
-  }
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
   
   /* Chat Content */
   .chat-content {
