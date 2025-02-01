@@ -1,18 +1,21 @@
 import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import LandingPage from "./pages/LandingPage";
+import Home from "./pages/Home";
 import ChatPage from "./pages/ChatPage";
 import BuyToken from "./pages/BuyToken";
 import Login from "./pages/Login";
 import Signup from "./pages/SignUp";
 import PrivateRoute from "./routes/PrivateRoute";
 import "regenerator-runtime/runtime";
-
+import Navbar from "./components/Navbar"
+import About from "./pages/About"
+import './App.css'
 function App() {
   return (
     <Router>
+       <Navbar />
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Home />} />
         <Route path="/chat" element={<PrivateRoute component={ChatPage} />} />
         <Route path="/token" element={<PrivateRoute component={BuyToken} />} />
         <Route path="/login" element={<Login />} />
