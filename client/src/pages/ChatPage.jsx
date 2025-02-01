@@ -26,7 +26,7 @@ const ChatPage = () => {
   const [audioUrl, setAudioUrl] = useState(null); // State to store audio URL
   const [tokenBalance, setTokenBalance] = useState(0);
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
-
+  const navigate=useNavigate();
   useEffect(() => {
     if (transcript) {
       setInput((prev) => (prev ? prev + " " + transcript : transcript));
