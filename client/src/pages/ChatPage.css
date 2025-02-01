@@ -70,6 +70,13 @@
     gap: 10px;
   }
   
+  .btn {
+    font-weight: bold;
+    background-color: black;
+    color: white;
+    width: 200px;
+  }
+  
   .chat-message {
     padding: 10px 15px;
     margin-bottom: 10px;

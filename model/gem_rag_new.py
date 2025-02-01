@@ -76,7 +76,7 @@ def find_best_match(user_input):
     similarities = cosine_similarity(input_vec, X).flatten()
     best_match_idx = similarities.argmax()
     
-    if similarities[best_match_idx] < 0.5:
+    if similarities[best_match_idx] < 0.55:
         return None
     
     responses = df.iloc[best_match_idx]["responses"]
