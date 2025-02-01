@@ -1,0 +1,90 @@
+.mySwiper {
+    width: 80%;
+  }
+  
+  .swiper-slide {
+    width: 200px;
+    background-color: transparent;
+    border-radius: 10px;
+    background-size: cover;
+    /* border: 1px solid white; */
+    text-align: center;
+    font-family: "Courier New", Courier, monospace;
+    /* background-image: url(./assets/slideBG.png); */
+    color: #1d8ba0;
+    background-image: url(../assets/images/pink-bg4.jpg);
+  }
+  .testimonials-profile-circle {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    padding-top: 20px;
+  }
+  .testimonial-avatar {
+    width: 100px;
+    height: 100px;
+    border: 3px solid #1d8ba0;
+    border-radius: 50%;
+  }
+  .review-by {
+    color: #1d8ba0;
+    font-size: 18px;
+  }
+  .head {
+    color: #5CE0E6;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    font-weight: 500;
+    font-family: "Courier New", Courier, monospace;
+    font-weight: 900;
+  text-align: center;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  }
+  .head-p {
+    color: #f64a8a;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+  }
+  .swiper-pagination-bullet-active {
+    background-color: #ffffff !important;
+    border: 2px solid #1d8ba0 !important;
+    /* padding: 1px !important; */
+    border-radius: 1px !important;
+    /* padding-left: 5px !important; */
+    width: 30px !important;
+    height: 1px !important;
+    /* padding-right: 5px !important; */
+  }
+  .swiper-pagination-bullet {
+    background-color: #ffffff !important;
+    border: 2px solid #f64a8a !important;
+    /* padding: 1px !important; */
+    border-radius: 1px !important;
+    /* padding-left: 5px !important; */
+    width: 30px !important;
+    height: 1px !important;
+    /* padding-right: 5px !important; */
+  }
+
+  /* Change color of Swiper navigation arrows */
+.swiper-button-prev,
+.swiper-button-next {
+  color: #f64a8a !important; /* Change this to any color you prefer */
+}
+
+.swiper-button-prev:hover,
+.swiper-button-next:hover {
+  color: #d43b75 !important; /* Darker shade for hover effect */
+}
