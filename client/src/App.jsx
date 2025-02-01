@@ -17,7 +17,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/chat" element={<PrivateRoute component={ChatPage} />} />
-        <Route path="/token" element={<PrivateRoute component={BuyToken} />} />
+        <Route path="/token" element={<BuyToken />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
       </Routes>

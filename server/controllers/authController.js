@@ -20,8 +20,8 @@ export const Signup = async (req, res) => {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = new User({ username, email, password: hashedPassword });
+   
+    const newUser = new User({ username, email, password});
 
     await newUser.save();
 
@@ -74,9 +74,9 @@ export const Login = async (req, res) => {
     if (!user) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
-
+    console.log(user.password,password)
     // Check password
-    const isMatch = await user.matchPassword(password);
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: "Invalid email or password" });
     }
@@ -105,3 +105,26 @@ export const Login = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+
+// Fetch User Details
+export const getUserDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password"); // Exclude password
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      tokens: user.tokens, // Include token balance
+    });
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+

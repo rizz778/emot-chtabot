@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  Layout,
-  Menu,
-  Input,
-  Button,
-  message as antdMessage,
-  Spin,
-} from "antd";
+import { Layout, Menu, Input, Button, message as antdMessage,Spin,notification } from "antd";
 import { motion } from "framer-motion";
+import { DollarOutlined } from "@ant-design/icons";
 import {
   MessageOutlined,
   PlusOutlined,
@@ -19,6 +13,7 @@ import SpeechRecognition, {
 } from "react-speech-recognition";
 import axios from "axios";
 import "./ChatPage.css"; // Add custom styles if needed
+import {  useNavigate } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
@@ -29,8 +24,9 @@ const ChatPage = () => {
   const [activeSession, setActiveSession] = useState(null);
   const [loading, setLoading] = useState(false);
   const [audioUrl, setAudioUrl] = useState(null); // State to store audio URL
+  const [tokenBalance, setTokenBalance] = useState(0);
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
-
+  const navigate=useNavigate();
   useEffect(() => {
     if (transcript) {
       setInput((prev) => (prev ? prev + " " + transcript : transcript));
@@ -38,6 +34,7 @@ const ChatPage = () => {
   }, [transcript]);
 
   useEffect(() => {
+    fetchUserDetails();
     fetchSessions();
   }, []);
   useEffect(() => {
@@ -45,7 +42,17 @@ const ChatPage = () => {
       fetchMessages(activeSession);
     }
   }, [activeSession]);
-
+  const fetchUserDetails = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get("http://localhost:4000/api/auth/details", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTokenBalance(response.data.tokens);
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
+    }
+  };
   const fetchSessions = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -105,11 +112,21 @@ const ChatPage = () => {
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      setTokenBalance(response.data.tokens);
+      notification.success({
+        message: "Tokens Deducted",
+        description: "-2 tokens deducted from your account.",
+        duration: 2,
+      });
+
       setChatSessions([...chatSessions, response.data]);
       setActiveSession(response.data._id);
       localStorage.setItem("activeSession", response.data._id);
       setMessages([]);
     } catch (error) {
+      if(error.response.status===403){
+        navigate("/token");
+      }
       console.error("Failed to create session:", error);
     }
   };
@@ -178,8 +195,10 @@ const ChatPage = () => {
 
   return (
     <Layout>
-      <Sider width={250} className="chat-sidebar">
-        <div className="sidebar-header">Chats</div>
+      <Sider style={{ padding: "16px", background: "#001529", color: "#fff" }}>
+        <div style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}>
+          Tokens: <DollarOutlined /> {tokenBalance}
+        </div>
         <Menu
           theme="dark"
           mode="inline"
@@ -200,7 +219,7 @@ const ChatPage = () => {
           icon={<PlusOutlined />}
           onClick={handleNewSession}
         >
-          New Chat
+          New Chat(-2 Tokens)
         </Button>
       </Sider>
       <Layout>

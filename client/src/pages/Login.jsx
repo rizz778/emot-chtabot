@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
-import { Form, Input, Button, Checkbox, Row, Col, Typography, Divider,message } from 'antd';
-import { UserOutlined, LockOutlined, GoogleOutlined, FacebookFilled } from '@ant-design/icons';
-import { Link,useNavigate} from 'react-router-dom';
-import axios from 'axios';
-import './Login.css';
+import React, { useState } from "react";
+import { Form, Input, Button, Checkbox, Row, Col, Typography, Divider, message } from "antd";
+import { UserOutlined, LockOutlined, GoogleOutlined, FacebookFilled } from "@ant-design/icons";
+import { Link, useNavigate } from "react-router-dom";
+import axios from "axios";
+import "./Login.css";
 
 const { Title, Text } = Typography;
 
@@ -14,24 +14,28 @@ const Login = () => {
 
   const handleSubmit = async (values) => {
     setLoading(true);
+    console.log("Login Attempt:", values); // ✅ Debugging log
+     const {email,password} = values;
     try {
-      const response=await axios.post('http://localhost:4000/api/auth/login',values);
-      const {token,user}=response.data;
-      console.log(response.data);
+      const response = await axios.post("http://localhost:4000/api/auth/login", {email,password});
+
+      console.log("Login Response:", response.data); // ✅ Debugging log
+
+      const { token, user } = response.data;
+
+      if (!token || !user) {
+        throw new Error("Invalid response from server");
+      }
 
       // Store token and user details in localStorage
-      localStorage.setItem('token', token);
-      localStorage.setItem('user', JSON.stringify(user));
+      localStorage.setItem("token", token);
+      localStorage.setItem("user", JSON.stringify(user));
 
-      message.success('Login successful!');
-      navigate('/chat'); // Redirect user after login
-
-      console.log('Received values:', values);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Login successful!');
+      message.success("Login successful!");
+      navigate("/chat"); // Redirect user after login
     } catch (error) {
-      console.error('Login error:', error.response?.data?.message || error.message);
-      message.error(error.response?.data?.message || 'Login failed. Please try again.');
+      console.error("Login error:", error.response?.data?.message || error.message);
+      message.error(error.response?.data?.message || "Login failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -39,7 +43,7 @@ const Login = () => {
 
   return (
     <div className="login-container">
-      <Row justify="center" align="middle" style={{ minHeight: '100vh' }}>
+      <Row justify="center" align="middle" style={{ minHeight: "100vh" }}>
         <Col xs={24} sm={20} md={16} lg={12} xl={8}>
           <div className="login-card">
             <Title level={2} className="login-title">
@@ -59,26 +63,18 @@ const Login = () => {
               <Form.Item
                 name="email"
                 rules={[
-                  { required: true, message: 'Please input your email!' },
-                  { type: 'email', message: 'Please enter a valid email!' }
+                  { required: true, message: "Please input your email!" },
+                  { type: "email", message: "Please enter a valid email!" },
                 ]}
               >
-                <Input
-                  prefix={<UserOutlined />}
-                  placeholder="Email"
-                  size="large"
-                />
+                <Input prefix={<UserOutlined />} placeholder="Email" size="large" />
               </Form.Item>
 
               <Form.Item
                 name="password"
-                rules={[{ required: true, message: 'Please input your password!' }]}
+                rules={[{ required: true, message: "Please input your password!" }]}
               >
-                <Input.Password
-                  prefix={<LockOutlined />}
-                  placeholder="Password"
-                  size="large"
-                />
+                <Input.Password prefix={<LockOutlined />} placeholder="Password" size="large" />
               </Form.Item>
 
               <Form.Item>
@@ -91,13 +87,7 @@ const Login = () => {
               </Form.Item>
 
               <Form.Item>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  size="large"
-                  loading={loading}
-                  block
-                >
+                <Button type="primary" htmlType="submit" size="large" loading={loading} block>
                   Sign In
                 </Button>
               </Form.Item>
@@ -106,22 +96,12 @@ const Login = () => {
 
               <Row gutter={16}>
                 <Col span={12}>
-                  <Button
-                    icon={<GoogleOutlined />}
-                    size="large"
-                    block
-                    className="social-btn google-btn"
-                  >
+                  <Button icon={<GoogleOutlined />} size="large" block className="social-btn google-btn">
                     Google
                   </Button>
                 </Col>
                 <Col span={12}>
-                  <Button
-                    icon={<FacebookFilled />}
-                    size="large"
-                    block
-                    className="social-btn facebook-btn"
-                  >
+                  <Button icon={<FacebookFilled />} size="large" block className="social-btn facebook-btn">
                     Facebook
                   </Button>
                 </Col>
