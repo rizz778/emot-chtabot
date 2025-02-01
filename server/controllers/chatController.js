@@ -1,8 +1,9 @@
 import Chat from '../models/Chat.js'
-
+import User from '../models/User.js'
 export const createSession = async (req,res)=>{
     
-
+    
+    
     try {
       if (!req.user || !req.user.id) {
         return res.status(401).json({ message: "Unauthorized: User not found" });
@@ -17,13 +18,19 @@ export const createSession = async (req,res)=>{
             message:[],
         });
         await newSession.save();
-        res.status(201).json(newSession);
+        
+        res.status(201).json({
+          session: newSession,
+          tokens: res.locals.tokens, // Send updated token balance
+        });
         console.log("New session created:", newSession);
     } catch (error) {
         console.error("Error creating session:",error);
         res.status(500).json({message:"Server Error" });
     }
-};
+}
+
+
 
 //Retreive all sessions for a user
 export const getSessions = async (req, res) => {
