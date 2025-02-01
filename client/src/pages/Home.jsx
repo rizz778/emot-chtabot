@@ -9,6 +9,9 @@ import { soundoff, soundon } from "../assets/icons";
 import DarkForest from "../models/DarkForest.jsx";
 import EnchantedForest from "../models/EnchantedForest";
 import Forest from "../models/Forest";
+import Testimonials from "../components/Testimonials.jsx";
+import pinkBg from "../assets/images/pink-bg.jpg";
+
 const Home = () => {
   const audioRef = useRef(new Audio(sakura));
   audioRef.current.volume = 0.4;
@@ -61,7 +64,9 @@ const Home = () => {
   const [islandScale, islandPosition] = adjustIslandForScreenSize();
 
   return (
-    <section className='w-full h-screen relative'>
+    <section 
+    className='w-full h-screen relative '
+    >
       <div className='absolute top-28 left-0 right-0 z-10 flex items-center justify-center'>
         {currentStage && <HomeInfo currentStage={currentStage} />}
       </div>
@@ -106,6 +111,7 @@ const Home = () => {
           /> */}
         {/* </Suspense> */}
       </Canvas>
+
       <div className='absolute bottom-2 left-2'>
         <img
           src={!isPlayingMusic ? soundoff : soundon}
@@ -114,8 +120,13 @@ const Home = () => {
           className='w-10 h-10 cursor-pointer object-contain'
         />
       </div>
-      
-    </section>
+      <div 
+  className="testimonial-section" 
+  // style={{ backgroundImage: `url(${pinkBg})`, }}
+>
+   <Testimonials />
+</div>
+</section>
   );
 };
 

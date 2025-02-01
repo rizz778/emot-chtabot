@@ -23,7 +23,7 @@ const Forest = (props) => {
 
   return (
     <group ref={meshRef} {...props} dispose={null} {...bind()}>
-      <group scale={[100, 100, 100]}> {/* Adjust scale as needed */}
+      <group scale={[200, 200, 200]}> {/* Adjust scale as needed */}
         <mesh
           castShadow
           receiveShadow
