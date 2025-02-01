@@ -237,7 +237,9 @@ const ChatPage = () => {
             <Button icon={<SendOutlined />} onClick={handleSendMessage} />
           </div>
           {audioUrl && (
-            <Button onClick={handlePlayAudio}>Play Audio Response</Button>
+            <Button className="btn" onClick={handlePlayAudio}>
+              Audio Response
+            </Button>
           )}
         </Content>
       </Layout>
