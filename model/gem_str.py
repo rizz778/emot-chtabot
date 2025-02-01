@@ -4,6 +4,7 @@ from gtts import gTTS
 import os
 import uuid
 import speech_recognition as sr
+import re
 
 # Configure the Gemini API
 def configure_genai(api_key):
@@ -24,9 +25,11 @@ os.makedirs(AUDIO_DIR, exist_ok=True)
 # Initialize Speech Recognition
 recognizer = sr.Recognizer()
 
-# Initialize or reset the conversation history
+# Initialize or reset the session state
 if "conversation" not in st.session_state:
     st.session_state.conversation = []
+if "memory" not in st.session_state:
+    st.session_state.memory = {}
 
 # App UI
 st.title("Chat with Gemini AI")
@@ -42,11 +45,39 @@ def display_conversation():
         else:
             st.write(f"**Bot:** {message['message']}")
 
+def store_memory(user_message):
+    """Store user-provided information into memory."""
+    info_match = re.match(r"my (.+) is (.+)", user_message, re.IGNORECASE)
+    if info_match:
+        key = info_match.group(1).strip().lower()
+        value = info_match.group(2).strip()
+        st.session_state.memory[key] = value
+        return f"Okay, Got It!."
+
+def recall_memory(user_message):
+    """Recall information from memory if queried."""
+    query_match = re.match(r"what is my (.+)", user_message, re.IGNORECASE)
+    if query_match:
+        key = query_match.group(1).strip().lower()
+        if key in st.session_state.memory:
+            return f"Your {key} is {st.session_state.memory[key]}."
+        else:
+            return f"I don't know your {key} yet. Please tell me by saying 'My {key} is [value].'"
+    return None
+
 def generate_response(user_message):
-    """Generate a bot response and update the conversation."""
+    """Generate a bot response, handle memory, and update conversation."""
     try:
-        response = model.generate_content(user_message)
-        bot_response = response.text.strip()
+        # Check memory queries or store information
+        memory_response = recall_memory(user_message) or store_memory(user_message)
+        if memory_response:
+            bot_response = memory_response
+        else:
+            # Generate response using Gemini if no memory actions
+            response = model.generate_content(user_message)
+            bot_response = response.text.strip()
+        
+        # Add to conversation history
         st.session_state.conversation.append({"role": "user", "message": user_message})
         st.session_state.conversation.append({"role": "bot", "message": bot_response})
         return bot_response
@@ -113,3 +144,5 @@ elif input_type == "Speech":
             st.error(f"Speech recognition error: {str(e)}")
         except Exception as e:
             st.error(f"Error: {str(e)}")
+# -------------------------------------------------------------------------------------------
+# HUGGINGFACE_TOKEN = "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"
