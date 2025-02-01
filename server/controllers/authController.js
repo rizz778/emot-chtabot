@@ -105,3 +105,26 @@ export const Login = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+
+// Fetch User Details
+export const getUserDetails = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password"); // Exclude password
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      tokens: user.tokens, // Include token balance
+    });
+  } catch (error) {
+    console.error("Error fetching user details:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
