@@ -11,6 +11,7 @@ import EnchantedForest from "../models/EnchantedForest";
 import Forest from "../models/Forest";
 import Testimonials from "../components/Testimonials.jsx";
 import pinkBg from "../assets/images/pink-bg.jpg";
+import Benefits from "../components/Benefits.jsx";
 
 const Home = () => {
   const audioRef = useRef(new Audio(sakura));
@@ -120,11 +121,16 @@ const Home = () => {
           className='w-10 h-10 cursor-pointer object-contain'
         />
       </div>
+      <div className="sections">
       <div 
   className="testimonial-section" 
   // style={{ backgroundImage: `url(${pinkBg})`, }}
 >
    <Testimonials />
+</div>
+<div className="benefits-section flex justify-center items-center min-h-screen">
+  <Benefits />
+</div>
 </div>
 </section>
   );
