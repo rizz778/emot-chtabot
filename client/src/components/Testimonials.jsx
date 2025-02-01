@@ -20,43 +20,44 @@ export default function Testimonials() {
   const testimonials = [
     {
       img: avatarIImg,
-      text: "This service has been a game-changer for me! The experience was seamless, and I couldn't be happier with the results.",
+      text: "Sentio has been incredibly helpful in my mental health journey. The personalized responses and empathetic support made me feel understood and heard.",
       author: "— Alexa Johnson",
     },
     {
       img: avatarIIImg,
-      text: "Absolutely incredible! The attention to detail and the level of support provided exceeded my expectations.",
+      text: "I’ve never experienced anything like Sentio. It's emphatic ability made me feel like I was talking to a real counselor.",
       author: "— Sarah Williams",
     },
     {
       img: avatarIIIImg,
-      text: "I highly recommend it! The team is fantastic, and they truly care about making sure you get the best experience possible.",
+      text: "Sentio’s 24/7 availability and tailored advice have been a game-changer for me. Whether through speech or text, I always get the support I need.",
       author: "— Michaela Lee",
     },
     {
       img: avatarIVImg,
-      text: "One of the best experiences I’ve had. The process was smooth, and the results were outstanding.",
+      text: "The virtual therapy sessions with Sentio were a great experience. I felt completely comfortable and received the guidance I needed, anytime, anywhere.",
       author: "— Emily Davis",
     },
     {
       img: avatarVImg,
-      text: "A truly transformative experience! The level of professionalism and quality is top-notch.",
+      text: "Sentio is a life-saver! It combines advanced AI with genuine empathy, providing support that truly feels personalized and effective.",
       author: "— David Smith",
     },
   ];
+  
 
   return (
     <section>
       <div className="main">
         <div className="head-p">
           <span style={{ paddingRight: "5px", color : "#ffc0cb" }}>REAL STORIES,REAL</span>
-          <span style={{ color: "#5CE0E6" }}> IMPACT  </span>
+          <span style={{ color: "purple" }}> IMPACT  </span>
         </div>
         <div className="head">TESTIMONIALS</div>
         <Swiper
           loop={true}
           pagination={{ clickable: true }}
-          autoplay={{ delay: 3000 }}
+          autoplay={{ delay: 2000 }}
           navigation={true}
           modules={[Autoplay, EffectCoverflow, Pagination, Navigation]}
           className="mySwiper"

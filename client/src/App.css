@@ -29,6 +29,7 @@
   }
 }
 .testimonial-section {
+  margin-bottom: 3rem;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -38,7 +39,7 @@
   margin-bottom: 0%;
 }
 .benefits-section {
-  margin-top: 3rem;
+  margin-top: 8rem;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -46,6 +47,6 @@
   /* background-color : #edf9ff; */
 }
 .sections {
-  background : linear-gradient(to bottom, #f25a97,#fffafc, #edf9ff,#edf9ff, #edf9ff);
+  background : linear-gradient(to bottom, #f25a97, #fffafc, #edf9ff, #edf9ff);
 
 }

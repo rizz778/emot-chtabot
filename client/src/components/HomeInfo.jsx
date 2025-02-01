@@ -6,7 +6,7 @@ const HomeInfo = () => {
     <div className='text-center'>
       <h1 className='sm:text-xl sm:leading-snug neo-brutalism-blue py-4 px-8 text-white mx-5'>
         <span className='typing-effect'>
-          Hi, I'm <span className='font-bold text-[24px] text-[#5CE0E6]'>SENTIO</span>
+          Hi, I'm <span className='font-bold text-[24px] '>SENTIO.</span>
           <br />
           Your sanctuary for introspection and growth.
         </span>
