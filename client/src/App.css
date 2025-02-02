@@ -59,5 +59,13 @@
   background-repeat: no-repeat;
  /* Adjust spacing as needed */
   /* background-color : #edf9ff; */
-  background : linear-gradient(to bottom, #edf9ff, #edf9ff, #ffd1e3, #fecbdf);
+  background : linear-gradient(to bottom, #edf9ff, #edf9ff, #ffd1e3, #ff92be);
+}
+.pricing-section {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+ /* Adjust spacing as needed */
+  /* background-color : #edf9ff; */
+  background : linear-gradient(to bottom, #ff92be, #ff92be, #ffd1e3, #edf9ff);
 }

@@ -13,6 +13,7 @@ import Testimonials from "../components/Testimonials.jsx";
 import pinkBg from "../assets/images/pink-bg.jpg";
 import Benefits from "../components/Benefits.jsx";
 import Faq from "../components/Faq.jsx";
+import BuyToken from "./BuyToken.jsx";
 
 const Home = () => {
   const audioRef = useRef(new Audio(sakura));
@@ -136,7 +137,11 @@ const Home = () => {
 <div className="faq-section">
   <Faq />
 </div>
+<div className="pricing-section">
+  <BuyToken />
+</div>
 </section>
+
   );
 };
 
