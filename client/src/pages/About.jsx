@@ -15,7 +15,7 @@ import Faq from "../components/Faq.jsx";
 import BuyToken from "./BuyToken.jsx";
 import Footer from "../components/Footer.jsx";
 import "./About.css"
-import AboutInfo from "../components/Aboutinfo.jsx"
+import AboutInfo from "../components/AboutInfo.jsx"
 const About = () => {
   const [currentStage, setCurrentStage] = useState(1);
   const [isRotating, setIsRotating] = useState(false);
