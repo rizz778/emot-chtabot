@@ -46,9 +46,10 @@ const Login = () => {
       <Row justify="center" align="middle" style={{ minHeight: "100vh" }}>
         <Col xs={24} sm={20} md={16} lg={12} xl={8}>
           <div className="login-card">
-            <Title level={2} className="login-title">
-              Welcome Back
-            </Title>
+          <Title level={2} className="login-title" style={{ color: "#f64a8a" }}>
+  Welcome Back
+</Title>
+
             <Text type="secondary" className="login-subtitle">
               Please sign in to continue
             </Text>
@@ -82,12 +83,19 @@ const Login = () => {
                   <Form.Item name="remember" valuePropName="checked" noStyle>
                     <Checkbox>Remember me</Checkbox>
                   </Form.Item>
-                  <Link to="/forgot-password">Forgot password?</Link>
+                  <Link to="/forgot-password" >Forgot password?</Link>
                 </Row>
               </Form.Item>
 
               <Form.Item>
-                <Button type="primary" htmlType="submit" size="large" loading={loading} block>
+                <Button type="primary" htmlType="submit" size="large" loading={loading} block  style={{
+    backgroundColor: "#f9a8d4", // Soft pink
+    borderColor: "#f472b6", // Slightly darker pink
+    color: "white", // White text for contrast
+    fontWeight: "bold",
+    borderRadius: "8px",
+    padding: "12px 16px",
+  }}>
                   Sign In
                 </Button>
               </Form.Item>
@@ -109,7 +117,7 @@ const Login = () => {
 
               <div className="register-cta">
                 <Text>Don't have an account? </Text>
-                <Link to="/signup">Create account</Link>
+                <Link to="/signup " >Create account</Link>
               </div>
             </Form>
           </div>

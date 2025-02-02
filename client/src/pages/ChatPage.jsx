@@ -239,7 +239,7 @@ const ChatPage = () => {
           Tokens: <DollarOutlined /> {tokenBalance}
         </div>
         <Menu
-          theme="dark"
+          theme="light"
           mode="inline"
           selectedKeys={[activeSession]}
           onClick={({ key }) => {
