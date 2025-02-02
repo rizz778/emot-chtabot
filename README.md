@@ -35,12 +35,3 @@
 ✅ **Secure & Private** – Chat history is securely stored for better continuity.  
 ✅ **Text & Voice Input** – Users can interact via text or speech recognition.  
 ✅ **Dynamic Responses** – Uses retrieval-augmented generation (RAG) for improved accuracy.  
-
----
-
-## 📖 **Project Overview**  
-SentIO was developed to bridge **mental health accessibility gaps** by providing instant emotional support to users globally. Leveraging **AI advancements and user-generated content**, it offers **meaningful, empathetic conversations** in real-time.  
-
----
-
-## 📂 **Project Structure**  
