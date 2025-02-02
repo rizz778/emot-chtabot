@@ -14,7 +14,7 @@ import pinkBg from "../assets/images/pink-bg.jpg";
 import Benefits from "../components/Benefits.jsx";
 import Faq from "../components/Faq.jsx";
 import BuyToken from "./BuyToken.jsx";
-
+import Footer from "../components/Footer.jsx";
 const Home = () => {
   const audioRef = useRef(new Audio(sakura));
   audioRef.current.volume = 0.4;
@@ -140,8 +140,9 @@ const Home = () => {
 <div className="pricing-section">
   <BuyToken />
 </div>
-</section>
+<Footer/>
 
+</section>
   );
 };
 
