@@ -1,1 +1,1 @@
-web: gunicorn gem_rag_new:app
+web: gunicorn wsgi:app
