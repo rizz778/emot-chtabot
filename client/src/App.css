@@ -81,7 +81,7 @@
   overflow: hidden; /* Hide overflow to create the typing effect */
   white-space: nowrap; /* Keep text on a single line */
   border-right: 3px solid white; /* Cursor effect */
-  animation: typing 3s steps(40, end);
+  animation: typing 3s steps(40, end),  blink-caret 0.75s step-end infinite;
 }
 
 /* Typing effect for the paragraph */
@@ -90,7 +90,7 @@
   overflow: hidden;
   white-space: normal; /* Allow text to wrap */
   border-right: 3px solid white; /* Cursor effect */
-  animation: typing 10s steps(100, end);
+  animation: typing 8s steps(100, end),  blink-caret 0.75s step-end infinite;
   word-wrap: break-word; /* Break long words to prevent overflow */
   max-width: 100%; /* Ensure the paragraph doesn't exceed the container width */
 }
@@ -134,12 +134,17 @@
   font-size: 3rem;  /* Larger font size */
   font-weight: bold;
   text-shadow: 2px 2px 5px #36e7ffcc;  /* Adding a glowing effect */
+  margin-top: 500px;
 }
 
 /* Change paragraph text color for brown/light blue background */
 .typing-effect-paragraph {
-  color: #36e7ffcc;  /* Brown color for text */
+  color: #fff;  /* Brown color for text */
   padding: 20px;
   border-radius: 8px;
   font-weight: bold;
+}
+/* Adjust the margin-top of the heading */
+.abh1 {
+  margin-top: -130px; /* Move it up */
 }
