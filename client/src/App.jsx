@@ -1,5 +1,5 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route, useLocation } from "react-router-dom";
 import Home from "./pages/Home";
 import ChatPage from "./pages/ChatPage";
 import BuyToken from "./pages/BuyToken";
@@ -7,13 +7,25 @@ import Login from "./pages/Login";
 import Signup from "./pages/SignUp";
 import PrivateRoute from "./routes/PrivateRoute";
 import "regenerator-runtime/runtime";
-import Navbar from "./components/Navbar"
-import About from "./pages/About"
-import './App.css'
+import Navbar from "./components/Navbar";
+import About from "./pages/About";
+import './App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+
 function App() {
+  const location = useLocation();
+
+  // Apply the gradient background if on /token page
+  useEffect(() => {
+    if (location.pathname === '/token') {
+      document.body.style.backgroundColor = ' #ff92be';
+    } else {
+      document.body.style.background = ''; // Reset to default
+    }
+  }, [location]);
+
   return (
-    <Router>
+    <div>
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
@@ -23,8 +35,14 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<About />} />
       </Routes>
-    </Router>
+    </div>
   );
 }
 
-export default App;
+export default function AppWrapper() {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}
