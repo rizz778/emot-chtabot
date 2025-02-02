@@ -39,3 +39,70 @@ Unlike traditional rule-based chatbots, **SentIO** adapts dynamically to users' 
 ✅ **Secure & Private** – Chat history is securely stored for better continuity.  
 ✅ **Text & Voice Input** – Users can interact via text or speech recognition.  
 ✅ **Dynamic Responses** – Uses retrieval-augmented generation (RAG) for improved accuracy.  
+
+### Instructions to Run **Sentio** Project
+---
+
+### **1. Frontend (React App)**
+
+1. **Navigate to the frontend directory**:
+   ```bash
+   cd client
+   ```
+
+2. **Install the dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+   - This will start the React development server, and you can access the frontend at [http://localhost:5173](http://localhost:5173).
+
+---
+
+### **2. Backend (Express.js Server)**
+
+1. **Navigate to the backend directory**:
+   ```bash
+   cd server
+   ```
+
+2. **Install the dependencies**:
+   ```bash
+   npm install
+   ```
+
+3. **Start the backend server**:
+   ```bash
+   node index.js
+   ```
+
+   - This will start the Express.js server, and the backend API will be available on [http://localhost:4000](http://localhost:4000).
+
+---
+
+### **3. Model (Flask Server for AI Integration)**
+
+1. **Navigate to the model directory**:
+   ```bash
+   cd model
+   ```
+
+2. **Run the Python model script**:
+   ```bash
+   python gem.py
+   ```
+
+   - This will start the Flask server, integrating the machine learning models that provide emotional support. The Flask server will run on [http://localhost:5000](http://localhost:5000) (or the port defined in your script).
+
+---
+
+### **Final Setup Overview:**
+
+1. **Frontend**: Runs on React (client-side) and communicates with the backend API.
+2. **Backend**: Runs on Express.js and handles routing, database operations, and communication with the model.
+3. **Model**: Runs a Flask-based server which integrates the AI/ML model to provide real-time emotional support via Gemini and RAG.
