@@ -46,7 +46,7 @@ const Signup = () => {
       <Row justify="center" align="middle" style={{ minHeight: '100vh' }}>
         <Col xs={24} sm={20} md={16} lg={12} xl={8}>
           <div className="signup-card">
-            <Title level={2} className="signup-title">
+            <Title level={2} className="signup-title"  style={{color: "#f64a8a"}}>
               Create Your Account
             </Title>
             <Text type="secondary" className="signup-subtitle">
@@ -131,7 +131,7 @@ const Signup = () => {
                 ]}
               >
                 <Checkbox>
-                  I agree to the <Link to="/terms">terms and conditions</Link>
+                  I agree to the <Link to="/terms" >terms and conditions</Link>
                 </Checkbox>
               </Form.Item>
 
@@ -142,6 +142,7 @@ const Signup = () => {
                   size="large"
                   loading={loading}
                   block
+                  style={{backgroundColor: "#f64a8a"}}
                 >
                   Sign Up
                 </Button>
@@ -172,9 +173,9 @@ const Signup = () => {
                 </Col>
               </Row>
 
-              <div className="login-cta">
+              <div className="login-cta" >
                 <Text>Already have an account? </Text>
-                <Link to="/login">Log in</Link>
+                <Link to="/login ">Log in</Link>
               </div>
             </Form>
           </div>

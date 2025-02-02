@@ -126,15 +126,15 @@ html, body {
 .ant-btn-primary:hover {
   background-color: #4a90c8; /* Darker blue on hover */
 }
-.ant-menu-dark .ant-menu-item-selected {
+.ant-menu-light .ant-menu-item-selected {
   background-color: #ff4caf !important; /* Pink-300 */
 }
 
-.ant-menu-dark .ant-menu-item-selected > span,
-.ant-menu-dark .ant-menu-item-selected > .ant-menu-title-content {
+.ant-menu-light .ant-menu-item-selected > span,
+.ant-menu-light .ant-menu-item-selected > .ant-menu-title-content {
   color: white !important; /* White text on pink */
 }
 
-.ant-menu-dark .ant-menu-item:hover {
+.ant-menu-light .ant-menu-item:hover {
   background-color: #f472b6 !important; /* Darker pink on hover */
 }
