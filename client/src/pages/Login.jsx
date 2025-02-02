@@ -17,7 +17,7 @@ const Login = () => {
     console.log("Login Attempt:", values); // ✅ Debugging log
      const {email,password} = values;
     try {
-      const response = await axios.post("http://localhost:4000/api/auth/login", {email,password});
+      const response = await axios.post("https://emot-chtabot-1.onrender.com/api/auth/login", {email,password});
 
       console.log("Login Response:", response.data); // ✅ Debugging log
 
