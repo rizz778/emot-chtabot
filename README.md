@@ -1,8 +1,12 @@
 # **SentIO - AI Emotional Support Chatbot**  
-🌟 **SentIO** is an AI-powered chatbot designed to provide **empathetic and context-aware emotional support** to users, leveraging advanced NLP and retrieval-augmented generation (RAG).  
+🌟**SentIO** is an intelligent conversational agent designed to provide **emotional support and guidance** to users in distress. It leverages **advanced Natural Language Processing (NLP)** and **Retrieval-Augmented Generation (RAG)** to create meaningful, empathetic, and context-aware responses.  
+
+Unlike traditional rule-based chatbots, **SentIO** adapts dynamically to users' emotions, understands context across multiple interactions, and provides **real-time emotional assistance**. While it is not a substitute for therapy, it serves as a **first point of contact** for individuals seeking emotional comfort, self-help strategies, or mental health resources.  
+
+---
 
 ## 🚀 **Live Demo**  
-🔗 **[SentIO Deployed Link](https://emot-chtabot-2.onrender.com/token)**  
+🔗 **[SentIO Deployed Link](https://emot-chtabot-2.onrender.com/)**  
 
 🎥 **[YouTube Demo](https://www.youtube.com/watch?v=7js-tPy3AAw)**  
 
