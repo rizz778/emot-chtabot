@@ -1,0 +1,12 @@
+/* Add these styles to your CSS file (e.g., About.css) */
+.bg-night-sky {
+    background: url('https://images.pexels.com/photos/1048283/pexels-photo-1048283.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1') no-repeat center center;
+    background-size: cover; /* Ensures the image covers the entire screen */
+    background-attachment: fixed; /* Keeps the background fixed while scrolling */
+    position: relative;
+    overflow: hidden;
+    animation: zoomOut 60s infinite ease-in-out; /* Animation for zooming out */
+}
+
+/* Create a starry sky effect */
+/* Typing Effect */
