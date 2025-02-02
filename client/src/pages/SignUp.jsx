@@ -17,7 +17,7 @@ const Signup = () => {
     try {
       console.log("Sending:", username, email, password);
 
-      const response=await axios.post('http://localhost:4000/api/auth/signup',{
+      const response=await axios.post('https://emot-chtabot-1.onrender.com/api/auth/signup',{
         username, email, password
       });
 
