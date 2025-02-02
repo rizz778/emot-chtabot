@@ -51,7 +51,7 @@ export default function Testimonials() {
       <div className="main">
         <div className="head-p">
           <span style={{ paddingRight: "5px", color : "#ffc0cb" }}>REAL STORIES,REAL</span>
-          <span style={{ color: "purple" }}> IMPACT  </span>
+          <span style={{ color: "#5CE0E6" }}> IMPACT  </span>
         </div>
         <div className="head">TESTIMONIALS</div>
         <Swiper

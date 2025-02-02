@@ -12,6 +12,7 @@ import Forest from "../models/Forest";
 import Testimonials from "../components/Testimonials.jsx";
 import pinkBg from "../assets/images/pink-bg.jpg";
 import Benefits from "../components/Benefits.jsx";
+import Faq from "../components/Faq.jsx";
 
 const Home = () => {
   const audioRef = useRef(new Audio(sakura));
@@ -131,6 +132,9 @@ const Home = () => {
 <div className="benefits-section flex justify-center items-center min-h-screen">
   <Benefits />
 </div>
+</div>
+<div className="faq-section">
+  <Faq />
 </div>
 </section>
   );

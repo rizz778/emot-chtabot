@@ -29,24 +29,35 @@
   }
 }
 .testimonial-section {
-  margin-bottom: 3rem;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
   padding: 50px 0; /* Adjust spacing as needed */
-  /* background : linear-gradient(to bottom, #f25a97, #edf9ff); */
+  /* background : linear-gradient(to bottom, #f25a97, #fffafc, #edf9ff); */
   /* background-color: #fffafc; */
   margin-bottom: 0%;
 }
 .benefits-section {
-  margin-top: 8rem;
+  margin-top: 2rem;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  margin-bottom: 0%;
+ /* Adjust spacing as needed */
+  /* background-color : #edf9ff; */
+  /* background : linear-gradient(to bottom, #edf9ff); */
+}
+.sections {
+  background : linear-gradient(to bottom, #ff92be,   #edf9ff,  #edf9ff);
+
+}
+
+.faq-section {
+  margin-top: 0;
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
  /* Adjust spacing as needed */
   /* background-color : #edf9ff; */
-}
-.sections {
-  background : linear-gradient(to bottom, #f25a97, #fffafc, #edf9ff, #edf9ff);
-
+  background : linear-gradient(to bottom, #edf9ff, #edf9ff, #ffd1e3, #fecbdf);
 }
