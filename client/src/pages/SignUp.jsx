@@ -3,7 +3,7 @@ import { Form, Input, Button, Row, Col, Typography, Divider, Checkbox,message} f
 import { MailOutlined, LockOutlined, UserOutlined, GoogleOutlined, FacebookFilled } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
-import './Signup.css';
+import './SignUp.css'
 import axios from "axios"
 const { Title, Text } = Typography;
 
