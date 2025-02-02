@@ -90,7 +90,7 @@
   overflow: hidden;
   white-space: normal; /* Allow text to wrap */
   border-right: 3px solid white; /* Cursor effect */
-  animation: typing 8s steps(100, end),  blink-caret 0.75s step-end infinite;
+  animation: typing 4s steps(100, end),  blink-caret 0.75s step-end infinite;
   word-wrap: break-word; /* Break long words to prevent overflow */
   max-width: 100%; /* Ensure the paragraph doesn't exceed the container width */
 }
