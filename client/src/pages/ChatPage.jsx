@@ -133,27 +133,48 @@ const ChatPage = () => {
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
-
+  
     setMessages((prevMessages) => [
       ...prevMessages,
       { sender: "user", text: input },
     ]);
+  
     setInput(""); // Clear input field immediately after sending
-    setLoading(true); // Show "Model is typing...
+    setLoading(true); // Show "Model is typing..."
+  
     try {
+      // Retrieve last 5 messages from the backend
+      const chatHistoryResponse = await axios.get(
+        `http://localhost:4000/api/chat/sessions/${activeSession}`,
+        {
+          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+  
+      const lastFiveMessages = chatHistoryResponse.data.messages.slice(-5); // Get the last 5 messages
+  
+      // Send message to AI model, including session ID and conversation history
       const response = await fetch("http://127.0.0.1:5000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: input }),
+        body: JSON.stringify({
+          message: input,
+          session_id: activeSession, // Include session ID
+          conversation_history: lastFiveMessages, // Include last 5 messages
+        }),
       });
-
+  
       const data = await response.json();
+  
       setMessages((prevMessages) => [
         ...prevMessages,
         { sender: "bot", text: data.response },
       ]);
+  
       setAudioUrl(data.audio_url); // Store the audio URL in state
       setLoading(false); // Hide "Model is typing..."
+  
+      // Save user message to backend
       await axios.post(
         `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
         { sender: "user", text: input },
@@ -161,7 +182,8 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-
+  
+      // Save bot response to backend
       await axios.post(
         `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
         { sender: "bot", text: data.response },
@@ -171,14 +193,14 @@ const ChatPage = () => {
       );
     } catch (error) {
       console.error("Error fetching bot response:", error);
-      setMessages([
-        ...messages,
+      setMessages((prevMessages) => [
+        ...prevMessages,
         { sender: "bot", text: "Error: Unable to get response" },
       ]);
       setLoading(false); // Hide "Model is typing..."
     }
-    setInput(""); // Clear input field
   };
+  
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
