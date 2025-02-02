@@ -3,7 +3,7 @@ import logo6 from '../assets/images/logo6.jpg';
 
 const Navbar = () => {
   return (
-    <header className='flex items-center justify-between p-4 bg-gradient-to-r from-pink-300 to-[#ffc0cb] h-20'>
+    <header className='flex items-center justify-between p-4 bg-gradient-to-r from-pink-300  to-[#ffc0cb] h-20'>
       {/* Navigation Links (Left) */}
       <nav className='flex gap-8 font-medium text-lg'>
       <NavLink

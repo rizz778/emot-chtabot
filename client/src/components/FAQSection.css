@@ -1,0 +1,137 @@
+.faq-container {
+    position: relative;
+    max-width: 1000px;
+    max-height: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    background-size: cover; /* Ensures the image covers the entire container */
+    background-position: center center; /* Centers the image */
+    background-repeat: no-repeat; /* Prevents the image from repeating */
+
+  }
+  
+  .faq-overlap-image {
+    position: absolute;
+    top: 160px; /* Adjust as needed */
+    right: -170px; /* Adjust as needed */
+    width: 250px; /* Adjust as needed */
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.6); /* Stronger initial shadow */
+    transform: rotate(5deg); /* Slight rotation for 3D effect */
+    z-index: 2; /* Ensure it overlaps the FAQ container */
+    transition: transform 0.5s ease, box-shadow 0.5s ease, filter 0.5s ease; /* Smoother and longer transition */
+    animation: float 3s ease-in-out infinite; /* Dramatic floating animation */
+  }
+  
+  /* Super Dramatic Floating Animation */
+  @keyframes float {
+    0% {
+      transform: translateY(0) rotate(5deg);
+    }
+    50% {
+      transform: translateY(-30px) rotate(5deg); /* Larger vertical movement */
+    }
+    100% {
+      transform: translateY(0) rotate(5deg);
+    }
+  }
+  
+  /* Super Dramatic Hover Effects */
+  .faq-overlap-image:hover {
+    transform: scale(1.2) rotate(10deg); /* Larger scale-up and rotation on hover */
+    box-shadow: 30px 30px 60px rgba(0, 0, 0, 0.8); /* Much stronger shadow on hover */
+    filter: drop-shadow(0 0 20px rgba(255, 223, 186, 0.8)) brightness(1.2); /* Glow effect */
+    cursor: pointer; /* Change cursor to indicate interactivity */
+  }
+  
+  /* Ensure the FAQ content doesn't overlap with the image */
+  .faq-title,
+  .faq-search,
+  .faq-collapse,
+  .faq-pagination {
+    position: relative;
+    z-index: 1; /* Higher z-index to keep content above the image */
+  }
+  
+  /* Rest of your existing CSS */
+  .faq-title {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: turquoise;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .faq-search {
+    width: 100%;
+    margin-bottom: 20px;
+  }
+  
+  .faq-collapse {
+    background: #fffbfe;
+    border-radius: 5px;
+  }
+  
+  .faq-panel {
+    font-size: 16px;
+  }
+  
+  .faq-panel .ant-collapse-header {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .faq-panel .ant-collapse-content {
+    background: #eef7ff;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .faq-feedback {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .no-results {
+    text-align: center;
+    font-size: 16px;
+    color: #999;
+    margin-top: 10px;
+  }
+  
+  .head {
+    color: #5ce0e6;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 3rem;
+    font-weight: 500;
+    font-family: "Courier New", Courier, monospace;
+    font-weight: 900;
+    text-align: center;
+    letter-spacing: 3px;
+    margin-bottom: 3rem;
+  }
+  
+  .head-p {
+    color: #f64a8a;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
+    letter-spacing: 2px;
+    margin-bottom: 5px;
+  }
