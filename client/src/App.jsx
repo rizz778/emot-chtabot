@@ -14,7 +14,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 function App() {
   return (
     <Router>
-       <Navbar />
+      <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/chat" element={<PrivateRoute component={ChatPage} />} />
