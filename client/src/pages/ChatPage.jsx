@@ -231,8 +231,8 @@ const ChatPage = () => {
   };
 
   return (
-    <Layout>
-      <Sider style={{ padding: "16px", background: "#001529", color: "#fff" }}>
+    <Layout >
+      <Sider style={{ height: "90vh", background: "#f9a8d4", color: "#fff", overflow: "hidden" }}>
         <div
           style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
         >
@@ -254,15 +254,26 @@ const ChatPage = () => {
           }))}
         />
         <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleNewSession}
-        >
-          New Chat(-2 Tokens)
-        </Button>
+  type="primary"
+  icon={<PlusOutlined />}
+  onClick={handleNewSession}
+  style={{
+    backgroundColor: "#ff4caf", // Vibrant red
+    borderColor: "#d9363e", // Slightly darker border
+    color: "white", // White text for contrast
+    fontWeight: "bold", // Make text stand out
+    borderRadius: "8px", // Smooth edges
+    padding: "10px 16px", // Better spacing
+    height : "2.5rem",
+  }}
+  hoverable
+>
+  New Chat (-2 Tokens)
+</Button>
+
       </Sider>
       <Layout>
-        <Header className="chat-header">AI Virtual Counselor</Header>
+       
         <Content className="chat-content">
           <motion.div className="chat-messages">
             {messages.map((msg, index) => (
