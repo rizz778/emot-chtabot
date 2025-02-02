@@ -10,6 +10,8 @@ import "regenerator-runtime/runtime";
 import Navbar from "./components/Navbar"
 import About from "./pages/About"
 import './App.css'
+import '@fortawesome/fontawesome-free/css/all.min.css';
+
 function App() {
   return (
     <Router>
