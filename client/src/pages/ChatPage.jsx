@@ -233,7 +233,33 @@ const ChatPage = () => {
   return (
     <Layout>
       <Sider style={{ padding: "16px", background: "#001529", color: "#fff" }}>
-        {/* Sidebar with tokens and sessions */}
+        <div
+          style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
+        >
+          Tokens: <DollarOutlined /> {tokenBalance}
+        </div>
+        <Menu
+          theme="dark"
+          mode="inline"
+          selectedKeys={[activeSession]}
+          onClick={({ key }) => {
+            setActiveSession(key);
+            localStorage.setItem("activeSession", key);
+            fetchMessages(key);
+          }}
+          items={chatSessions.map((session) => ({
+            key: session._id,
+            icon: <MessageOutlined />,
+            label: session.sessionName,
+          }))}
+        />
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleNewSession}
+        >
+          New Chat(-2 Tokens)
+        </Button>
       </Sider>
       <Layout>
         <Header className="chat-header">AI Virtual Counselor</Header>
