@@ -1,7 +1,7 @@
 .faq-container {
     position: relative;
     max-width: 1000px;
-    max-height: 800px;
+    min-height: 500px;
     margin: 0 auto;
     padding: 20px;
     border-radius: 10px;
@@ -10,13 +10,14 @@
     background-position: center center; /* Centers the image */
     background-repeat: no-repeat; /* Prevents the image from repeating */
 
+
   }
   
   .faq-overlap-image {
     position: absolute;
     top: 160px; /* Adjust as needed */
     right: -170px; /* Adjust as needed */
-    width: 250px; /* Adjust as needed */
+    width: 200px; /* Adjust as needed */
     height: auto;
     border-radius: 10px;
     box-shadow: 20px 20px 40px rgba(0, 0, 0, 0.6); /* Stronger initial shadow */
@@ -135,3 +136,9 @@
     letter-spacing: 2px;
     margin-bottom: 5px;
   }
+  .faq-pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 50px; /* Add spacing between accordion and pagination */
+  }
+  
