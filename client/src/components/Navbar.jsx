@@ -1,12 +1,17 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import logo6 from '../assets/images/logo6.jpg';
 
 const Navbar = () => {
+  const location = useLocation();  // Access current location
+
+  // Check if the current page is '/about'
+  const backgroundClass = location.pathname === '/about' ? 'bg-gradient-to-r from-blue-400 to-yellow-300' : 'bg-gradient-to-r from-pink-300 to-[#ffc0cb]';
+
   return (
-    <header className='flex items-center justify-between p-4 bg-gradient-to-r from-pink-300  to-[#ffc0cb] h-20'>
+    <header className={`flex items-center justify-between p-4 ${backgroundClass} h-20`}>
       {/* Navigation Links (Left) */}
       <nav className='flex gap-8 font-medium text-lg'>
-      <NavLink
+        <NavLink
           to='/'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
