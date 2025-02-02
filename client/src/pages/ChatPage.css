@@ -1,130 +1,140 @@
-/* General Layout */
-.chat-layout {
-    height: 100vh;
-    display: flex;
-  }
-  
-  /* Sidebar */
-  .chat-sidebar {
-    width: 20%;
-    min-width: 30vw;
-    background: #a2d5f2; /* Light blue */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  
-  .sidebar-header {
-    font-size: 18px;
-    font-weight: bold;
-    padding: 16px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    color: #333; /* Dark gray for contrast */
-  }
-  
-  .new-session-button {
-    width: 90%;
-    margin: 16px auto;
-    background-color: #6fb1e3; /* Medium blue */
-    border: none;
-    color: white;
-  }
-  
-  .new-session-button:hover {
-    background-color: #4a90c8; /* Darker blue on hover */
-  }
-  
-  /* Chat Header */
-  .chat-header {
-    background: #448dc9; /* Soft blue */
-    color: rgb(7, 6, 6);
-    font-size: 30px;
-    font-weight: bold; /* Makes text bold */
-    padding: 16px;
-    text-align: center;
-    min-width: 70vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+/* Ensure html and body take full height */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-  
-  /* Chat Content */
-  .chat-content {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    background-color: #f0f8ff; /* Light blue background */
-    min-width: 70vw;
-  }
-  
-  /* Chat Messages */
-  .chat-messages {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-  
-  .btn {
-    font-weight: bold;
-    background-color: black;
-    color: white;
-    width: 200px;
-  }
-  
-  .chat-message {
-    padding: 10px 15px;
-    margin-bottom: 10px;
-    border-radius: 8px;
-    max-width: 70%;
-    word-wrap: break-word;
-  }
-  
-  .chat-message.user {
-    background: #6fb1e3; /* Medium blue */
-    color: white;
-    align-self: flex-end;
-  }
-  
-  .chat-message.bot {
-    background: #e1f3ff; /* Very light blue */
-    color: #333; /* Dark gray for contrast */
-    align-self: flex-start;
-  }
-  
-  /* Chat Input Container */
-  .chat-input-container {
-    display: flex;
-    gap: 10px;
-    padding: 10px;
-    background: white;
-    border-top: 1px solid #ddd;
-  }
-  
-  .chat-input {
-    flex-grow: 1;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    padding: 8px;
-  }
-  
-  .chat-input:focus {
-    outline: none;
-    border-color: #6fb1e3; /* Medium blue */
-  }
-  
-  /* Send Button */
-  .ant-btn-primary {
-    background-color: #6fb1e3; /* Medium blue */
-    border: none;
-    border-radius: 8px;
-  }
-  
-  .ant-btn-primary:hover {
-    background-color: #4a90c8; /* Darker blue on hover */
-  }
+/* General Layout */
+.chat-layout {
+  height: 100vh; /* Full viewport height */
+  display: flex;
+}
+
+/* Sidebar */
+.chat-sidebar {
+  width: 20%;
+  min-width: 30vw;
+  background: #a2d5f2; /* Light blue */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.sidebar-header {
+  font-size: 18px;
+  font-weight: bold;
+  padding: 16px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ff7ae2; /* Dark gray for contrast */
+}
+
+.new-session-button {
+  width: 90%;
+  margin: 16px auto;
+  background-color: #6fb1e3; /* Medium blue */
+  border: none;
+  color: white;
+}
+
+.new-session-button:hover {
+  background-color: #4a90c8; /* Darker blue on hover */
+}
+
+/* Chat Header */
+.chat-header {
+  background: #448dc9; /* Soft blue */
+  color: rgb(7, 6, 6);
+  font-size: 30px;
+  font-weight: bold; /* Makes text bold */
+  padding: 16px;
+  text-align: center;
+  min-width: 70vw;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Chat Content */
+.chat-content {
+  flex-grow: 1; /* Take up remaining space */
+  display: flex;
+  flex-direction: column;
+  background-color: #fff4fc; /* Light blue background */
+  height: 90vh;
+}
+
+/* Chat Messages */
+.chat-messages {
+  flex-grow: 1; /* Take up remaining space */
+  overflow-y: auto; /* Enable scrolling */
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chat-message {
+  padding: 10px 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  max-width: 70%;
+  word-wrap: break-word;
+}
+
+.chat-message.user {
+  background: #f64a8a; /* Medium blue */
+  color: white;
+  align-self: flex-end;
+}
+
+.chat-message.bot {
+  background: #ffdbf7; /* Very light blue */
+  color: #333; /* Dark gray for contrast */
+  align-self: flex-start;
+}
+
+/* Chat Input Container */
+.chat-input-container {
+  display: flex;
+  gap: 10px;
+  padding: 16px;
+  background: white;
+  border-top: 1px solid #ddd;
+}
+
+.chat-input {
+  flex-grow: 1;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.chat-input:focus {
+  outline: none;
+  border-color: #6fb1e3; /* Medium blue */
+}
+
+/* Send Button */
+.ant-btn-primary {
+  background-color: #6fb1e3; /* Medium blue */
+  border: none;
+  border-radius: 8px;
+}
+
+.ant-btn-primary:hover {
+  background-color: #4a90c8; /* Darker blue on hover */
+}
+.ant-menu-dark .ant-menu-item-selected {
+  background-color: #ff4caf !important; /* Pink-300 */
+}
+
+.ant-menu-dark .ant-menu-item-selected > span,
+.ant-menu-dark .ant-menu-item-selected > .ant-menu-title-content {
+  color: white !important; /* White text on pink */
+}
+
+.ant-menu-dark .ant-menu-item:hover {
+  background-color: #f472b6 !important; /* Darker pink on hover */
+}
