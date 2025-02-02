@@ -10,10 +10,6 @@ const DarkForest = (props) => {
   const meshRef = useRef();
 
   // Add drag functionality
-  const bind = useDrag(({ offset: [x, y] }) => {
-    meshRef.current.position.x = x / 100; // Adjust sensitivity
-    meshRef.current.position.y = -y / 100; // Adjust sensitivity
-  });
 
   // Add rotation animation
   useFrame((state, delta) => {
@@ -23,8 +19,8 @@ const DarkForest = (props) => {
   });
 
   return (
-    <group ref={meshRef} {...props} dispose={null} {...bind()}>
-      <group scale={0.02}>
+    <group ref={meshRef} {...props} dispose={null} >
+      <group scale={0.019}>
         <group rotation={[-Math.PI / 2, 0, 0]} scale={100}>
           <mesh
             castShadow
