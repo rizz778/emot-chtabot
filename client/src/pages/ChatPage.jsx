@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Layout, Menu, Input, Button, message as antdMessage,Spin,notification } from "antd";
+import {
+  Layout,
+  Menu,
+  Input,
+  Button,
+  message as antdMessage,
+  Spin,
+  notification,
+} from "antd";
 import { motion } from "framer-motion";
 import { DollarOutlined } from "@ant-design/icons";
 import {
@@ -13,7 +21,7 @@ import SpeechRecognition, {
 } from "react-speech-recognition";
 import axios from "axios";
 import "./ChatPage.css"; // Add custom styles if needed
-import {  useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
 
@@ -26,7 +34,7 @@ const ChatPage = () => {
   const [audioUrl, setAudioUrl] = useState(null); // State to store audio URL
   const [tokenBalance, setTokenBalance] = useState(0);
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
-  const navigate=useNavigate();
+  const navigate = useNavigate();
   useEffect(() => {
     if (transcript) {
       setInput((prev) => (prev ? prev + " " + transcript : transcript));
@@ -45,9 +53,12 @@ const ChatPage = () => {
   const fetchUserDetails = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:4000/api/auth/details", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        "http://localhost:4000/api/auth/details",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setTokenBalance(response.data.tokens);
     } catch (error) {
       console.error("Failed to fetch user details:", error);
@@ -124,7 +135,7 @@ const ChatPage = () => {
       localStorage.setItem("activeSession", response.data._id);
       setMessages([]);
     } catch (error) {
-      if(error.response.status===403){
+      if (error.response.status === 403) {
         navigate("/token");
       }
       console.error("Failed to create session:", error);
@@ -133,15 +144,15 @@ const ChatPage = () => {
 
   const handleSendMessage = async () => {
     if (!input.trim()) return;
-  
+
     setMessages((prevMessages) => [
       ...prevMessages,
       { sender: "user", text: input },
     ]);
-  
+
     setInput(""); // Clear input field immediately after sending
     setLoading(true); // Show "Model is typing..."
-  
+
     try {
       // Retrieve last 5 messages from the backend
       const chatHistoryResponse = await axios.get(
@@ -150,9 +161,9 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-  
+
       const lastFiveMessages = chatHistoryResponse.data.messages.slice(-5); // Get the last 5 messages
-  
+
       // Send message to AI model, including session ID and conversation history
       const response = await fetch("http://127.0.0.1:5000/chat", {
         method: "POST",
@@ -163,17 +174,17 @@ const ChatPage = () => {
           conversation_history: lastFiveMessages, // Include last 5 messages
         }),
       });
-  
+
       const data = await response.json();
-  
+
       setMessages((prevMessages) => [
         ...prevMessages,
         { sender: "bot", text: data.response },
       ]);
-  
+
       setAudioUrl(data.audio_url); // Store the audio URL in state
       setLoading(false); // Hide "Model is typing..."
-  
+
       // Save user message to backend
       await axios.post(
         `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
@@ -182,7 +193,7 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
         }
       );
-  
+
       // Save bot response to backend
       await axios.post(
         `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
@@ -200,7 +211,6 @@ const ChatPage = () => {
       setLoading(false); // Hide "Model is typing..."
     }
   };
-  
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
@@ -215,34 +225,15 @@ const ChatPage = () => {
     }
   };
 
+  const formatText = (text) => {
+    // Replace line breaks with <br /> and add paragraph spacing
+    return text.replace(/(\r\n|\n|\r)/g, "<br />");
+  };
+
   return (
     <Layout>
       <Sider style={{ padding: "16px", background: "#001529", color: "#fff" }}>
-        <div style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}>
-          Tokens: <DollarOutlined /> {tokenBalance}
-        </div>
-        <Menu
-          theme="dark"
-          mode="inline"
-          selectedKeys={[activeSession]}
-          onClick={({ key }) => {
-            setActiveSession(key);
-            localStorage.setItem("activeSession", key);
-            fetchMessages(key);
-          }}
-          items={chatSessions.map((session) => ({
-            key: session._id,
-            icon: <MessageOutlined />,
-            label: session.sessionName,
-          }))}
-        />
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleNewSession}
-        >
-          New Chat(-2 Tokens)
-        </Button>
+        {/* Sidebar with tokens and sessions */}
       </Sider>
       <Layout>
         <Header className="chat-header">AI Virtual Counselor</Header>
@@ -250,7 +241,11 @@ const ChatPage = () => {
           <motion.div className="chat-messages">
             {messages.map((msg, index) => (
               <motion.div key={index} className={`chat-message ${msg.sender}`}>
-                {msg.text}
+                <div
+                  dangerouslySetInnerHTML={{
+                    __html: formatText(msg.text), // Format text before displaying
+                  }}
+                />
               </motion.div>
             ))}
             {loading && (
