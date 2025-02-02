@@ -84,12 +84,12 @@ const BuyToken = () => {
     <section>
         
       <div className="head-p">
-        <span style={{ paddingRight: "5px", color: "#ffc0cb" }}>
+        <span style={{ paddingRight: "5px", color: "#fff0f6" }}>
           WHERE COMPASSION MEETS
         </span>
-        <span style={{ color: "#5CE0E6" }}> AFFORDABILITY </span>
+        <span style={{ color: "#64f7ff" }}> AFFORDABILITY </span>
       </div>
-      <div className="head">PRICINGS</div>
+      <div className="head">PLANS AND PRICINGS</div>
          
       <div className="buy-token-container">
         <Row gutter={[16, 16]} justify="center">

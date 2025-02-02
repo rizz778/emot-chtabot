@@ -1,0 +1,50 @@
+/* Footer Styles */
+.footer {
+    background: linear-gradient(to bottom, #edf9ff, #c7ecff, #b5e6ff, #b5e6ff);
+    backdrop-filter: blur(10px); /* Apply blur effect */
+    padding: 40px 0;
+    color: #000;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .footer-content {
+    padding: 20px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.2); /* Slight opacity to allow blur effect */
+    border-radius: 10px;
+  }
+  
+  .footer-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff92be;
+  }
+  
+  .footer-links {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .footer-links li {
+    margin: 10px 0;
+  }
+  
+  .footer-links a {
+    color: purple;
+    text-decoration: none;
+    font-size: 16px;
+  }
+  
+  .footer-links a:hover {
+    color: #ff92be;
+    text-decoration: underline;
+  }
+  
+  .footer-info {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 14px;
+    color: purple;
+  }
+  
