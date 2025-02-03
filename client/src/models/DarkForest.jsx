@@ -20,7 +20,7 @@ const DarkForest = (props) => {
 
   return (
     <group ref={meshRef} {...props} dispose={null} >
-      <group scale={0.019}>
+      <group scale= {0.0175}>
         <group rotation={[-Math.PI / 2, 0, 0]} scale={100}>
           <mesh
             castShadow
