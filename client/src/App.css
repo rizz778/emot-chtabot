@@ -139,12 +139,14 @@
 
 /* Change paragraph text color for brown/light blue background */
 .typing-effect-paragraph {
-  color: #fff;  /* Brown color for text */
+  color: black;  /* Brown color for text */
   padding: 20px;
+  text-shadow: 2px 2px 5px #ffc336cc;
   border-radius: 8px;
   font-weight: bold;
 }
 /* Adjust the margin-top of the heading */
 .abh1 {
   margin-top: -130px; /* Move it up */
+  color: black;
 }
