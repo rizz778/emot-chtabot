@@ -49,11 +49,15 @@ export default function Testimonials() {
   return (
     <section>
       <div className="main">
-        <div className="head-p">
-          <span style={{ paddingRight: "5px", color : "#ffc0cb" }}>REAL STORIES,REAL</span>
-          <span style={{ color: "#5CE0E6" }}> IMPACT  </span>
-        </div>
-        <div className="head">TESTIMONIALS</div>
+      <div className="text-center">
+            <p className="text-xl md:text-2xl lg:text-3xl font-bold pt-6" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+              <span className="text-[#f64a8a]">REAL STORIES,REAL </span> 
+              <span className="text-[#64f7ff]">IMPACT </span>
+            </p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold pt-8 pb-12" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+              <span className="text-[#64f7ff] mx-auto">TESTIMONIALS </span>
+            </h1>
+          </div>
         <Swiper
           loop={true}
           pagination={{ clickable: true }}
@@ -77,13 +81,14 @@ export default function Testimonials() {
         >
           {testimonials.map((testimonial, index) => (
             <SwiperSlide key={index} className="swiper-slide">
-              <div style={{ paddingRight: 20, paddingLeft: 20 }}>
-                <div className="testimonials-profile-circle">
-                  <img src={testimonial.img} alt="testimonial-avatar" className="testimonial-avatar" />
-                </div>
-                <p>{testimonial.text}</p>
-                <h6 className="review-by">{testimonial.author}</h6>
-              </div>
+              <div style={{ paddingRight: 20, paddingLeft: 20, display: "flex", flexDirection: "column", height: "100%" }}>
+  <div className="testimonials-profile-circle">
+    <img src={testimonial.img} alt="testimonial-avatar" className="testimonial-avatar" />
+  </div>
+  <p style={{ flexGrow: 1 }}>{testimonial.text}</p>
+  <h6 className="review-by" style={{ marginBottom: "8%", textAlign: "center" }}>{testimonial.author}</h6>
+</div>
+
             </SwiperSlide>
           ))}
         </Swiper>

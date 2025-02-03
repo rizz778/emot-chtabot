@@ -8,7 +8,10 @@ const HomeInfo = () => {
         <span className='typing-effect'>
           Hi, I'm <span className='font-bold text-[24px] '>SENTIO.</span>
           <br />
-          Your sanctuary for introspection and growth.
+          {/* This text will disappear on small devices */}
+          <span className='hidden sm:block'>
+            Your sanctuary for introspection and growth.
+          </span>
         </span>
       </h1>
 
@@ -20,7 +23,6 @@ const HomeInfo = () => {
         Get Started
       </Link>
     </div>
-    
   );
 };
 

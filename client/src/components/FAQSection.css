@@ -109,15 +109,10 @@
   }
   
   .head {
-    color: #5ce0e6;
     text-align: center;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 3rem;
-    font-weight: 500;
-    font-family: "Courier New", Courier, monospace;
-    font-weight: 900;
     text-align: center;
     letter-spacing: 3px;
     margin-bottom: 3rem;
