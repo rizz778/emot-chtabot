@@ -14,13 +14,13 @@ const DarkForest = (props) => {
   // Add rotation animation
   useFrame((state, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.y += delta * 0.4; // Adjust rotation speed
+      meshRef.current.rotation.y += delta * 0.5; // Adjust rotation speed
     }
   });
 
   return (
     <group ref={meshRef} {...props} dispose={null} >
-      <group scale= {0.0175}>
+      <group scale= {0.021}>
         <group rotation={[-Math.PI / 2, 0, 0]} scale={100}>
           <mesh
             castShadow
