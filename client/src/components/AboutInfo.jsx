@@ -12,16 +12,23 @@ const AboutInfo = () => {
       </h1></div>
       <br /><br /><br /><br /><br /><br /><br /><br />
       <br /><br /><br /><br /><br /><br /><br />
-
-      <p className="text-white sm:text-lg sm:leading-relaxed px-8 mx-5 py-4 typing-effect-paragraph ">
+<div className="hidden sm:block">
+      <p className="typing-effect-paragraph">
         SENTIO is an advanced AI-powered emotional support chatbot designed to help individuals
         navigate through emotional challenges. Our goal is to provide empathetic and personalized 
         assistance, offering a safe space for users to express their feelings. Through dynamic 
         conversations and emotion recognition, SENTIO tailors its responses to meet each individual's 
         emotional needs. Whether you're facing stress, anxiety, or simply need someone to talk to, 
         SENTIO is here to listen and support you every step of the way.
+      </p></div>
+      <div className="block sm:hidden">
+      <p className="typing-effect-paragraph">
+        SENTIO is an advanced AI-powered emotional support chatbot designed to help individuals
+        navigate through emotional challenges. 
       </p>
+      </div>
     </div>
+    
   );
 };
 
