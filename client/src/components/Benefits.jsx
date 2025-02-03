@@ -9,11 +9,11 @@ const Benefits = () => {
       <Section id="features">
         <div className="container relative z-2">
           <div className="text-center">
-            <p className="text-2xl md:text-3xl lg:text-3xl font-bold mt-2" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
-              <span className="text-[#FFC0CB]">SPEAK, TYPE, HEAL. </span> 
+            <p className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+              <span className="text-[#f64a8a]">SPEAK, TYPE, HEAL. </span> 
               <span className="text-[#5CE0E6]">ANYTIME, ANYWHERE. </span>
             </p>
-            <h1 className="text-3xl md:text-4xl lg:text-6xl font-semibold" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
               <span className="text-[#5CE0E6] mx-auto">FEATURES </span>
             </h1>
           </div>

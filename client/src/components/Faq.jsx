@@ -64,13 +64,18 @@ const Faq = () => {
     }));
     message.success(`You ${type === "like" ? "liked" : "disliked"} this FAQ!`);
   };
+ 
     return (
         <section>
-          <div className="head-p">
-            <span style={{ paddingRight: "5px", color: "#ffc0cb" }}>GOT QUESTIONS?WE'VE </span>
-            <span style={{ color: "#5CE0E6" }}> GOT ANSWERS  </span>
-          </div>
-          <div className="head">FREQUENTLY ASKED QUESTIONS</div>
+           <div className="text-center">
+  <p className="text-xl md:text-2xl lg:text-3xl font-bold" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+    <span className="text-[#f64a8a]">GOT QUESTIONS? WE'VE </span> 
+    <span className="text-[#5CE0E6]">GOT ANSWERS  </span>
+  </p>
+  <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold pt-8 pb-6" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+    <span className="text-[#5CE0E6] mx-auto">FREQUENTLY ASKED QUESTIONS </span>
+  </h1>
+</div>
           <motion.div
             className="faq-container"
             initial={{ opacity: 0, y: 50 }}
@@ -79,14 +84,15 @@ const Faq = () => {
           >
             {/* Add the image here */}
             <img
-              src={photo5}
-              alt="FAQ Illustration"
-              className="faq-overlap-image"
-            />
-    
-            <h2 className="faq-title">
-              <QuestionCircleOutlined /> Frequently Asked Questions
+  src={photo5}
+  alt="FAQ Illustration"
+  className="faq-overlap-image hidden md:hidden lg:block"
+/>
+
+<h2 className="faq-title">
+              <QuestionCircleOutlined /> Search Your Queries
             </h2>
+            
     
             {/* Search Bar */}
             <Input

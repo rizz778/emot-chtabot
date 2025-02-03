@@ -78,18 +78,20 @@ const BuyToken = () => {
     "Unlimited projects": <RocketOutlined />,
     "100 GB storage": <DatabaseOutlined />,
     "Custom integrations": <AppstoreAddOutlined />,
-  };
+  }; 
 
   return (
     <section>
         
-      <div className="head-p">
-        <span style={{ paddingRight: "5px", color: "#fff0f6" }}>
-          WHERE COMPASSION MEETS
-        </span>
-        <span style={{ color: "#64f7ff" }}> AFFORDABILITY </span>
-      </div>
-      <div className="head">PLANS AND PRICINGS</div>
+        <div className="text-center">
+            <p className="text-xl md:text-2xl lg:text-3xl font-bold pt-9" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+              <span className="text-[#fff0f6]">WHERE COMPASSION MEETS </span> 
+              <span className="text-[#64f7ff]">AFFORDABILITY </span>
+            </p>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold pt-8 pb-6" style={{ fontFamily: '"Courier New", Courier, monospace' }}>
+              <span className="text-[#64f7ff] mx-auto">PLANS AND PRICINGS </span>
+            </h1>
+          </div>
          
       <div className="buy-token-container">
         <Row gutter={[16, 16]} justify="center">

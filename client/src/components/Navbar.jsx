@@ -46,7 +46,7 @@ const Navbar = () => {
       </nav>
 
       {/* Logo (Center) */}
-      <div className='absolute left-1/2 transform -translate-x-1/2'>
+      <div className='absolute left-1/2 transform -translate-x-1/2 hidden sm:block'>
         <NavLink to='/'>
           <img src={logo6} alt='logo' className='w-28 h-18 object-contain' />
         </NavLink>
