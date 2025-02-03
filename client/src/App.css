@@ -133,15 +133,16 @@
 .abhd {
   font-size: 3rem;  /* Larger font size */
   font-weight: bold;
+  color: WHITE;
   text-shadow: 2px 2px 5px #36e7ffcc;  /* Adding a glowing effect */
   margin-top: 500px;
 }
 
 /* Change paragraph text color for brown/light blue background */
 .typing-effect-paragraph {
-  color: black;  /* Brown color for text */
+  color: WHITE;  /* Brown color for text */
   padding: 20px;
-  text-shadow: 2px 2px 5px #ffc336cc;
+  text-shadow: 2px 2px 5px #f185ff;
   border-radius: 8px;
   font-weight: bold;
 }

@@ -7,7 +7,7 @@ const AboutInfo = () => {
 <div className="text-center mt-0">
       <h1 className='sm:text-xl sm:leading-snug neo-brutalism-blue py-4 px-8 text-white mx-5 mt-0 abh1'>
         <span className="abhd">
-          Hi, I'm <span className='font-bold text-[4rem]'>SENTIO.</span>
+        WELCOME TO SENTIO
         </span>
       </h1></div>
       <br /><br /><br /><br /><br /><br /><br /><br />
