@@ -78,7 +78,7 @@ Unlike traditional rule-based chatbots, **SentIO** adapts dynamically to users' 
 
 3. **Start the backend server**:
    ```bash
-   node index.js
+   npm start
    ```
 
    - This will start the Express.js server, and the backend API will be available on [http://localhost:4000](http://localhost:4000).
@@ -94,7 +94,7 @@ Unlike traditional rule-based chatbots, **SentIO** adapts dynamically to users' 
 
 2. **Run the Python model script**:
    ```bash
-   python gem.py
+   python gem_rag_new.py
    ```
 
    - This will start the Flask server, integrating the machine learning models that provide emotional support. The Flask server will run on [http://localhost:5000](http://localhost:5000) (or the port defined in your script).
