@@ -138,3 +138,7 @@ html, body {
 .ant-menu-light .ant-menu-item:hover {
   background-color: #f472b6 !important; /* Darker pink on hover */
 }
+.ant-layout-sider-trigger {
+  background-color: #ff4caf !important;
+  color: white !important; /* Ensures the arrow remains visible */
+}

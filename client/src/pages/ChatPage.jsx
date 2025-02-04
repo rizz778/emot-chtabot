@@ -232,7 +232,17 @@ const ChatPage = () => {
 
   return (
     <Layout >
-      <Sider style={{ height: "90vh", background: "#f9a8d4", color: "#fff", overflow: "hidden" }}>
+      <Sider
+  width={250} // Default width
+  collapsible
+  collapsedWidth={50} // Width when collapsed (on smaller screens)
+  style={{
+    height: "90vh",
+    background: "#f9a8d4",
+    color: "#fff",
+    overflow: "hidden",
+  }}
+>
         <div
           style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
         >
@@ -253,7 +263,8 @@ const ChatPage = () => {
             label: session.sessionName,
           }))}
         />
-        <Button
+
+<Button
   type="primary"
   icon={<PlusOutlined />}
   onClick={handleNewSession}
@@ -264,12 +275,23 @@ const ChatPage = () => {
     fontWeight: "bold", // Make text stand out
     borderRadius: "8px", // Smooth edges
     padding: "10px 16px", // Better spacing
-    height : "2.5rem",
+    height: "2.5rem",
   }}
   hoverable
 >
-  New Chat (-2 Tokens)
+  <span className="button-text">New Chat (-2 Tokens)</span>
+  <style jsx>{`
+    .button-text {
+      display: inline-block;
+    }
+    @media (max-width: 768px) {
+      .button-text {
+        display: none; /* Hide text on smaller devices */
+      }
+    }
+  `}</style>
 </Button>
+
 
       </Sider>
       <Layout>
