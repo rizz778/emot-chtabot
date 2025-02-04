@@ -34,6 +34,7 @@ const ChatPage = () => {
   const [audioUrl, setAudioUrl] = useState(null); // State to store audio URL
   const [tokenBalance, setTokenBalance] = useState(0);
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   useEffect(() => {
     if (transcript) {
@@ -232,16 +233,18 @@ const ChatPage = () => {
 
   return (
     <Layout >
-      <Sider
-  width={250} // Default width
-  collapsible
-  collapsedWidth={50} // Width when collapsed (on smaller screens)
-  style={{
-    height: "90vh",
-    background: "#f9a8d4",
-    color: "#fff",
-    overflow: "hidden",
-  }}
+        <Sider
+        width={250} // Default width
+        collapsible
+        collapsedWidth={50} // Width when collapsed
+        onCollapse={(collapsed) => setCollapsed(collapsed)} // Update collapsed state
+        style={{
+          height: "90vh",
+          background: "#f9a8d4",
+          color: "#fff",
+          overflow: "hidden",
+        }}
+      
 >
         <div
           style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
@@ -265,33 +268,23 @@ const ChatPage = () => {
         />
 
 <Button
-  type="primary"
-  icon={<PlusOutlined />}
-  onClick={handleNewSession}
-  style={{
-    backgroundColor: "#ff4caf", // Vibrant red
-    borderColor: "#d9363e", // Slightly darker border
-    color: "white", // White text for contrast
-    fontWeight: "bold", // Make text stand out
-    borderRadius: "8px", // Smooth edges
-    padding: "10px 16px", // Better spacing
-    height: "2.5rem",
-  }}
-  hoverable
->
-  <span className="button-text">New Chat (-2 Tokens)</span>
-  <style jsx>{`
-    .button-text {
-      display: inline-block;
-    }
-    @media (max-width: 768px) {
-      .button-text {
-        display: none; /* Hide text on smaller devices */
-      }
-    }
-  `}</style>
-</Button>
-
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleNewSession}
+          style={{
+            backgroundColor: "#ff4caf", // Vibrant red
+            borderColor: "#d9363e", // Slightly darker border
+            color: "white", // White text for contrast
+            fontWeight: "bold", // Make text stand out
+            borderRadius: "8px", // Smooth edges
+            padding: "10px 16px", // Better spacing
+            height: "2.5rem",
+          }}
+          hoverable
+        >
+          {/* Conditionally hide text based on the sidebar collapse state */}
+          {!collapsed && <span>New Chat (-2 Tokens)</span>}
+        </Button>
 
       </Sider>
       <Layout>
