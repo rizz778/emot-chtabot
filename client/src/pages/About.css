@@ -1,6 +1,6 @@
 /* Add these styles to your CSS file (e.g., About.css) */
 .bg-night-sky {
-    background: url('https://images.pexels.com/photos/1497471/pexels-photo-1497471.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1') no-repeat center center;
+    background: url('https://images.pexels.com/photos/1539225/pexels-photo-1539225.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1s') no-repeat center center;
     background-size: cover; /* Ensures the image covers the entire screen */
     background-attachment: fixed; /* Keeps the background fixed while scrolling */
     position: relative;
