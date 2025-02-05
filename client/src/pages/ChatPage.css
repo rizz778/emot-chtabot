@@ -138,3 +138,19 @@ html, body {
 .ant-menu-light .ant-menu-item:hover {
   background-color: #f472b6 !important; /* Darker pink on hover */
 }
+.ant-layout-sider-trigger {
+  background-color: #ff4caf !important;
+  color: white !important; /* Ensures the arrow remains visible */
+}
+.full-screen-loader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* Dark overlay */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000; /* Ensure it's above other elements */
+}

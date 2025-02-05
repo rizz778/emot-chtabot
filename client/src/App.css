@@ -131,7 +131,7 @@
 }
 /* Make Heading Font Bigger and Brighter */
 .abhd {
-  font-size: 3rem;  /* Larger font size */
+  font-size: 2.2rem;  /* Larger font size */
   font-weight: bold;
   color: WHITE;
   text-shadow: 2px 2px 5px #36e7ffcc;  /* Adding a glowing effect */
@@ -149,5 +149,4 @@
 /* Adjust the margin-top of the heading */
 .abh1 {
   margin-top: -130px; /* Move it up */
-  color: black;
 }
