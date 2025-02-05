@@ -7,9 +7,10 @@ import {
   message as antdMessage,
   Spin,
   notification,
+  Modal,
 } from "antd";
 import { motion } from "framer-motion";
-import { DollarOutlined } from "@ant-design/icons";
+import { DollarOutlined, PhoneOutlined } from "@ant-design/icons";
 import {
   MessageOutlined,
   PlusOutlined,
@@ -20,7 +21,7 @@ import SpeechRecognition, {
   useSpeechRecognition,
 } from "react-speech-recognition";
 import axios from "axios";
-import "./ChatPage.css"; // Add custom styles if needed
+import "./ChatPage.css";
 import { useNavigate } from "react-router-dom";
 
 const { Header, Sider, Content } = Layout;
@@ -31,10 +32,16 @@ const ChatPage = () => {
   const [chatSessions, setChatSessions] = useState([]);
   const [activeSession, setActiveSession] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [audioUrl, setAudioUrl] = useState(null); // State to store audio URL
+  const [audioUrl, setAudioUrl] = useState(null);
   const [tokenBalance, setTokenBalance] = useState(0);
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
+  const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+
+  // Call form states
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   useEffect(() => {
     if (transcript) {
       setInput((prev) => (prev ? prev + " " + transcript : transcript));
@@ -45,11 +52,13 @@ const ChatPage = () => {
     fetchUserDetails();
     fetchSessions();
   }, []);
+
   useEffect(() => {
     if (activeSession) {
       fetchMessages(activeSession);
     }
   }, [activeSession]);
+
   const fetchUserDetails = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -230,9 +239,49 @@ const ChatPage = () => {
     return text.replace(/(\r\n|\n|\r)/g, "<br />");
   };
 
+  const handleCallUser = async () => {
+    if (!phoneNumber.trim()) {
+      antdMessage.error("Please enter a valid phone number.");
+      return;
+    }
+
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/make_call", {
+        phone: phoneNumber,
+      });
+
+      if (
+        response.status === 200 &&
+        response.data.message === "Call initiated"
+      ) {
+        notification.success({
+          message: "Call Initiated",
+          description: `You will receive a call at ${phoneNumber} shortly.`,
+        });
+        setIsModalVisible(false);
+      } else {
+        antdMessage.error("Failed to initiate call. Try again.");
+      }
+    } catch (error) {
+      console.error("Error making call:", error);
+      antdMessage.error("Error making call.");
+    }
+  };
+
   return (
-    <Layout >
-      <Sider style={{ height: "90vh", background: "#f9a8d4", color: "#fff", overflow: "hidden" }}>
+    <Layout>
+      <Sider
+        width={250}
+        collapsible
+        collapsedWidth={50}
+        onCollapse={(collapsed) => setCollapsed(collapsed)}
+        style={{
+          height: "90vh",
+          background: "#f9a8d4",
+          color: "#fff",
+          overflow: "hidden",
+        }}
+      >
         <div
           style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
         >
@@ -254,26 +303,45 @@ const ChatPage = () => {
           }))}
         />
         <Button
-  type="primary"
-  icon={<PlusOutlined />}
-  onClick={handleNewSession}
-  style={{
-    backgroundColor: "#ff4caf", // Vibrant red
-    borderColor: "#d9363e", // Slightly darker border
-    color: "white", // White text for contrast
-    fontWeight: "bold", // Make text stand out
-    borderRadius: "8px", // Smooth edges
-    padding: "10px 16px", // Better spacing
-    height : "2.5rem",
-  }}
-  hoverable
->
-  New Chat (-2 Tokens)
-</Button>
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={handleNewSession}
+          style={{
+            backgroundColor: "#ff4caf",
+            borderColor: "#d9363e",
+            color: "white",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            padding: "10px 16px",
+            height: "2.5rem",
+            marginBottom: "10px",
+          }}
+          hoverable="true"
+        >
+          {!collapsed && <span>New Chat (-2 Tokens)</span>}
+        </Button>
 
+        {/* Call button */}
+        <Button
+          type="primary"
+          icon={<PhoneOutlined />}
+          onClick={() => setIsModalVisible(true)}
+          style={{
+            backgroundColor: "#007AFF",
+            borderColor: "#0056b3",
+            color: "white",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            padding: "10px 16px",
+            height: "2.5rem",
+            width: "100%",
+          }}
+        >
+          {!collapsed && <span>Make a Call</span>}
+        </Button>
       </Sider>
+
       <Layout>
-       
         <Content className="chat-content">
           <motion.div className="chat-messages">
             {messages.map((msg, index) => (
@@ -316,6 +384,29 @@ const ChatPage = () => {
           )}
         </Content>
       </Layout>
+      {/* Call Form Modal */}
+
+      <Modal
+        title="Make a Call"
+        visible={isModalVisible}
+        onCancel={() => setIsModalVisible(false)}
+        footer={[
+          <Button key="cancel" onClick={() => setIsModalVisible(false)}>
+            Cancel
+          </Button>,
+          <Button key="call" type="primary" onClick={handleCallUser}>
+            Call Now
+          </Button>,
+        ]}
+      >
+        <p>Enter your phone number to receive a call:</p>
+        <Input
+          type="tel"
+          placeholder="Enter phone number"
+          value={phoneNumber}
+          onChange={(e) => setPhoneNumber(e.target.value)}
+        />
+      </Modal>
     </Layout>
   );
 };
