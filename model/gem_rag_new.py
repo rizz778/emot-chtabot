@@ -99,7 +99,6 @@ def get_audio(filename):
         return jsonify({"error": "Audio file not found."}), 404
 
     #----------------------------Twilio----------------
-
 @app.route('/make_call', methods=['POST'])
 def make_call():
     """
@@ -116,17 +115,21 @@ def make_call():
         # Generate AI response
         response_text = generate_response_with_rag(user_message, [])
 
-        # Make the call with TwiML
-        twiml_url = url_for('twiml_response', _external=True)
+        # Generate TwiML URL
+        twiml_url = url_for('twiml_response', message=response_text, _external=True)
+        print("Generated TwiML URL:", twiml_url)  # Debugging
+
+        # Make the Twilio call
         call = twilio_client.calls.create(
             to=user_number,
             from_=TWILIO_PHONE_NUMBER,
-            url=twiml_url + f"?message={response_text}"
+            url=twiml_url
         )
 
         return jsonify({"message": "Call initiated", "call_sid": call.sid}), 200
 
     except Exception as e:
+        print("Error in make_call:", str(e))  # Debugging
         return jsonify({"error": str(e)}), 500
 
 
