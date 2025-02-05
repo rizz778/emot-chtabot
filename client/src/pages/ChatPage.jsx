@@ -271,6 +271,10 @@ const ChatPage = () => {
   return (
     <Layout>
       <Sider
+        width={250}
+        collapsible
+        collapsedWidth={50}
+        onCollapse={(collapsed) => setCollapsed(collapsed)}
         style={{
           height: "90vh",
           background: "#f9a8d4",
@@ -303,17 +307,18 @@ const ChatPage = () => {
           icon={<PlusOutlined />}
           onClick={handleNewSession}
           style={{
-            backgroundColor: "#ff4caf", // Vibrant red
-            borderColor: "#d9363e", // Slightly darker border
-            color: "white", // White text for contrast
-            fontWeight: "bold", // Make text stand out
-            borderRadius: "8px", // Smooth edges
-            padding: "10px 16px", // Better spacing
+            backgroundColor: "#ff4caf",
+            borderColor: "#d9363e",
+            color: "white",
+            fontWeight: "bold",
+            borderRadius: "8px",
+            padding: "10px 16px",
             height: "2.5rem",
+            marginBottom: "10px",
           }}
-          hoverable
+          hoverable="true"
         >
-          New Chat (-2 Tokens)
+          {!collapsed && <span>New Chat (-2 Tokens)</span>}
         </Button>
 
         {/* Call button */}
