@@ -2,7 +2,6 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import sakura from "../assets/sakura.mp3";
 import HomeInfo from "../components/HomeInfo";
-import Loader from "../components/Loader";
 import { soundoff, soundon } from "../assets/icons";
 // import Butterfly from "../models/Butterfly.jsx";
 import DarkForest from "../models/DarkForest.jsx";

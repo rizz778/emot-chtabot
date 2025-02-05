@@ -22,7 +22,7 @@ import SpeechRecognition, {
 import axios from "axios";
 import "./ChatPage.css"; // Add custom styles if needed
 import { useNavigate } from "react-router-dom";
-
+import Loader from "../components/Loader.jsx";
 const { Header, Sider, Content } = Layout;
 
 const ChatPage = () => {
@@ -300,12 +300,11 @@ const ChatPage = () => {
                 />
               </motion.div>
             ))}
-            {loading && (
-              <motion.div className="chat-message bot">
-                <Spin size="small" />
-                <span>Model is typing...</span>
-              </motion.div>
-            )}
+             {loading && (
+        <div className="full-screen-loader">
+          <Loader />
+        </div>
+      )}
           </motion.div>
           <div className="chat-input-container">
             <Input
