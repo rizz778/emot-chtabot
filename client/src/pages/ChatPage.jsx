@@ -27,6 +27,7 @@ import Loader from "../components/Loader.jsx";
 const { Header, Sider, Content } = Layout;
 
 const ChatPage = () => {
+  const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [chatSessions, setChatSessions] = useState([]);
@@ -248,6 +249,7 @@ const ChatPage = () => {
     try {
       const response = await axios.post("http://127.0.0.1:5000/make_call", {
         phone: phoneNumber,
+        message: userMessage,
       });
 
       if (
@@ -398,12 +400,19 @@ const ChatPage = () => {
           </Button>,
         ]}
       >
-        <p>Enter your phone number to receive a call:</p>
+        <p>Enter your phone number and message to receive a call:</p>
         <Input
           type="tel"
           placeholder="Enter phone number"
           value={phoneNumber}
           onChange={(e) => setPhoneNumber(e.target.value)}
+        />
+        <Input
+          type="text"
+          placeholder="Enter message"
+          value={userMessage}
+          onChange={(e) => setUserMessage(e.target.value)}
+          style={{ marginTop: "10px" }}
         />
       </Modal>
     </Layout>
