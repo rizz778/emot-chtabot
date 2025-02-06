@@ -11,6 +11,9 @@ import random
 from dotenv import load_dotenv
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
+from flask import Flask, request, Response  # Import Response
+from twilio.twiml.voice_response import VoiceResponse
+
 
 # Load environment variables
 load_dotenv()
@@ -99,15 +102,16 @@ def get_audio(filename):
         return jsonify({"error": "Audio file not found."}), 404
 
     #----------------------------Twilio----------------
+
+
+import urllib.parse
+
 @app.route('/make_call', methods=['POST'])
 def make_call():
-    """
-    Accepts a phone number and user input, then calls the user and reads the AI-generated response.
-    """
     try:
         data = request.get_json()
         user_number = data.get("phone")
-        user_message = data.get("message", "Hello! This is your chatbot.")
+        user_message = data.get("message", "Hello!")
 
         if not user_number:
             return jsonify({"error": "Phone number is required"}), 400
@@ -115,14 +119,18 @@ def make_call():
         # Generate AI response
         response_text = generate_response_with_rag(user_message, [])
 
-        # Generate TwiML URL
-        twiml_url = url_for('twiml_response', message=response_text, _external=True)
-        print("Generated TwiML URL:", twiml_url)  # Debugging
+        # URL-encode the response text
+        encoded_response = urllib.parse.quote(response_text)
 
-        # Make the Twilio call
+        # Generate TwiML URL
+        twiml_url = f"https://7a1e-2405-201-4021-7089-c5f7-77c-406e-9ac6.ngrok-free.app/twiml?message={encoded_response}"
+
+        print("Generated TwiML URL:", twiml_url)
+
         call = twilio_client.calls.create(
             to=user_number,
             from_=TWILIO_PHONE_NUMBER,
+            method="POST",  # Use POST instead of GET
             url=twiml_url
         )
 
@@ -133,17 +141,18 @@ def make_call():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/twiml', methods=['GET'])
+@app.route('/twiml', methods=['POST', 'GET'])
 def twiml_response():
     """
     Generates TwiML response with AI-generated text.
     """
-    message = request.args.get("message", "Hello! This is your chatbot.")
-    
+    message = request.args.get("message", "Hello! This is your chatbot.")  # Get message from query parameter
+
     response = VoiceResponse()
     response.say(message, voice="alice")
 
     return Response(str(response), mimetype='text/xml')
+
 
 
 if __name__ == "__main__":
