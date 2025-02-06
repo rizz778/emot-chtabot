@@ -9,6 +9,7 @@ import PrivateRoute from "./routes/PrivateRoute";
 import "regenerator-runtime/runtime";
 import Navbar from "./components/Navbar";
 import About from "./pages/About";
+import AvatarExperience from "./pages/AvatarExperience";
 import './App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
@@ -34,6 +35,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<About />} />
+        <Route path="/avatarexp" element={<AvatarExperience />} />
       </Routes>
     </div>
   );
