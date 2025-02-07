@@ -2,10 +2,10 @@ import axios from 'axios';
 import { exec, execSync } from "child_process";
 import cors from "cors";
 import dotenv from "dotenv";
-import voice from "elevenlabs-node";
+// import voice from "elevenlabs-node";
 import express from "express";
 import { promises as fs } from "fs";
-import { readFileSync, writeFileSync, existsSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync } from 'fs'; 
 import * as mm from 'music-metadata';
 import { phonemize } from 'phonemize';
 import fetch from "node-fetch"; // Add this import for making HTTP requests
@@ -14,11 +14,9 @@ import ffmpegPath from "ffmpeg-static";
 import path from "path";
 import { fileURLToPath } from "url";
 
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const audiosDir = path.resolve(__dirname, "audios");
-
 
 const fileExists = async (filePath) => {
   try {
@@ -30,17 +28,36 @@ const fileExists = async (filePath) => {
 };
 // Ensure audios directory exists
 
-
 dotenv.config();
 
-
-const elevenLabsApiKey = process.env.ELEVEN_LABS_API_KEY;
+// const elevenLabsApiKey = process.env.ELEVEN_LABS_API_KEY;
 const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to .env
-const voiceID = "cgSgspJ2msm6clMCkdW9";
-console.log("API Key:", process.env.ELEVEN_LABS_API_KEY ? "Loaded" : "Not Loaded");
+// const voiceID = "cgSgspJ2msm6clMCkdW9";
+const language = 'en-US';
+const voice = 'US English Female';
+async function textToSpeech(text, language, voice, outputFilename) {
+  try {
+      // Construct the API URL
+      const url = `https://code.responsivevoice.org/getvoice.php?t=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}&lang=${encodeURIComponent(language)}&key=uJKFIn5M`;
 
+      // Fetch the audio data
+      const response = await axios.get(url, { responseType: 'arraybuffer' });
 
+      // Define the output file path
+      // const audioPath = path.join(__dirname, outputFilename);
 
+      // Check if the file already exists
+      if (fileExists(outputFilename)) {
+          console.log(`File ${outputFilename} already exists. Replacing it with new content.`);
+      }
+
+      // Save (overwrite) the audio file
+      writeFileSync(outputFilename, response.data);
+      console.log(`Audio file saved as ${outputFilename}`);
+  } catch (error) {
+      console.error('Error fetching voice data:', error.message);
+  }
+}
 
 const app = express();
 app.use(express.json());
@@ -52,14 +69,12 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-
 // app.get("/voices", async (req, res) => {
 //   console.log("GET /voices called"); // Debugging log
 //   const voices = await voice.getVoices(elevenLabsApiKey);
 //   console.log("Voices retrieved:", voices); // Debugging log
 //   res.send(voices);
 // });
-
 
 const execCommand = (command) => {
   return new Promise((resolve, reject) => {
@@ -78,16 +93,10 @@ const execCommand = (command) => {
 
 
 
-
-
-
 // Simulate phoneme extraction (replace this with an actual phoneme extraction function)
 
 
-
-
 // Function to get the duration of the audio file
-
 
 const getAudioDuration = async (filePath) => {
   try {
@@ -101,7 +110,7 @@ const getAudioDuration = async (filePath) => {
 const phonemeToViseme = {
   p: "B", b: "B", m: "B",
   d: "C", t: "C", n: "C", l: "C",
-  h: "H", H: "H",
+  h: "D", H: "D",
   f: "E", v: "E",
   ʃ: "F", ʒ: "F", tʃ: "F", dʒ: "F",
   j: "G", w: "G",
@@ -115,14 +124,12 @@ const phonemeToViseme = {
 const generateTimedPhonemes = async (text, audioPath) => {
   console.log("Processing text:", text);
 
-
   const phonemes = phonemize(text);
   console.log("Phonemize Output:", phonemes);
   if (!phonemes || typeof phonemes !== "string") {
     console.error("Phonemize did not return a valid string.");
     return null;
   }
-
 
   const phonemeArray = phonemes.split(" ");
   console.log("Phonemize Array Output:", phonemeArray);
@@ -131,21 +138,16 @@ const generateTimedPhonemes = async (text, audioPath) => {
     return null;
   }
 
-
   let totalDuration = text.length * 0.1; // Default estimated duration
-
 
   if (audioPath && (await fileExists(audioPath))) {
     totalDuration = await getAudioDuration(audioPath) || 1.5;
   }
 
-
   console.log(`Total estimated duration: ${totalDuration}s`);
-
 
   const numPhonemes = phonemeArray.length;
   const phonemeDuration = totalDuration / numPhonemes;
-
 
   let startTime = 0;
   const mouthCues = phonemeArray.map((phoneme) => {
@@ -159,12 +161,10 @@ const generateTimedPhonemes = async (text, audioPath) => {
     return entry;
   });
 
-
   console.log("Returning Data:", {
     metadata: { soundFile: audioPath, duration: totalDuration },
     mouthCues
   });
-
 
   return {
     metadata: {
@@ -174,7 +174,6 @@ const generateTimedPhonemes = async (text, audioPath) => {
     mouthCues
   };
 };
-
 
 // Function to convert MP3 to WAV using ffmpeg
 const convertMp3ToWav = (mp3File, wavFile) => {
@@ -194,31 +193,25 @@ const convertMp3ToWav = (mp3File, wavFile) => {
   });
 };
 
-
 // Main function to process lip-syncing
 const lipSyncMessage = async (message, text) => {
   const time = new Date().getTime();
   console.log(`Starting phoneme extraction for message: "${text}"`);
 
-
   const mp3File = `audios/message_${message}.mp3`;
   const wavFile = `audios/message_${message}.wav`;
   const jsonFile = `audios/message_${message}.json`;
-
 
   // Convert MP3 to WAV
   try {
     // Convert MP3 to WAV
     await convertMp3ToWav(mp3File, wavFile);
 
-
     // Generate phoneme timings
     const phonemeData = await generateTimedPhonemes(text, wavFile);
 
-
     // Save phoneme JSON file
     await fs.writeFile(jsonFile, JSON.stringify(phonemeData, null, 2));
-
 
     console.log(`Phoneme JSON saved to: ${jsonFile}`);
     // console.log(`Lip sync completed in ${Date.now() - startTime}ms`);
@@ -226,9 +219,6 @@ const lipSyncMessage = async (message, text) => {
     console.error("Error during lip sync process:", error);
   }
 };
-
-
-
 
 
 
@@ -254,22 +244,18 @@ const generateTextWithHuggingFace = async (prompt) => {
     }
   );
 
-
   if (!response.ok) {
     throw new Error(`Hugging Face API error: ${response.statusText}`);
   }
-
 
   const data = await response.json();
   console.log("Generated text:", data[0].generated_text); // Debugging log
   return data[0].generated_text;
 };
 
-
 app.post("/chat", async (req, res) => {
   const userMessage = req.body.message;
   console.log("POST /chat called with user message:", userMessage); // Debugging log
-
 
   if (!userMessage) {
     console.log("No user message received, sending default response"); // Debugging log
@@ -287,8 +273,7 @@ app.post("/chat", async (req, res) => {
     return;
   }
 
-
-  if (!elevenLabsApiKey || !huggingFaceToken) {
+  if ( !huggingFaceToken) {
     console.log("API keys missing, sending error response"); // Debugging log
     res.send({
       messages: [
@@ -304,7 +289,6 @@ app.post("/chat", async (req, res) => {
     return;
   }
 
-
   try {
     // Generate response using Hugging Face GPT-2
     const prompt = `
@@ -319,7 +303,7 @@ app.post("/chat", async (req, res) => {
 - Your response must be strictly JSON format and nothing else.
   Respond to the following user message with a valid JSON array of messages:
   User message: "${userMessage}"
- 
+  
   Format your response as follows:
   [
     {
@@ -331,7 +315,6 @@ app.post("/chat", async (req, res) => {
 `;
     const generatedText = await generateTextWithHuggingFace(prompt);
 
-
     // Parse the generated text as JSON
     let messages = JSON.parse(generatedText);
     console.log("Parsed messages:", messages); // Debugging log
@@ -339,20 +322,19 @@ app.post("/chat", async (req, res) => {
       messages = messages.messages; // Handle cases where the response is nested
     }
 
-
     // Generate audio and lip sync for each message
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
       console.log(`Generating audio for message ${i}: ${message.text}`); // Debugging log
       const fileName = path.join(audiosDir, `message_${i}.mp3`);
       const textInput = message.text;
-      await voice.textToSpeech(elevenLabsApiKey, voiceID, fileName, textInput);
+      // await voice.textToSpeech(elevenLabsApiKey, voiceID, fileName, textInput);
+      await textToSpeech(textInput, language, voice, fileName);
       await lipSyncMessage(i, message.text);
       message.audio = await audioFileToBase64(fileName);
       message.lipsync = await readJsonTranscript(`audios/message_${i}.json`);
       console.log(`Audio and lipsync generated for message ${i}`); // Debugging log
     }
-
 
     res.send({ messages });
   } catch (error) {
@@ -361,13 +343,11 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-
 const readJsonTranscript = async (file) => {
   console.log(`Reading JSON transcript from file: ${file}`); // Debugging log
   const data = await fs.readFile(file, "utf8");
   return JSON.parse(data);
 };
-
 
 const audioFileToBase64 = async (file) => {
   console.log(`Converting audio file to base64: ${file}`); // Debugging log
@@ -375,10 +355,6 @@ const audioFileToBase64 = async (file) => {
   return data.toString("base64");
 };
 
-
 app.listen(port, () => {
   console.log(`Sentio listening on port ${port}`); // Debugging log
 });
-
-
-
