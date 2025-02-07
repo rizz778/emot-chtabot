@@ -57,6 +57,14 @@ app.get("/test-elevenlabs", async (req, res) => {
   } catch (error) {
     // Handle any errors and log the response
     console.error("API Error:", error.response ? error.response.data : error.message);
+
+    // If the error response is a Buffer (likely JSON), handle that
+    if (Buffer.isBuffer(error.response?.data)) {
+      const errorJson = JSON.parse(error.response?.data.toString());
+      return res.status(500).json({ error: errorJson.detail || 'Unknown error' });
+    }
+
+    // Otherwise, log the error message directly
     res.status(500).json({ error: error.response ? error.response.data : error.message });
   }
 });
