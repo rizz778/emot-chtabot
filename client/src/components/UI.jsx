@@ -1,17 +1,24 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useChat } from "../hooks/useChat";
 import './UI.css'
+
 export const UI = ({ hidden, ...props }) => {
   const input = useRef();
   const { chat, loading, cameraZoomed, setCameraZoomed, message } = useChat();
+  const [selectedLanguage, setSelectedLanguage] = useState("en"); // Default language is English
 
   const sendMessage = () => {
     const text = input.current.value;
     if (!loading && !message) {
-      chat(text);
+      chat(text, selectedLanguage); // Pass the selected language to the chat function
       input.current.value = "";
     }
   };
+
+  const handleLanguageChange = (event) => {
+    setSelectedLanguage(event.target.value);
+  };
+
   if (hidden) {
     return null;
   }
@@ -97,6 +104,18 @@ export const UI = ({ hidden, ...props }) => {
               }
             }}
           />
+          <select
+            value={selectedLanguage}
+            onChange={handleLanguageChange}
+            className="p-4 rounded-md bg-pink-500 hover:bg-pink-600 text-white cursor-pointer"
+          >
+            <option value="en">English</option>
+            <option value="es">Spanish</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="zh">Chinese</option>
+            <option value="hi">Hindi</option> {/* Added Hindi */}
+          </select>
           <button
             disabled={loading || message}
             onClick={sendMessage}
