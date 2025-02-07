@@ -12,6 +12,7 @@ import About from "./pages/About";
 import AvatarExperience from "./pages/AvatarExperience";
 import './App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import Resource from "./pages/Resource.jsx";
 
 function App() {
   const location = useLocation();
@@ -36,6 +37,7 @@ function App() {
         <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<About />} />
         <Route path="/avatarexp" element={<AvatarExperience />} />
+        <Route path="/resource" element={<Resource />} />
       </Routes>
     </div>
   );
