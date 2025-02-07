@@ -1,0 +1,41 @@
+/* Custom font for the entire component */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+/* Card hover effect */
+.resource-card {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.resource-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Avatar hover effect */
+.ant-avatar {
+  transition: transform 0.3s ease;
+}
+
+.ant-avatar:hover {
+  transform: scale(1.1);
+}
+
+/* Link hover effect */
+a {
+  transition: color 0.3s ease;
+}
+
+a:hover {
+  color: #ff7675 !important;
+}
+
+/* Tab hover effect */
+.ant-tabs-tab:hover {
+  color: #e84393 !important;
+}
+
+/* Active tab style */
+.ant-tabs-tab-active {
+  color: #e84393 !important;
+  font-weight: 600;
+}

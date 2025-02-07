@@ -43,6 +43,22 @@ const Navbar = () => {
         >
           Signup
         </NavLink>
+        <NavLink
+          to='/avatarexp'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          3D Avatar
+        </NavLink>
+        <NavLink
+          to='/resource'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          Resources
+        </NavLink>
       </nav>
 
       {/* Logo (Center) */}
