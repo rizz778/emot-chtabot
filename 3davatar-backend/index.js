@@ -33,6 +33,8 @@ dotenv.config();
 const elevenLabsApiKey = process.env.ELEVEN_LABS_API_KEY;
 const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to .env
 const voiceID = "cgSgspJ2msm6clMCkdW9";
+console.log("API Key:", process.env.ELEVENLABS_API_KEY ? "Loaded" : "Not Loaded");
+
 
 const app = express();
 app.use(express.json());
@@ -44,12 +46,12 @@ app.get("/", (req, res) => {
   res.send("Hello World!");
 });
 
-app.get("/voices", async (req, res) => {
-  console.log("GET /voices called"); // Debugging log
-  const voices = await voice.getVoices(elevenLabsApiKey);
-  console.log("Voices retrieved:", voices); // Debugging log
-  res.send(voices);
-});
+// app.get("/voices", async (req, res) => {
+//   console.log("GET /voices called"); // Debugging log
+//   const voices = await voice.getVoices(elevenLabsApiKey);
+//   console.log("Voices retrieved:", voices); // Debugging log
+//   res.send(voices);
+// });
 
 const execCommand = (command) => {
   return new Promise((resolve, reject) => {
