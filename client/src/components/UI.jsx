@@ -19,7 +19,7 @@ export const UI = ({ hidden, ...props }) => {
   return (
     <>
       <div className="fixed top-20 left-10 right-0 bottom-10 z-10 flex justify-between p-4 flex-col pointer-events-none">
-        <div className="self-start backdrop-blur-md bg-white bg-opacity-80 p-4 rounded-lg">
+        <div className="self-start backdrop-blur-md bg-white bg-opacity-80 p-4 rounded-lg hidden sm:block">
           <h1 className="font-black text-xl">Sentio</h1>
           <p>Your Virtual Counselor</p>
         </div>

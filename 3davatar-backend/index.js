@@ -85,7 +85,7 @@ const getAudioDuration = async (filePath) => {
 const phonemeToViseme = {
   p: "B", b: "B", m: "B",
   d: "C", t: "C", n: "C", l: "C",
-  h: "D", H: "D",
+  h: "H", H: "H",
   f: "E", v: "E",
   ʃ: "F", ʒ: "F", tʃ: "F", dʒ: "F",
   j: "G", w: "G",
