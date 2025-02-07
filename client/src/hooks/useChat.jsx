@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 
-const backendUrl = import.meta.env.VITE_API_URL || "http://emot-chatbot.onrender.com";
+const backendUrl = import.meta.env.VITE_API_URL || "https://emot-chatbot.onrender.com";
 
 const ChatContext = createContext();
 
