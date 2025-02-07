@@ -31,17 +31,28 @@ app.get("/test-elevenlabs", async (req, res) => {
       }
     );
 
-    // Write the binary audio data to a file
-    const audioPath = path.join(__dirname, 'output.mp3');
-    fs.writeFile(audioPath, response.data, (err) => {
-      if (err) {
-        console.error("Error writing audio file:", err);
-        return res.status(500).json({ error: "Error writing audio file" });
-      }
+    // Check if the response is valid JSON or binary data
+    try {
+      // Attempt to parse the response as JSON
+      const jsonResponse = JSON.parse(response.data.toString());
+      console.log('API JSON Response:', jsonResponse);
+      return res.status(500).json({ error: 'Invalid audio response' });
+    } catch (err) {
+      // If JSON parsing fails, we expect binary audio data
+      console.log('Binary audio data received, saving file...');
+      
+      // Write the binary audio data to a file
+      const audioPath = path.join(__dirname, 'output.mp3');
+      fs.writeFile(audioPath, response.data, (err) => {
+        if (err) {
+          console.error("Error writing audio file:", err);
+          return res.status(500).json({ error: "Error writing audio file" });
+        }
 
-      // Once the file is saved, send a success message
-      res.status(200).send({ message: 'API Works! Audio saved as output.mp3' });
-    });
+        // Once the file is saved, send a success message
+        res.status(200).send({ message: 'API Works! Audio saved as output.mp3' });
+      });
+    }
 
   } catch (error) {
     // Handle any errors and log the response
