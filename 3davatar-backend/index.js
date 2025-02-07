@@ -36,7 +36,7 @@ app.get("/test-elevenlabs", async (req, res) => {
       // Attempt to parse the response as JSON
       const jsonResponse = JSON.parse(response.data.toString());
       console.log('API JSON Response:', jsonResponse);
-      return res.status(500).json({ error: 'Invalid audio response' });
+      return res.status(500).json({ error: jsonResponse.detail || 'Unknown error' });
     } catch (err) {
       // If JSON parsing fails, we expect binary audio data
       console.log('Binary audio data received, saving file...');
