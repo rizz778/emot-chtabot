@@ -59,6 +59,14 @@ const Navbar = () => {
         >
           Resources
         </NavLink>
+        <NavLink
+          to='/helpline'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          Helplines
+        </NavLink>
       </nav>
 
       {/* Logo (Center) */}
