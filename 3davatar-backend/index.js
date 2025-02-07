@@ -27,27 +27,20 @@ app.get("/test-elevenlabs", async (req, res) => {
           "Content-Type": "application/json",
           Accept: "audio/mpeg",
         },
-        responseType: "stream", // Audio stream response
+        responseType: "arraybuffer", // Handle the response as binary data (arraybuffer)
       }
     );
 
-    // Stream the audio response and save it as an MP3 file
-    const audioStream = response.data;
+    // Write the binary audio data to a file
     const audioPath = path.join(__dirname, 'output.mp3');
+    fs.writeFile(audioPath, response.data, (err) => {
+      if (err) {
+        console.error("Error writing audio file:", err);
+        return res.status(500).json({ error: "Error writing audio file" });
+      }
 
-    // Pipe the audio stream to a file
-    const writer = fs.createWriteStream(audioPath);
-    audioStream.pipe(writer);
-
-    // Once the file is saved, send a response
-    writer.on('finish', () => {
+      // Once the file is saved, send a success message
       res.status(200).send({ message: 'API Works! Audio saved as output.mp3' });
-    });
-
-    // Handle stream errors
-    writer.on('error', (error) => {
-      console.error("Error writing audio file:", error);
-      res.status(500).json({ error: "Error writing audio file" });
     });
 
   } catch (error) {
