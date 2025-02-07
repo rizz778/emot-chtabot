@@ -1,6 +1,8 @@
 import express from 'express';
 import axios from 'axios';
 import dotenv from 'dotenv';
+import fs from 'fs';
+import path from 'path';
 
 dotenv.config();
 
@@ -29,8 +31,25 @@ app.get("/test-elevenlabs", async (req, res) => {
       }
     );
 
-    // Send a success message if API request is successful
-    res.status(200).send("API Works!");
+    // Stream the audio response and save it as an MP3 file
+    const audioStream = response.data;
+    const audioPath = path.join(__dirname, 'output.mp3');
+
+    // Pipe the audio stream to a file
+    const writer = fs.createWriteStream(audioPath);
+    audioStream.pipe(writer);
+
+    // Once the file is saved, send a response
+    writer.on('finish', () => {
+      res.status(200).send({ message: 'API Works! Audio saved as output.mp3' });
+    });
+
+    // Handle stream errors
+    writer.on('error', (error) => {
+      console.error("Error writing audio file:", error);
+      res.status(500).json({ error: "Error writing audio file" });
+    });
+
   } catch (error) {
     // Handle any errors and log the response
     console.error("API Error:", error.response ? error.response.data : error.message);
