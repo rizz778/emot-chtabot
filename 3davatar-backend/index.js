@@ -33,7 +33,7 @@ dotenv.config();
 const elevenLabsApiKey = process.env.ELEVEN_LABS_API_KEY;
 const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to .env
 const voiceID = "cgSgspJ2msm6clMCkdW9";
-console.log("API Key:", process.env.ELEVENLABS_API_KEY ? "Loaded" : "Not Loaded");
+console.log("API Key:", process.env.ELEVEN_LABS_API_KEY ? "Loaded" : "Not Loaded");
 
 
 const app = express();
