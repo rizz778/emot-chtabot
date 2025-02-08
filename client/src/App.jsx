@@ -16,6 +16,7 @@ import '@fortawesome/fontawesome-free/css/all.min.css';
 import Resource from "./pages/Resource.jsx";
 import Helpline from "./pages/Helpline.jsx";
 import SelfAssessment from "./pages/SelfAssessment.jsx";
+import Therapists from "./pages/Therapists.jsx";
 
 function App() {
   const location = useLocation();
@@ -44,6 +45,7 @@ function App() {
         <Route path="/helpline" element={<Helpline />} />
         <Route path="/selfassessment" element={<SelfAssessment />} />
         <Route path="/test/depression" element={<TestPage />} />
+        <Route path="/therapists" element={<Therapists />} />
       </Routes>
     </div>
   );
