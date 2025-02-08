@@ -7,9 +7,9 @@
     background: linear-gradient(19deg, #faaca8 0%, #ddd6f3 100%);
   }
   
-  .test-card {
+  .test-card2 {
     width: 100%;
-    max-width: 600px;
+    max-width: 800px;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
@@ -68,4 +68,3 @@
       transform: translateY(0);
     }
   }
-  

@@ -92,7 +92,7 @@ const TestPage = () => {
 
   return (
     <div className="test-page">
-      <Card className="test-card">
+      <Card className="test-card2">
         <Title level={2} className="test-title">Depression Test</Title>
         <Paragraph className="test-description">
           Answer the following questions to assess your symptoms of depression.
