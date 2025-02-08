@@ -18,6 +18,7 @@ import Helpline from "./pages/Helpline.jsx";
 import SelfAssessment from "./pages/SelfAssessment.jsx";
 import Therapists from "./pages/Therapists.jsx";
 import RelaxationToolsPage from "./pages/RelaxationToolsPage.jsx";
+import CommunityForum from "./pages/CommunityForum.jsx";
 
 function App() {
   const location = useLocation();
@@ -48,6 +49,7 @@ function App() {
         <Route path="/test/depression" element={<TestPage />} />
         <Route path="/therapists" element={<Therapists />} />
         <Route path="/relaxationtools" element={<RelaxationToolsPage />} />
+        <Route path="/communityforum" element={<CommunityForum />} />
       </Routes>
     </div>
   );

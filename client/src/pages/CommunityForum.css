@@ -1,0 +1,242 @@
+/* General Page Styling */
+.community-forum {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  /* Card Styling */
+  .card {
+    background-color: #d03939;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+  }
+  
+  .card-body {
+    padding: 20px;
+  }
+  
+  .card-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  
+  .card p {
+    font-size: 1rem;
+    color: #555;
+  }
+  
+  .card-footer {
+    font-size: 0.875rem;
+    color: #777;
+  }
+  
+  /* Post Creation Button */
+  button {
+    font-size: 1rem;
+  }
+  
+  button:hover {
+    background-color: #4caf50;
+    color: white;
+  }
+  
+  /* Modal Styling */
+  .modal-header {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #333;
+  }
+  
+  .modal-body {
+    padding: 20px;
+  }
+  
+  input,
+  textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  
+  textarea {
+    min-height: 150px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 1rem;
+  }
+  
+  button:hover {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  /* Button hover effects */
+  button:hover {
+    cursor: pointer;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+  }
+  
+  button:disabled {
+    background-color: #aaa;
+  }
+  
+  /* User & Post Interaction Styling */
+  button:focus,
+  input:focus,
+  textarea:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+  
+  button svg,
+  input svg,
+  textarea svg {
+    vertical-align: middle;
+  }
+  
+  /* Post Feed Layout */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding-top: 20px;
+    width: 100%;
+  }
+  
+  .grid div {
+    cursor: pointer;
+  }
+  
+  /* Pagination Styling */
+  .pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    gap: 10px;
+  }
+  
+  .pagination button {
+    padding: 8px 12px;
+    font-size: 1rem;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    border: 1px solid #ddd;
+  }
+  
+  .pagination button:hover {
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+  }
+  
+  .pagination button.active {
+    background-color: #007bff;
+    color: white;
+  }
+  
+  /* Post Detail Section */
+  .fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+  
+  .bg-white {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 800px;
+    position: relative;
+  }
+  
+  .flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .flex img {
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+  }
+  
+  .comment-container {
+    padding: 20px;
+    border-top: 1px solid #ccc;
+    margin-top: 20px;
+  }
+  
+  .comment-container textarea {
+    width: 100%;
+    height: 60px;
+    margin-top: 10px;
+  }
+  
+  .comment-container button {
+    margin-top: 10px;
+  }
+  
+  .comment-container .comments-list {
+    margin-top: 20px;
+  }
+  
+  .comment-container .comment-item {
+    margin-bottom: 15px;
+  }
+  
+  .comment-item p {
+    font-size: 1rem;
+    color: #333;
+  }
+  
+  .comment-item span {
+    color: #888;
+    font-size: 0.9rem;
+  }
+  
+  .comment-item button {
+    font-size: 1rem;
+  }
+  
+  .comment-item button:hover {
+    color: #007bff;
+  }
+  
+  /* Modal Close Button */
+  .modal-actions button {
+    background-color: #ff4040;
+    color: white;
+  }
+  
+  .modal-actions button:hover {
+    background-color: #cc3333;
+  }
+  
+  
