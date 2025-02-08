@@ -1,0 +1,30 @@
+.therapists-page {
+    padding: 24px;
+  }
+  
+  .ant-card {
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    height: 500px; /* Ensures all cards take full height */
+  }
+  
+  .ant-card-cover img {
+    border-radius: 8px 8px 0 0;
+    height: 250px; /* Ensures images have the same height */
+    object-fit: cover; /* Keeps the aspect ratio */
+  }
+  
+  .ant-card-body {
+    flex-grow: 1; /* Pushes content to take equal space */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  
+  .ant-card-actions {
+    background: #fafafa;
+    border-radius: 0 0 8px 8px;
+  }
+  

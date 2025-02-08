@@ -60,6 +60,14 @@ const Navbar = () => {
           3D Avatar
         </NavLink>
         <NavLink
+          to='/therapists'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          Therapists
+        </NavLink>
+        <NavLink
           to='/resource'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
