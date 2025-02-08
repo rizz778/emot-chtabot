@@ -50,7 +50,7 @@
 
 /* Button styling */
 .book-button {
-    width: 100%;
+    /* width: 100%; */
     font-size: 16px;
     transition: background-color 0.3s ease, transform 0.2s ease;
     background-color: #ffbff3;

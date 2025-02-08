@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { Tabs, Card, Typography, Row, Col, Button } from 'antd';
 import { PlayCircleOutlined, PauseCircleOutlined, StepBackwardOutlined, StepForwardOutlined, CloseOutlined } from '@ant-design/icons';
 import './RelaxationToolsPage.css'; // Custom CSS for styling
-
+import BreathingExercise from '../components/BreathingExercise.jsx'
+import GuidedMeditation from '../components/GuidedMeditation.jsx'
 
 const { TabPane } = Tabs;
 const { Title, Text } = Typography;
@@ -79,41 +80,10 @@ const RelaxationToolsPage = () => {
 
       <Tabs defaultActiveKey="1" centered>
         {/* Guided Meditation */}
-        <TabPane tab="Guided Meditation" key="1">
-          <Card className="relaxation-card">
-            <Title level={4}>Guided Meditation Audio/Video</Title>
-            <Text>Listen to or watch guided meditation sessions to help you relax and focus.</Text>
-            <div className="video-container">
-              <iframe
-                width="100%"
-                height="315"
-                src="https://www.youtube.com/embed/inpok4MKVLM"
-                title="Guided Meditation"
-                frameBorder="0"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </Card>
-        </TabPane>
+       
 
         {/* Breathing Exercises */}
-        <TabPane tab="Breathing Exercises" key="2">
-          <Card className="relaxation-card">
-            <Title level={4}>Breathing Exercises</Title>
-            <Text>Practice these breathing exercises to calm your mind and body.</Text>
-            <div className="video-container">
-              <iframe
-                width="100%"
-                height="315"
-                src="https://www.youtube.com/embed/tEmt1Znux58"
-                title="Breathing Exercises"
-                frameBorder="0"
-                allowFullScreen
-              ></iframe>
-            </div>
-          </Card>
-        </TabPane>
-
+       
         {/* Relaxation Music */}
         <TabPane tab="Relaxation Music" key="3">
           <Title level={4} className="relaxation-title">Relaxation Music & Nature Sounds</Title>
@@ -153,6 +123,16 @@ const RelaxationToolsPage = () => {
               <CloseOutlined onClick={closePlayer} className="close-icon" />
             </div>
           )}
+        </TabPane>
+        <TabPane tab="Breathing Exercises" key="2">
+          <Card className="relaxation-card">
+            <BreathingExercise />
+          </Card>
+        </TabPane>
+        <TabPane tab="Guided Meditation" key="1">
+          <Card className="relaxation-card">
+            <GuidedMeditation/>
+          </Card>
         </TabPane>
       </Tabs>
     </div>
