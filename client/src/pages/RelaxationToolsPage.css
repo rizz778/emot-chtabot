@@ -1,0 +1,129 @@
+.relaxation-page {
+    padding: 24px;
+    background: #f0f2f5;
+    min-height: 100vh;
+  }
+  
+  .relaxation-title {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .relaxation-card {
+    margin: 16px 0;
+  }
+  
+  .video-container {
+    margin-top: 16px;
+  }
+  
+  .music-card {
+    width: 100%;
+    text-align: center;
+    padding: 16px;
+    border-radius: 10px;
+    margin-bottom: 40px;
+  }
+  
+  .music-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border-radius: 10px 10px 0 0;
+  }
+  
+  .music-player {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    padding: 10px 20px;
+    border-top: 2px solid #ddd;
+  }
+  
+  .player-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+  }
+  
+  .player-info {
+    flex-grow: 1;
+  }
+  
+  .player-title {
+    margin: 0;
+  }
+  
+  .player-controls {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+  }
+  
+  .player-icon {
+    font-size: 24px;
+    cursor: pointer;
+  }
+  .music-player {
+    /* position: fixed; */
+    /* bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%); */
+    width: 1450px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .player-image {
+    width: 50px;
+    height: 50px;
+    border-radius: 10px;
+    margin-right: 12px;
+  }
+  
+  .player-info {
+    flex-grow: 1;
+  }
+  
+  .player-title {
+    font-size: 14px;
+    font-weight: bold;
+  }
+  
+  .player-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  
+  .player-icon {
+    font-size: 20px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .player-icon:hover {
+    transform: scale(1.1);
+  }
+  
+  .close-icon {
+    font-size: 18px;
+    color: red;
+    cursor: pointer;
+    margin-left: 10px;
+  }
+  
+  .close-icon:hover {
+    transform: scale(1.2);
+  }
+  

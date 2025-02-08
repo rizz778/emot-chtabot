@@ -68,6 +68,14 @@ const Navbar = () => {
           Therapists
         </NavLink>
         <NavLink
+          to='/relaxationtools'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          Relaxation Tools
+        </NavLink>
+        <NavLink
           to='/resource'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
