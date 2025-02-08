@@ -17,6 +17,7 @@ import Resource from "./pages/Resource.jsx";
 import Helpline from "./pages/Helpline.jsx";
 import SelfAssessment from "./pages/SelfAssessment.jsx";
 import Therapists from "./pages/Therapists.jsx";
+import RelaxationToolsPage from "./pages/RelaxationToolsPage.jsx";
 
 function App() {
   const location = useLocation();
@@ -46,6 +47,7 @@ function App() {
         <Route path="/selfassessment" element={<SelfAssessment />} />
         <Route path="/test/depression" element={<TestPage />} />
         <Route path="/therapists" element={<Therapists />} />
+        <Route path="/relaxationtools" element={<RelaxationToolsPage />} />
       </Routes>
     </div>
   );
