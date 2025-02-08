@@ -110,7 +110,7 @@ export const UI = ({ hidden, ...props }) => {
             className="p-4 rounded-md bg-pink-500 hover:bg-pink-600 text-white cursor-pointer"
           >
             <option value="en">English</option>
-            <option value="es">Spanish</option>
+            <option value="jp">Japanese</option>
             <option value="fr">French</option>
             <option value="de">German</option>
             <option value="zh">Chinese</option>

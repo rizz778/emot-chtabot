@@ -1,0 +1,129 @@
+.landing-page {
+    padding: 40px 5%;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .main-title {
+    text-align: center !important;
+    margin-bottom: 10px !important;
+    color: #2c3e50 !important;
+    font-size: 40px !important;
+
+  }
+  
+  .subtitle {
+    text-align: center;
+    font-size: 16px;
+    color: #7f8c8d;
+    margin-bottom: 40px;
+  }
+  
+  .category-section {
+    margin-bottom: 40px;
+  }
+  
+  .category-title {
+    color: #34495e !important;
+    margin-bottom: 0 !important;
+    font-size: 30px !important;
+
+  }
+  
+  .category-description {
+    color: #95a5a6 !important;
+    font-size: 14px !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .test-card {
+    border-radius: 12px !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    overflow: hidden;
+    perspective: 1000px;
+  }
+  
+  .card-inner {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+  }
+  
+  .test-card:hover .card-inner {
+    transform: rotateY(180deg);
+  }
+  
+  .card-front,
+  .card-back {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backface-visibility: hidden;
+  }
+  
+  .card-front {
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  .card-back {
+    background: linear-gradient(pink, rgb(255, 122, 168));
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    transform: rotateY(180deg);
+    backdrop-filter: blur(10px); /* Apply blur effect */
+    -webkit-backdrop-filter: blur(10px); /* For Safari support */
+
+  }
+  
+  
+  .test-image {
+    /* width: 100%; */
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  
+  .card-content {
+    padding: 16px;
+    text-align: center;
+  }
+  
+  .test-title {
+    color: #2c3e50 !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .test-meta {
+    color: #7f8c8d !important;
+    font-size: 13px !important;
+    margin-bottom: 0 !important;
+  }
+  
+  .start-test-btn {
+    background-color: #fa5890;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .start-test-btn:hover {
+    background-color: #a11f30;
+  }
