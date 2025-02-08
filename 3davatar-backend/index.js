@@ -35,7 +35,7 @@ const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to
 const languageToVoice = {
   en: "US English Female",
   fr: "French Female",
-  jp: "Japanese Female",
+  it: "Italian Female",
   hi: "Hindi Female",
   zh: "Chinese Female",
   de: "Deutsch Female",
@@ -43,7 +43,7 @@ const languageToVoice = {
 const languageToInstruction = {
   en: "English",
   fr: "French (Français)",
-  jp: "Japanese",
+  it: "Italian",
   hi: "Hindi (हिंदी)",
   zh: "Chinese (中文)",
   de: "German (Deutsch)",
@@ -73,14 +73,13 @@ async function textToSpeech(text, language, outputFilename) {
 }
 
 const app = express();
-app.use(express.json());
-app.use(cors());
 const port = 3000;
 app.use(cors({
   origin: 'https://emot-chtabot-2.onrender.com', // Add the frontend URL
   methods: ['GET', 'POST'], // Allow necessary HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers that are needed
 }));
+app.use(express.json());
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 app.get("/", (req, res) => {
