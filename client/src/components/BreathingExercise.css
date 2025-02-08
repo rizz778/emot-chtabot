@@ -1,0 +1,110 @@
+.breathing-exercises-page {
+    padding: 24px;
+    background: linear-gradient(135deg, rgb(140, 218, 252) 0%, rgb(196, 250, 240) 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    transition: background 0.5s ease-in-out;
+  }
+  
+  .exercise-instructions {
+    text-align: center;
+    background: rgba(255, 255, 255, 0.9);
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+  }
+  
+  .exercise-instructions:hover {
+    transform: scale(1.02);
+  }
+  
+  .circular-timer {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #a3f7bf 0%, #6ad1a9 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px auto;
+    font-size: 48px;
+    font-weight: bold;
+    color: white;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    animation: pulse 3s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  .timer-text {
+    color: white;
+    font-size: 52px;
+    font-weight: bold;
+    animation: fadeIn 1s ease-in-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  
+  button {
+    transition: all 0.3s ease;
+    border-radius: 8px !important;
+  }
+  
+  button:hover {
+    transform: scale(1.05);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  h3 {
+    font-weight: bold;
+    color: #333;
+  }
+  
+  p {
+    font-size: 14px;
+    color: #555;
+  }
+  
+  /* Exercise Selection Panel */
+  .ant-collapse > .ant-collapse-item > .ant-collapse-header {
+    font-weight: bold;
+    transition: all 0.3s ease;
+  }
+  
+  .ant-collapse > .ant-collapse-item:hover > .ant-collapse-header {
+    color: #ff69b4;
+    transform: translateX(5px);
+  }
+  
+  label {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #444;
+  }
+  
