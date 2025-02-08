@@ -76,6 +76,11 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 const port = 3000;
+app.use(cors({
+  origin: 'https://emot-chtabot-2.onrender.com', // Add the frontend URL
+  methods: ['GET', 'POST'], // Allow necessary HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers that are needed
+}));
 ffmpeg.setFfmpegPath(ffmpegPath);
 
 app.get("/", (req, res) => {
