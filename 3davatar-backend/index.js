@@ -35,7 +35,7 @@ const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to
 const languageToVoice = {
   en: "US English Female",
   fr: "French Female",
-  es: "Spanish Latin American Female",
+  jp: "Japanese Female",
   hi: "Hindi Female",
   zh: "Chinese Female",
   de: "Deutsch Female",
@@ -43,7 +43,7 @@ const languageToVoice = {
 const languageToInstruction = {
   en: "English",
   fr: "French (Français)",
-  es: "Spanish (Español)",
+  jp: "Japanese",
   hi: "Hindi (हिंदी)",
   zh: "Chinese (中文)",
   de: "German (Deutsch)",

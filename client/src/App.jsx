@@ -14,6 +14,7 @@ import './App.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import Resource from "./pages/Resource.jsx";
 import Helpline from "./pages/Helpline.jsx";
+import SelfAssessment from "./pages/SelfAssessment.jsx";
 
 function App() {
   const location = useLocation();
@@ -40,6 +41,8 @@ function App() {
         <Route path="/avatarexp" element={<AvatarExperience />} />
         <Route path="/resource" element={<Resource />} />
         <Route path="/helpline" element={<Helpline />} />
+        <Route path="/selfassessment" element={<SelfAssessment />} />
+
       </Routes>
     </div>
   );
