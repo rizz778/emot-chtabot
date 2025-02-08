@@ -1,30 +1,73 @@
 .therapists-page {
     padding: 24px;
-  }
+}
   
-  .ant-card {
+.therapists-heading {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 34px;
+    font-weight: bold;
+}
+  
+.therapist-card {
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     display: flex;
     flex-direction: column;
-    height: 500px; /* Ensures all cards take full height */
-  }
-  
-  .ant-card-cover img {
+    height: 470px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Hover effect for cards */
+.therapist-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+.therapist-image {
     border-radius: 8px 8px 0 0;
-    height: 250px; /* Ensures images have the same height */
-    object-fit: cover; /* Keeps the aspect ratio */
-  }
-  
-  .ant-card-body {
-    flex-grow: 1; /* Pushes content to take equal space */
+    height: 250px;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
+}
+
+/* Image hover effect */
+.therapist-card:hover .therapist-image {
+    opacity: 0.9;
+}
+
+.therapist-info {
+    flex-grow: 1;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-  }
-  
-  .ant-card-actions {
+}
+
+.therapist-name {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+/* Button styling */
+.book-button {
+    width: 100%;
+    font-size: 16px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/* Hover effect for buttons */
+.book-button:hover {
+    background-color: #1890ff; /* Darker blue */
+    transform: scale(1.05);
+}
+
+/* Click effect for buttons */
+.book-button:active {
+    transform: scale(0.95);
+}
+
+/* Card action area */
+.ant-card-actions {
     background: #fafafa;
     border-radius: 0 0 8px 8px;
-  }
-  
+}
