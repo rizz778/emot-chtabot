@@ -8,6 +8,7 @@ import Signup from "./pages/SignUp";
 import PrivateRoute from "./routes/PrivateRoute";
 import "regenerator-runtime/runtime";
 import Navbar from "./components/Navbar";
+import TestPage from "./components/TestPage.jsx";
 import About from "./pages/About";
 import AvatarExperience from "./pages/AvatarExperience";
 import './App.css';
@@ -42,7 +43,7 @@ function App() {
         <Route path="/resource" element={<Resource />} />
         <Route path="/helpline" element={<Helpline />} />
         <Route path="/selfassessment" element={<SelfAssessment />} />
-
+        <Route path="/test/depression" element={<TestPage />} />
       </Routes>
     </div>
   );
