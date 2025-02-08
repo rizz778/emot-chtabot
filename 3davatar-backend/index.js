@@ -35,7 +35,7 @@ const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to
 const languageToVoice = {
   en: "US English Female",
   fr: "French Female",
-  es: "Spanish Female",
+  es: "Spanish Latin American Female",
   hi: "Hindi Female",
   zh: "Chinese Female",
   de: "Deutsch Female",
@@ -269,9 +269,8 @@ Each message must have text, facialExpression, and animation properties.
 The different facial expressions are: smile, sad, angry, surprised, funnyFace, and default.
 The different animations are: Talking_0, Talking_1, Talking_2, Crying, Laughing, Rumba, Idle, Terrified, and Angry.
 IMPORTANT RULES:
-- The user's selected language is ${languageToInstruction[language] || "English"}.
 - Respond in the user's selected language (${languageToInstruction[language] || "English"}).
-- Do NOT add any explanations, headers, or additional text.
+- Do NOT add any explanations, headers, or additional text, or "Response" heading.
 - ONLY output a valid JSON array.
 - Your response must be strictly JSON format and nothing else.
 Respond to the following user message with a valid JSON array of messages:
