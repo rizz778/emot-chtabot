@@ -86,11 +86,6 @@
     color: #333;
   }
   
-  p {
-    font-size: 14px;
-    color: #555;
-  }
-  
   /* Exercise Selection Panel */
   .ant-collapse > .ant-collapse-item > .ant-collapse-header {
     font-weight: bold;

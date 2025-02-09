@@ -74,7 +74,7 @@
   }
   
   /* Buttons */
-  button {
+  .btn1 {
     margin: 5px;
     padding: 12px 24px;
     border: none;
@@ -88,7 +88,7 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   }
   
-  button:hover {
+  .btn1:hover {
     background: linear-gradient(135deg, #003355, #005999);
     transform: scale(1.1);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
