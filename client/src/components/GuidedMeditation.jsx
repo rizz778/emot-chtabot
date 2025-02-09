@@ -80,10 +80,10 @@ const GuidedMeditation = () => {
           onPause={() => setIsPlaying(false)}
         />
         <div className="track-selection">
-          <button onClick={() => setSelectedTrack("/meditation-track-1.mp3")}>
+          <button className = "btn1" onClick={() => setSelectedTrack("/meditation-track-1.mp3")}>
             Track 1
           </button>
-          <button onClick={() => setSelectedTrack("/meditation-track-2.mp3")}>
+          <button className = "btn1" onClick={() => setSelectedTrack("/meditation-track-2.mp3")}>
             Track 2
           </button>
         </div>
@@ -116,24 +116,24 @@ const GuidedMeditation = () => {
           )}
         </CountdownCircleTimer>
         <div className="duration-selection">
-          <button onClick={() => setMeditationDuration(300)}>5 Min</button>
-          <button onClick={() => setMeditationDuration(600)}>10 Min</button>
-          <button onClick={() => setMeditationDuration(900)}>15 Min</button>
+          <button className = "btn1" onClick={() => setMeditationDuration(300)}>5 Min</button>
+          <button className = "btn1" onClick={() => setMeditationDuration(600)}>10 Min</button>
+          <button className = "btn1" onClick={() => setMeditationDuration(900)}>15 Min</button>
         </div>
       </div>
 
       {/* Soundscapes */}
       <div className="soundscapes">
         <h3>Soundscapes</h3>
-        <button onClick={() => handleSoundscapeChange("rain")}>Rain</button>
-        <button onClick={() => handleSoundscapeChange("ocean")}>Ocean</button>
-        <button onClick={() => handleSoundscapeChange("forest")}>Forest</button>
-        <button onClick={stopSoundscapes}>Stop Sound</button>
+        <button className = "btn1" onClick={() => handleSoundscapeChange("rain")}>Rain</button>
+        <button className = "btn1" onClick={() => handleSoundscapeChange("ocean")}>Ocean</button>
+        <button className = "btn1" onClick={() => handleSoundscapeChange("forest")}>Forest</button>
+        <button className = "btn1" onClick={stopSoundscapes}>Stop Sound</button>
       </div>
 
       {/* Stop Meditation Button */}
       <div className="stop-meditation">
-        <button onClick={stopMeditation}>Stop Meditation</button>
+        <button className = "btn1" onClick={stopMeditation}>Stop Meditation</button>
       </div>
 
       {/* On-Screen Guided Instructions & Affirmations */}
@@ -149,7 +149,7 @@ const GuidedMeditation = () => {
             <p>{affirmation}</p>
           </motion.div>
         </AnimatePresence>
-        <button onClick={changeAffirmation}>New Affirmation</button>
+        <button className = "btn1" onClick={changeAffirmation}>New Affirmation</button>
       </div>
     </div>
   );
