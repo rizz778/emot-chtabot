@@ -13,7 +13,7 @@ from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
 from flask import Flask, request, Response  # Import Response
 from twilio.twiml.voice_response import VoiceResponse
-
+import requests
 
 # Load environment variables
 load_dotenv()
@@ -61,6 +61,19 @@ def generate_response_with_rag(user_input, conversation_history):
     response_text = re.sub(r'\*+', '', response_text)
 
     return response_text
+
+def get_ngrok_url():
+    """Fetches the ngrok URL dynamically from the ngrok API."""
+    try:
+        ngrok_api_url = "http://127.0.0.1:4040/api/tunnels"  # Local ngrok API
+        response = requests.get(ngrok_api_url).json()
+        
+        for tunnel in response.get("tunnels", []):
+            if tunnel["proto"] == "https":
+                return tunnel["public_url"]  # Get the HTTPS tunnel URL
+    except Exception as e:
+        print("Error fetching ngrok URL:", str(e))
+        return None
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -122,9 +135,13 @@ def make_call():
         # URL-encode the response text
         encoded_response = urllib.parse.quote(response_text)
 
-        # Generate TwiML URL
-        twiml_url = f"https://7a1e-2405-201-4021-7089-c5f7-77c-406e-9ac6.ngrok-free.app/twiml?message={encoded_response}"
+        ngrok_url = get_ngrok_url()  # ✅ Fetch latest ngrok URL dynamically
+        if not ngrok_url:
+            return jsonify({"error": "Ngrok is not running. Start ngrok first!"}), 500
 
+        # Generate TwiML URL
+        twiml_url = f"{ngrok_url}/twiml?message={encoded_response}"
+                          
         print("Generated TwiML URL:", twiml_url)
 
         call = twilio_client.calls.create(
