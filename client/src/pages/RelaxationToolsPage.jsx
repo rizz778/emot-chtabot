@@ -85,7 +85,7 @@ const RelaxationToolsPage = () => {
         {/* Breathing Exercises */}
        
         {/* Relaxation Music */}
-        <TabPane tab="Relaxation Music" key="3">
+        <TabPane tab="Relaxation Music" key="1">
           <Title level={4} className="relaxation-title">Relaxation Music & Nature Sounds</Title>
           <Row gutter={[16, 16]} justify="center">
             {sounds.map((sound, index) => (
@@ -129,7 +129,7 @@ const RelaxationToolsPage = () => {
             <BreathingExercise />
           </Card>
         </TabPane>
-        <TabPane tab="Guided Meditation" key="1">
+        <TabPane tab="Guided Meditation" key="3">
           <Card className="relaxation-card">
             <GuidedMeditation/>
           </Card>

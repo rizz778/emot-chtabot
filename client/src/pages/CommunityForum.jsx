@@ -176,7 +176,7 @@ const CommunityForum = () => {
       {/* Post Creation Button */}
       <Button
         color="primary"
-        className="fixed bottom-10 right-10 z-50"
+        className="btn1 fixed bottom-10 right-10 z-50"
         onClick={() => setIsModalOpen(true)}
       >
         Create Post
@@ -236,8 +236,8 @@ const CommunityForum = () => {
     />
   </Modal.Body>
   <Modal.Actions className="text-center">
-    <Button onClick={handleCreatePost}>Submit</Button>
-    <Button onClick={() => setIsModalOpen(false)}>Cancel</Button>
+    <Button className = "btn1" onClick={handleCreatePost}>Submit</Button>
+    <Button className = "btn1" onClick={() => setIsModalOpen(false)}>Cancel</Button>
   </Modal.Actions>
 </Modal>
 
@@ -266,6 +266,7 @@ const CommunityForum = () => {
               </div>
               <div className="flex justify-between mt-4">
                 <Button
+                className = "btn1"
                   color="ghost"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -274,10 +275,12 @@ const CommunityForum = () => {
                 >
                   <FaThumbsUp /> {post.likes}
                 </Button>
-                <Button color="ghost">
+                <Button className = "btn1"
+                color="ghost">
                   <FaComment /> {post.comments.length}
                 </Button>
-                <Button color="ghost">
+                <Button className = "btn1" 
+                color="ghost">
                   <FaShare />
                 </Button>
               </div>
@@ -291,7 +294,7 @@ const CommunityForum = () => {
         <Pagination>
           {Array.from({ length: Math.ceil(posts.length / postsPerPage) }).map(
             (_, index) => (
-              <Button
+              <Button className = "btn1"
                 key={index + 1}
                 color={currentPage === index + 1 ? "primary" : "ghost"}
                 onClick={() => setCurrentPage(index + 1)}
