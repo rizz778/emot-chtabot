@@ -1,7 +1,7 @@
 /* Login Container */
 .login-container {
     padding: 24px;
-    background: #f0f2f5;
+    background:linear-gradient(blue-200 to blue-600);
     min-height: 100vh;
   }
   

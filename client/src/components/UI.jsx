@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useChat } from "../hooks/useChat";
-import './UI.css'
+import "./UI.css";
 
 export const UI = ({ hidden, ...props }) => {
   const input = useRef();
