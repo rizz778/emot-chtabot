@@ -15,7 +15,7 @@
   .subtitle {
     text-align: center;
     font-size: 16px;
-    color: #050d0d;
+    color: #7f8c8d;
     margin-bottom: 40px;
   }
   
@@ -24,14 +24,14 @@
   }
   
   .category-title {
-    color: #050608 !important;
+    color: #34495e !important;
     margin-bottom: 0 !important;
     font-size: 30px !important;
 
   }
   
   .category-description {
-    color: #090d0d !important;
+    color: #95a5a6 !important;
     font-size: 14px !important;
     margin-bottom: 0 !important;
   }
@@ -114,7 +114,7 @@
   
   .start-test-btn {
     background-color: #fa5890;
-    color: rgb(27, 16, 16);
+    color: white;
     padding: 10px 20px;
     border: none;
     border-radius: 5px;
