@@ -54,7 +54,15 @@ const Resource = () => {
 
   return (
     <div style={{ padding: "24px", fontFamily: "'Poppins', sans-serif" }}>
-      <h1 style={{ textAlign: "center", marginBottom: "24px", fontSize: "2.5rem", fontWeight: "600", color: "#ffffff" }}>
+      <h1
+        style={{
+          textAlign: "center",
+          marginBottom: "24px",
+          fontSize: "2.5rem",
+          fontWeight: "600",
+          color: "black",
+        }}
+      >
         Mental Health Resources
       </h1>
 
@@ -62,13 +70,20 @@ const Resource = () => {
         defaultActiveKey="audio"
         onChange={(key) => setActiveTab(key)}
         centered
-        tabBarStyle={{ fontSize: "1.4rem", fontWeight: "500", color: "#ffffff" }} // Increased font size for tab names
+        tabBarStyle={{
+          fontSize: "1.4rem",
+          fontWeight: "500",
+          color: "#ffffff",
+        }} // Increased font size for tab names
       >
         <TabPane
           tab={
             <span>
-              <AudioOutlined style={{ marginRight: "8px", color: "#ffffff" }} />
-              <span style={{ color: "#ffffff", fontSize: "1.4rem" }}>Audio</span> {/* Increased font size for tab names */}
+              <AudioOutlined style={{ marginRight: "8px", color: "black" }} />
+              <span style={{ color: "black", fontSize: "1.4rem" }}>
+                Audio
+              </span>{" "}
+              {/* Increased font size for tab names */}
             </span>
           }
           key="audio"
@@ -80,17 +95,39 @@ const Resource = () => {
               <List.Item>
                 <Card
                   className="resource-card"
-                  title={<span style={{ fontSize: "1.4rem", color: "#2d3436" }}>{item.title}</span>} // Darker text for better readability
-                  style={{ width: "100%", backgroundColor: "rgba(255, 255, 255, 0.4)", border: "1px solid rgba(255, 255, 255, 0.2)" }}
+                  title={
+                    <span style={{ fontSize: "1.4rem", color: "#2d3436" }}>
+                      {item.title}
+                    </span>
+                  } // Darker text for better readability
+                  style={{
+                    width: "100%",
+                    backgroundColor: "rgba(255, 255, 255, 0.4)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                  }}
                   actions={[
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ color: "#e84393", fontSize: "1.1rem" }}>
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#e84393", fontSize: "1.1rem" }}
+                    >
                       Listen Now
                     </a>,
                   ]}
                 >
                   <Card.Meta
-                    avatar={<Avatar icon={<AudioOutlined />} style={{ backgroundColor: "#e84393" }} />}
-                    description={<span style={{ color: "#2d3436", fontSize: "1.1rem" }}>{item.description}</span>} // Darker text for better readability
+                    avatar={
+                      <Avatar
+                        icon={<AudioOutlined />}
+                        style={{ backgroundColor: "#e84393" }}
+                      />
+                    }
+                    description={
+                      <span style={{ color: "#2d3436", fontSize: "1.1rem" }}>
+                        {item.description}
+                      </span>
+                    } // Darker text for better readability
                   />
                 </Card>
               </List.Item>
@@ -101,8 +138,11 @@ const Resource = () => {
         <TabPane
           tab={
             <span>
-              <VideoCameraOutlined style={{ marginRight: "8px", color: "#ffffff" }} />
-              <span style={{ color: "#ffffff", fontSize: "1.4rem" }}>Video</span> {/* Increased font size for tab names */}
+              <VideoCameraOutlined
+                style={{ marginRight: "8px", color: "black" }}
+              />
+              <span style={{ color: "black", fontSize: "1.4rem" }}>Video</span>{" "}
+              {/* Increased font size for tab names */}
             </span>
           }
           key="video"
@@ -114,17 +154,39 @@ const Resource = () => {
               <List.Item>
                 <Card
                   className="resource-card"
-                  title={<span style={{ fontSize: "1.4rem", color: "#2d3436" }}>{item.title}</span>} // Darker text for better readability
-                  style={{ width: "100%", backgroundColor: "rgba(255, 255, 255, 0.4)", border: "1px solid rgba(255, 255, 255, 0.2)" }}
+                  title={
+                    <span style={{ fontSize: "1.4rem", color: "#2d3436" }}>
+                      {item.title}
+                    </span>
+                  } // Darker text for better readability
+                  style={{
+                    width: "100%",
+                    backgroundColor: "rgba(255, 255, 255, 0.4)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                  }}
                   actions={[
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ color: "#e84393", fontSize: "1.1rem" }}>
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#e84393", fontSize: "1.1rem" }}
+                    >
                       Watch Now
                     </a>,
                   ]}
                 >
                   <Card.Meta
-                    avatar={<Avatar icon={<VideoCameraOutlined />} style={{ backgroundColor: "#e84393" }} />}
-                    description={<span style={{ color: "#2d3436", fontSize: "1.1rem" }}>{item.description}</span>} // Darker text for better readability
+                    avatar={
+                      <Avatar
+                        icon={<VideoCameraOutlined />}
+                        style={{ backgroundColor: "#e84393" }}
+                      />
+                    }
+                    description={
+                      <span style={{ color: "#2d3436", fontSize: "1.1rem" }}>
+                        {item.description}
+                      </span>
+                    } // Darker text for better readability
                   />
                 </Card>
               </List.Item>
@@ -135,8 +197,11 @@ const Resource = () => {
         <TabPane
           tab={
             <span>
-              <ReadOutlined style={{ marginRight: "8px", color: "#ffffff" }} />
-              <span style={{ color: "#ffffff", fontSize: "1.4rem" }}>Literature</span> {/* Increased font size for tab names */}
+              <ReadOutlined style={{ marginRight: "8px", color: "black" }} />
+              <span style={{ color: "black", fontSize: "1.4rem" }}>
+                Literature
+              </span>{" "}
+              {/* Increased font size for tab names */}
             </span>
           }
           key="literature"
@@ -148,17 +213,39 @@ const Resource = () => {
               <List.Item>
                 <Card
                   className="resource-card"
-                  title={<span style={{ fontSize: "1.4rem", color: "#2d3436" }}>{item.title}</span>} // Darker text for better readability
-                  style={{ width: "100%", backgroundColor: "rgba(255, 255, 255, 0.4)", border: "1px solid rgba(255, 255, 255, 0.2)" }}
+                  title={
+                    <span style={{ fontSize: "1.4rem", color: "#2d3436" }}>
+                      {item.title}
+                    </span>
+                  } // Darker text for better readability
+                  style={{
+                    width: "100%",
+                    backgroundColor: "rgba(255, 255, 255, 0.4)",
+                    border: "1px solid rgba(255, 255, 255, 0.2)",
+                  }}
                   actions={[
-                    <a href={item.link} target="_blank" rel="noopener noreferrer" style={{ color: "#e84393", fontSize: "1.1rem" }}>
+                    <a
+                      href={item.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#e84393", fontSize: "1.1rem" }}
+                    >
                       Read Now
                     </a>,
                   ]}
                 >
                   <Card.Meta
-                    avatar={<Avatar icon={<ReadOutlined />} style={{ backgroundColor: "#e84393" }} />}
-                    description={<span style={{ color: "#2d3436", fontSize: "1.1rem" }}>{item.description}</span>} // Darker text for better readability
+                    avatar={
+                      <Avatar
+                        icon={<ReadOutlined />}
+                        style={{ backgroundColor: "#e84393" }}
+                      />
+                    }
+                    description={
+                      <span style={{ color: "#2d3436", fontSize: "1.1rem" }}>
+                        {item.description}
+                      </span>
+                    } // Darker text for better readability
                   />
                 </Card>
               </List.Item>
