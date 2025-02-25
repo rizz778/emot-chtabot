@@ -135,18 +135,12 @@ def make_call():
         # URL-encode the response text
         encoded_response = urllib.parse.quote(response_text)
 
-# ---------------------------------------------------------------------------------
-        # ngrok_url = get_ngrok_url()  # ✅ Fetch latest ngrok URL dynamically
-        # if not ngrok_url:
-        #     return jsonify({"error": "Ngrok is not running. Start ngrok first!"}), 500
+        ngrok_url = get_ngrok_url()  # ✅ Fetch latest ngrok URL dynamically
+        if not ngrok_url:
+            return jsonify({"error": "Ngrok is not running. Start ngrok first!"}), 500
 
-        ## Generate TwiML URL
-        # twiml_url = f"{ngrok_url}/twiml?message={encoded_response}"
-# ---------------------------------------------------------------------------------
-        RENDER_URL = "https://emot-chtabot-2.onrender.com"
-
-        # Generate TwiML URL (Use Render instead of ngrok)
-        twiml_url = f"{RENDER_URL}/twiml?message={encoded_response}"
+        # Generate TwiML URL
+        twiml_url = f"{ngrok_url}/twiml?message={encoded_response}"
                           
         print("Generated TwiML URL:", twiml_url)
 
@@ -179,7 +173,7 @@ def twiml_response():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=10000, debug=True)
+    app.run(host="127.0.0.1", port=5000, debug=True)
 
 
 
