@@ -1,5 +1,6 @@
 import Chat from '../models/Chat.js'
 import User from '../models/User.js'
+import { encryptMessage,decryptMessage } from '../config/encrypt.js';
 export const createSession = async (req,res)=>{
     
     
@@ -58,7 +59,22 @@ export const getSessionMessages = async (req, res) => {
         return res.status(404).json({ message: "Session not found" });
       }
   
-      res.status(200).json(session);
+      const decryptedSession = {
+        _id: session._id,
+        sessionName: session.sessionName,
+        createdAt: session.createdAt,
+        messages: session.messages.map(msg => ({
+          _id: msg._id,
+          sender: msg.sender,
+          // Decrypt only if we have encryption metadata
+          text: (msg.iv && msg.authTag) 
+                ? decryptText(msg.text, msg.iv, msg.authTag) 
+                : msg.text,
+          timestamp: msg.timestamp
+        }))
+      };
+      
+      res.status(200).json(decryptedSession);
     } catch (error) {
       console.error("Error retrieving session messages:", error);
       res.status(500).json({ message: "Server Error" });
@@ -76,8 +92,13 @@ export const getSessionMessages = async (req, res) => {
       if (!session) {
         return res.status(404).json({ message: "Session not found" });
       }
-  
-      session.messages.push({ sender, text });
+      const { encrypted, iv, authTag } = encryptMessage(text);
+      session.messages.push({
+        sender,
+        text: encrypted, // Store encrypted text
+        iv,              // Store IV for decryption
+        authTag,         // Store auth tag for decryption integrity
+      });
       await session.save();
   
       res.status(200).json(session);
