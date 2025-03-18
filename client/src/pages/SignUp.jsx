@@ -1,52 +1,76 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Row, Col, Typography, Divider, Checkbox,message} from 'antd';
+import { Form, Input, Button, Row, Col, Typography, Divider, Checkbox, message } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined, GoogleOutlined, FacebookFilled } from '@ant-design/icons';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-import './SignUp.css'
-import axios from "axios"
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
+import './SignUp.css';
+
 const { Title, Text } = Typography;
 
 const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
- const navigate = useNavigate();
+  const navigate = useNavigate();
+  
+  // Get client ID from environment variables
+  const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+
   const handleSubmit = async (values) => {
     const { username, email, password } = values;
     setLoading(true);
     try {
-      console.log("Sending:", username, email, password);
-
-      const response=await axios.post('https://emot-chtabot-1.onrender.com/api/auth/signup',{
+      const response = await axios.post('https://emot-chtabot-1.onrender.com/api/auth/signup', {
         username, email, password
       });
 
-      const {token,user}=response.data;
-      console.log(response.data);
+      const { token, user } = response.data;
 
       // Store token and user details in localStorage
       localStorage.setItem('token', token);
       localStorage.setItem('user', JSON.stringify(user));
 
       message.success('SignUp successful!');
-      navigate('/chat'); // Redirect user after login
-
-      console.log('Received values:', values);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      alert('Signup successful!');
+      navigate('/chat'); // Redirect user after signup
     } catch (error) {
       console.error('Signup error:', error);
+      message.error(error.response?.data?.message || 'Signup failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      const { credential } = credentialResponse;
+  
+      // Send the credential token to your backend using POST
+      const response = await axios.post('https://emot-chtabot-1.onrender.com/api/auth/google/callback', {
+        token: credential, // Send the credential token in the request body
+      });
+  
+      const { token, user } = response.data;
+  
+      // Store token and user details in localStorage
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
+  
+      message.success('Google signup successful!');
+      navigate('/chat'); // Redirect user after signup
+    } catch (error) {
+      console.error('Google signup error:', error);
+      message.error(error.response?.data?.message || 'Google signup failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="signup-container">
       <Row justify="center" align="middle" style={{ minHeight: '100vh' }}>
         <Col xs={24} sm={20} md={16} lg={12} xl={8}>
           <div className="signup-card">
-            <Title level={2} className="signup-title"  style={{color: "#f64a8a"}}>
+            <Title level={2} className="signup-title" style={{ color: "#f64a8a" }}>
               Create Your Account
             </Title>
             <Text type="secondary" className="signup-subtitle">
@@ -131,7 +155,7 @@ const Signup = () => {
                 ]}
               >
                 <Checkbox>
-                  I agree to the <Link to="/terms" >terms and conditions</Link>
+                  I agree to the <Link to="/terms">terms and conditions</Link>
                 </Checkbox>
               </Form.Item>
 
@@ -142,7 +166,7 @@ const Signup = () => {
                   size="large"
                   loading={loading}
                   block
-                  style={{backgroundColor: "#f64a8a"}}
+                  style={{ backgroundColor: "#f64a8a" }}
                 >
                   Sign Up
                 </Button>
@@ -150,16 +174,18 @@ const Signup = () => {
 
               <Divider plain>Or sign up with</Divider>
 
-              <Row gutter={16}>
+              <Row gutter={16} className="social-signup-container">
                 <Col span={12}>
-                  <Button
-                    icon={<GoogleOutlined />}
-                    size="large"
-                    block
-                    className="social-btn google-btn"
-                  >
-                    Google
-                  </Button>
+                  <GoogleOAuthProvider clientId={CLIENT_ID}>
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={() => message.error('Google signup failed. Please try again.')}
+                      useOneTap
+                      shape="rectangular"
+                      text="signup_with"
+                      width="100%"
+                    />
+                  </GoogleOAuthProvider>
                 </Col>
                 <Col span={12}>
                   <Button
@@ -173,9 +199,9 @@ const Signup = () => {
                 </Col>
               </Row>
 
-              <div className="login-cta" >
+              <div className="login-cta">
                 <Text>Already have an account? </Text>
-                <Link to="/login ">Log in</Link>
+                <Link to="/login">Log in</Link>
               </div>
             </Form>
           </div>

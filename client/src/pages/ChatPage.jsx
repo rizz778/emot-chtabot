@@ -96,7 +96,7 @@ const ChatPage = () => {
         localStorage.setItem("activeSession", response.data[0]._id);
       } else {
         const newSession = await axios.post(
-          "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+          "https://emot-chtabot-1.onrender.comapi/chat/sessions",
           { sessionName: "Session 1" },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -129,7 +129,7 @@ const ChatPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+        "http://localhost:5000/api/chat/sessions",
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
