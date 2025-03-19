@@ -1,7 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
-import bodyParser from 'body-parser';
 import cors from 'cors';
 import connectDB from './config/db.js';
 import errorHandler from './middlewares/errorHandler.js';
@@ -20,16 +19,27 @@ const app = express();
 // Connect MongoDB
 connectDB();
 
-// Middlewares
+// CORS Configuration
+const allowedOrigins = [
+  'https://emot-chtabot-2.onrender.com',
+  'http://localhost:5173', // For local development
+];
+
 app.use(cors({
-  origin: 'https://emot-chtabot-2.onrender.com',  // Allow your frontend domain
+  origin: (origin, callback) => {
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: 'GET,POST,PUT,DELETE',
-  credentials: true  // Allow cookies if needed
+  credentials: true,
 }));
 
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
+// Middlewares
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Session middleware for Passport
 app.use(
@@ -37,6 +47,11 @@ app.use(
     secret: process.env.SESSION_SECRET || 'default_secret',
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+      httpOnly: true, // Prevent client-side JS from accessing the cookie
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
+    },
   })
 );
 
@@ -52,7 +67,10 @@ app.use('/api/chat', chatRouter);
 app.use(errorHandler);
 
 // Start Server
-const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on PORT ${PORT}`);
+const PORT = process.env.PORT || 5000;
+mongoose.connection.once('open', () => {
+  console.log('Connected to MongoDB');
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on PORT ${PORT}`);
+  });
 });
