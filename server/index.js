@@ -21,7 +21,11 @@ const app = express();
 connectDB();
 
 // Middlewares
-app.use(cors());
+app.use(cors({
+  origin: 'https://emot-chtabot-2.onrender.com',  // Allow your frontend domain
+  methods: 'GET,POST,PUT,DELETE',
+  credentials: true  // Allow cookies if needed
+}));
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
