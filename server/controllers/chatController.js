@@ -50,61 +50,65 @@ export const getSessions = async (req, res) => {
 
 // Retrieve a specific session's messages
 export const getSessionMessages = async (req, res) => {
-    const { sessionId } = req.params;
-  
-    try {
-      const session = await Chat.findOne({ _id: sessionId, user: req.user._id });
-  
-      if (!session) {
-        return res.status(404).json({ message: "Session not found" });
-      }
-  
-      const decryptedSession = {
-        _id: session._id,
-        sessionName: session.sessionName,
-        createdAt: session.createdAt,
-        messages: session.messages.map(msg => ({
-          _id: msg._id,
-          sender: msg.sender,
-          // Decrypt only if we have encryption metadata
-          text: (msg.iv && msg.authTag) 
-                ? decryptText(msg.text, msg.iv, msg.authTag) 
-                : msg.text,
-          timestamp: msg.timestamp
-        }))
-      };
-      
-      res.status(200).json(decryptedSession);
-    } catch (error) {
-      console.error("Error retrieving session messages:", error);
-      res.status(500).json({ message: "Server Error" });
-    }
-  };
+  const { sessionId } = req.params;
 
-  // Add a message to a session
-  export const addMessage = async (req, res) => {
-    const { sessionId } = req.params;
-    const { sender, text } = req.body;
-  
-    try {
-      const session = await Chat.findOne({ _id: sessionId, user: req.user._id });
-  
-      if (!session) {
-        return res.status(404).json({ message: "Session not found" });
-      }
-      const { encrypted, iv, authTag } = encryptMessage(text);
-      session.messages.push({
-        sender,
-        text: encrypted, // Store encrypted text
-        iv,              // Store IV for decryption
-        authTag,         // Store auth tag for decryption integrity
-      });
-      await session.save();
-  
-      res.status(200).json(session);
-    } catch (error) {
-      console.error("Error adding message:", error);
-      res.status(500).json({ message: "Server Error" });
+  if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+    return res.status(400).json({ message: "Invalid session ID" });
+  }
+
+  try {
+    const session = await Chat.findOne({ _id: sessionId, user: req.user._id });
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
     }
-  };
-  
+
+    const decryptedSession = {
+      _id: session._id,
+      sessionName: session.sessionName,
+      createdAt: session.createdAt,
+      messages: session.messages.map(msg => ({
+        _id: msg._id,
+        sender: msg.sender,
+        text: (msg.iv && msg.authTag) ? decryptMessage(msg.text, msg.iv, msg.authTag) : msg.text,
+        timestamp: msg.timestamp
+      }))
+    };
+
+    res.status(200).json(decryptedSession);
+  } catch (error) {
+    console.error("Error retrieving session messages:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+export const addMessage = async (req, res) => {
+  const { sessionId } = req.params;
+  const { sender, text } = req.body;
+
+  if (!mongoose.Types.ObjectId.isValid(sessionId)) {
+    return res.status(400).json({ message: "Invalid session ID" });
+  }
+
+  if (!sender || !text) {
+    return res.status(400).json({ message: "Sender and text are required" });
+  }
+
+  try {
+    const session = await Chat.findOne({ _id: sessionId, user: req.user._id });
+
+    if (!session) {
+      return res.status(404).json({ message: "Session not found" });
+    }
+
+    const { encrypted, iv, authTag } = encryptMessage(text);
+    session.messages.push({ sender, text: encrypted, iv, authTag });
+    await session.save();
+
+    res.status(200).json(session);
+  } catch (error) {
+    console.error("Error adding message:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
