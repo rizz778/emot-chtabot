@@ -59,7 +59,9 @@ def generate_response_with_rag(user_input, conversation_history):
         
         history_text.append(f"{msg['sender']}: {msg['text']}")
     
-    prompt = f"Previous conversation:\n{'\n'.join(history_text)}\n\nUser: {user_input}\nBot:"
+    history_str = "\n".join(history_text)  # Create the joined string separately
+    prompt = f"Previous conversation:\n{history_str}\n\nUser: {user_input}\nBot:"
+
 
     print(f"[DEBUG] Sending to model:\n{prompt}")
 
