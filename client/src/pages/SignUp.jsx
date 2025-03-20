@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Row, Col, Typography, Divider, Checkbox, message } from 'antd';
 import { MailOutlined, LockOutlined, UserOutlined, GoogleOutlined, FacebookFilled } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate,useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './SignUp.css';
@@ -12,6 +12,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
+  const location =useLocation();
   
   // Get client ID from environment variables
   const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
@@ -31,7 +32,8 @@ const Signup = () => {
       localStorage.setItem('user', JSON.stringify(user));
 
       message.success('SignUp successful!');
-      navigate('/chat'); // Redirect user after signup
+      const redirectPath = location.state?.from?.pathname || "/chat";
+      navigate(redirectPath);
     } catch (error) {
       console.error('Signup error:', error);
       message.error(error.response?.data?.message || 'Signup failed. Please try again.');
@@ -57,7 +59,8 @@ const Signup = () => {
       localStorage.setItem('user', JSON.stringify(user));
   
       message.success('Google signup successful!');
-      navigate('/chat'); // Redirect user after signup
+      const redirectPath = location.state?.from?.pathname || "/chat";
+      navigate(redirectPath);
     } catch (error) {
       console.error('Google signup error:', error);
       message.error(error.response?.data?.message || 'Google signup failed. Please try again.');

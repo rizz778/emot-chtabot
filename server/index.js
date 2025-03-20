@@ -33,7 +33,7 @@ app.use(
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: process.env.NODE_ENV === 'production', // Use HTTPS in production
+      secure: false, // Use HTTPS in production
       httpOnly: true, // Prevent client-side JS from accessing the cookie
       maxAge: 1000 * 60 * 60 * 24, // 1 day
     },
@@ -52,7 +52,7 @@ app.use('/api/chat', chatRouter);
 app.use(errorHandler);
 
 // Start Server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 mongoose.connection.once('open', () => {
   console.log('Connected to MongoDB');
   app.listen(PORT, () => {

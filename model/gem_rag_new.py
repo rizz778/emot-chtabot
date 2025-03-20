@@ -46,9 +46,20 @@ def generate_response_with_rag(user_input, conversation_history):
     """
     Generates a response by sending the conversation history along with the user query to the model.
     """
-    history_text = "\n".join([f"{msg['sender']}: {msg['text']}" for msg in conversation_history])
+    if not isinstance(conversation_history, list):
+        print("[ERROR] Invalid conversation_history format. Expected a list.")
+        return "Error: Invalid conversation format."
 
-    prompt = f"Previous conversation:\n{history_text}\n\nUser: {user_input}\nBot:"
+    history_text = []
+    
+    for msg in conversation_history:
+        if not isinstance(msg, dict) or "sender" not in msg or "text" not in msg:
+            print(f"[ERROR] Invalid message format: {msg}")  # Debugging print
+            return "Error: Malformed conversation history."
+        
+        history_text.append(f"{msg['sender']}: {msg['text']}")
+    
+    prompt = f"Previous conversation:\n{'\n'.join(history_text)}\n\nUser: {user_input}\nBot:"
 
     print(f"[DEBUG] Sending to model:\n{prompt}")
 
@@ -56,11 +67,11 @@ def generate_response_with_rag(user_input, conversation_history):
         response = model.generate_content(prompt)
         response_text = response.text.strip()
     except Exception as e:
-        response_text = f"Error generating response: {str(e)}"
-
-    response_text = re.sub(r'\*+', '', response_text)
+        print(f"[ERROR] AI Model Error: {str(e)}")  # Log error in console
+        return "Error generating response from AI."
 
     return response_text
+
 
 def get_ngrok_url():
     """Fetches the ngrok URL dynamically from the ngrok API."""

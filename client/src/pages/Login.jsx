@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Row, Col, Typography, Divider, Checkbox, message } from 'antd';
 import { MailOutlined, LockOutlined, GoogleOutlined, FacebookFilled } from '@ant-design/icons';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate,useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import './Login.css';
@@ -12,7 +12,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const navigate = useNavigate();
-  
+  const location = useLocation();
   // Get client ID from environment variables
   const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
@@ -32,7 +32,8 @@ const Login = () => {
       localStorage.setItem('user', JSON.stringify(user));
 
       message.success('Login successful!');
-      navigate('/chat'); // Redirect user after login
+      const redirectPath = location.state?.from?.pathname || "/chat";
+      navigate(redirectPath);
     } catch (error) {
       console.error('Login error:', error);
       message.error(error.response?.data?.message || 'Login failed. Please try again.');
@@ -58,7 +59,8 @@ const Login = () => {
       localStorage.setItem('user', JSON.stringify(user));
   
       message.success('Google login successful!');
-      navigate('/chat'); // Redirect user after login
+      const redirectPath = location.state?.from?.pathname || "/chat";
+      navigate(redirectPath);
     } catch (error) {
       console.error('Google login error:', error);
       message.error(error.response?.data?.message || 'Google login failed. Please try again.');

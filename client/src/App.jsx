@@ -19,10 +19,10 @@ import SelfAssessment from "./pages/SelfAssessment.jsx";
 import Therapists from "./pages/Therapists.jsx";
 import RelaxationToolsPage from "./pages/RelaxationToolsPage.jsx";
 import CommunityForum from "./pages/CommunityForum.jsx";
-
+import { Navigate } from "react-router-dom";
 function App() {
   const location = useLocation();
-
+  const isAuthenticated = !!localStorage.getItem("token");
   // Apply the gradient background if on /token page
   useEffect(() => {
     if (location.pathname === '/token') {
@@ -36,20 +36,23 @@ function App() {
     <div>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/chat" element={<PrivateRoute component={ChatPage} />} />
+        {/* Public Routes */}
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/chat" /> : <Login />} />
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/chat" /> : <Signup />} />
         <Route path="/token" element={<BuyToken />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<About />} />
-        <Route path="/avatarexp" element={<AvatarExperience />} />
-        <Route path="/resource" element={<Resource />} />
-        <Route path="/helpline" element={<Helpline />} />
-        <Route path="/selfassessment" element={<SelfAssessment />} />
-        <Route path="/test/depression" element={<TestPage />} />
-        <Route path="/therapists" element={<Therapists />} />
-        <Route path="/relaxationtools" element={<RelaxationToolsPage />} />
-        <Route path="/communityforum" element={<CommunityForum />} />
+        <Route path="/" element={<Home/>} />
+        {/* Private Routes */}
+        
+        <Route path="/chat" element={<PrivateRoute component={ChatPage} />} />
+        <Route path="/avatarexp" element={<PrivateRoute component={AvatarExperience} />} />
+        <Route path="/resource" element={<PrivateRoute component={Resource} />} />
+        <Route path="/helpline" element={<PrivateRoute component={Helpline} />} />
+        <Route path="/selfassessment" element={<PrivateRoute component={SelfAssessment} />} />
+        <Route path="/test/depression" element={<PrivateRoute component={TestPage} />} />
+        <Route path="/therapists" element={<PrivateRoute component={Therapists} />} />
+        <Route path="/relaxationtools" element={<PrivateRoute component={RelaxationToolsPage} />} />
+        <Route path="/communityforum" element={<PrivateRoute component={CommunityForum} />} />
       </Routes>
     </div>
   );
