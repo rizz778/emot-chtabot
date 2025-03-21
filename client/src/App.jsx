@@ -42,11 +42,10 @@ function App() {
       <Navbar />
       <Routes>
         {/* Public Routes */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={isAuthenticated ? <Navigate to="/chat" /> : <Login />} />
         <Route path="/signup" element={isAuthenticated ? <Navigate to="/chat" /> : <Signup />} />
         <Route path="/token" element={<BuyToken />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
         <Route path="/about" element={<About2 />} />
         <Route path="/avatarexp" element={<AvatarExperience />} />
         <Route path="/resource" element={<Resource />} />
