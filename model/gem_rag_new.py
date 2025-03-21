@@ -68,6 +68,8 @@ def generate_response_with_rag(user_input, conversation_history):
     try:
         response = model.generate_content(prompt)
         response_text = response.text.strip()
+        response_text = re.sub(r'\*+', '', response_text)
+
     except Exception as e:
         print(f"[ERROR] AI Model Error: {str(e)}")  # Log error in console
         return "Error generating response from AI."
@@ -154,6 +156,8 @@ def make_call():
 
         # Generate TwiML URL
         twiml_url = f"{ngrok_url}/twiml?message={encoded_response}"
+        # twiml_url = f"https://emot-chtabot-1.onrender.com/twiml?message={encoded_response}"
+
                           
         print("Generated TwiML URL:", twiml_url)
 

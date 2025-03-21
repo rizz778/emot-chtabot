@@ -126,37 +126,36 @@ const ChatPage = () => {
     }
   };
 
-
   const handleNewSession = async () => {
     try {
       const token = localStorage.getItem("token");
-      
+
       if (!token) {
         navigate("/login");
         return;
       }
-  
+
       const response = await axios.post(
         "https://emot-chtabot-1.onrender.com/api/chat/sessions",
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
+
       // Fix: Correctly extract session ID
       const { sessionId, sessionName, tokens } = response.data;
-  
+
       // Update state with new session information
       setTokenBalance(tokens);
-      setChatSessions(prevSessions => [
+      setChatSessions((prevSessions) => [
         ...prevSessions,
-        { _id: sessionId, sessionName }
+        { _id: sessionId, sessionName },
       ]);
       setActiveSession(sessionId);
       setMessages([]);
-  
+
       // Persist active session
       localStorage.setItem("activeSession", sessionId);
-  
+
       notification.success({
         message: "Session Created",
         description: "-2 tokens deducted from your account.",
@@ -164,7 +163,7 @@ const ChatPage = () => {
       });
     } catch (error) {
       console.error("Failed to create session:", error);
-  
+
       if (error.response?.status === 403) {
         notification.error({
           message: "Insufficient Tokens",
@@ -181,11 +180,11 @@ const ChatPage = () => {
       }
     }
   };
-  
+
   const handleSendMessage = async () => {
     const trimmedInput = input.trim();
     if (!trimmedInput) return;
-    
+
     const token = localStorage.getItem("token");
     if (!token || !activeSession) {
       notification.error({
@@ -196,22 +195,22 @@ const ChatPage = () => {
       navigate("/login");
       return;
     }
-    
+
     // Optimistically update UI
     const userMessage = { sender: "user", text: trimmedInput };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput(""); // Clear input immediately for better UX
     setLoading(true);
-    
+
     try {
       // Step 1: Get conversation history
       const { data: sessionData } = await axios.get(
         `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const lastFiveMessages = sessionData.messages.slice(-5);
-      
+
       // Step 2: Get AI response
       const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
         method: "POST",
@@ -222,20 +221,22 @@ const ChatPage = () => {
           conversation_history: lastFiveMessages,
         }),
       });
-      
+
       if (!aiResponse.ok) {
-        throw new Error(`AI service responded with status: ${aiResponse.status}`);
+        throw new Error(
+          `AI service responded with status: ${aiResponse.status}`
+        );
       }
-      
+
       const aiData = await aiResponse.json();
-      
+
       // Validate bot response
       if (!aiData.response) {
         throw new Error("Empty response from AI service");
       }
-      
+
       const botMessage = { sender: "bot", text: aiData.response };
-      
+
       // Step 3: Save messages to backend (in parallel)
       const saveMessagesPromises = [
         axios.post(
@@ -247,28 +248,27 @@ const ChatPage = () => {
           `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
           botMessage,
           { headers: { Authorization: `Bearer ${token}` } }
-        )
+        ),
       ];
-      
+
       // Update UI with bot response
-      setMessages(prevMessages => [...prevMessages, botMessage]);
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
       setAudioUrl(aiData.audio_url);
-      
+
       // Wait for save operations to complete
       await Promise.all(saveMessagesPromises);
-      
     } catch (error) {
       console.error("Error in message exchange:", error);
-      
+
       // Add error message to UI
-      setMessages(prevMessages => [
+      setMessages((prevMessages) => [
         ...prevMessages,
-        { 
-          sender: "bot", 
-          text: "Sorry, I couldn't process your message. Please try again." 
-        }
+        {
+          sender: "bot",
+          text: "Sorry, I couldn't process your message. Please try again.",
+        },
       ]);
-      
+
       notification.error({
         message: "Communication Error",
         description: "Failed to get or save response. Please try again.",
@@ -293,7 +293,10 @@ const ChatPage = () => {
 
   const formatText = (text) => {
     // Replace line breaks with <br /> and add paragraph spacing
-    return text.replace(/(\r\n|\n|\r)/g, "<br />");
+    return text
+      .replace(/[*•-]/g, "") // Remove *, •, and -
+      .replace(/^\d+[\.\)]\s*/gm, "") // Remove numbered bullets like "1.", "2)", etc.
+      .replace(/(\r\n|\n|\r)/g, "<br />"); // Replace line breaks with <br />
   };
 
   const handleCallUser = async () => {
@@ -342,9 +345,7 @@ const ChatPage = () => {
       >
         <div
           style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
-        >
-      
-        </div>
+        ></div>
         <Menu
           theme="light"
           mode="inline"
