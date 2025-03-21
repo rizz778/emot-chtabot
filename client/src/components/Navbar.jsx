@@ -14,7 +14,7 @@ const Navbar = () => {
   const handleLogout = () => {
     localStorage.removeItem("token"); // Remove token from storage
     setIsAuthenticated(false); // Update authentication state
-    
+    navigate("/"); // Redirect to login page
   };
 
   useEffect(() => {
