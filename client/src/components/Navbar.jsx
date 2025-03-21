@@ -10,7 +10,7 @@ const Navbar = () => {
   return (
     <header className={`flex items-center justify-between p-4 ${backgroundClass} h-20`}>
       {/* Navigation Links (Left) */}
-      <nav className='flex gap-8 font-medium text-lg'>
+      <nav className='flex gap-8 font-medium text-lg justify-center w-full'>
         <NavLink
           to='/'
           className={({ isActive }) =>
@@ -19,14 +19,7 @@ const Navbar = () => {
         >
           Home
         </NavLink>
-        <NavLink
-          to='/about'
-          className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
-          }
-        >
-          About
-        </NavLink>
+        
         <NavLink
           to='/selfassessment'
           className={({ isActive }) =>
@@ -35,21 +28,21 @@ const Navbar = () => {
         >
           Self Assessment
         </NavLink>
-        <NavLink
+        {/* <NavLink
           to='/login'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
           }
         >
           Login
-        </NavLink>
+        </NavLink> */}
         <NavLink
           to='/signup'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
           }
         >
-          Signup
+          ChatBot
         </NavLink>
         <NavLink
           to='/avatarexp'
@@ -59,7 +52,7 @@ const Navbar = () => {
         >
           3D Avatar
         </NavLink>
-        <NavLink
+        {/* <NavLink
           to='/therapists'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
@@ -67,14 +60,39 @@ const Navbar = () => {
         >
           Therapists
         </NavLink>
-        <NavLink
+         <NavLink
           to='/communityforum'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
           }
         >
           Community Forum
+        </NavLink> */}
+        <NavLink
+          to='/twotabpage'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          Suppport Center
         </NavLink>
+        <NavLink
+          to='/tabpage'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          Resources
+        </NavLink>
+        <NavLink
+          to='/about'
+          className={({ isActive }) =>
+            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
+          }
+        >
+          About Us
+        </NavLink>
+        {/*
         <NavLink
           to='/relaxationtools'
           className={({ isActive }) =>
@@ -89,7 +107,7 @@ const Navbar = () => {
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
           }
         >
-          Resources
+        Wellness Library
         </NavLink>
         <NavLink
           to='/helpline'
@@ -98,7 +116,7 @@ const Navbar = () => {
           }
         >
           Helplines
-        </NavLink>
+        </NavLink> */}
       </nav>
 
       {/* Logo (Center) */}
