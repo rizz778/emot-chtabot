@@ -74,7 +74,7 @@ const Navbar = () => {
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
           }
         >
-          Suppport Center
+          Support Center
         </NavLink>
         <NavLink
           to='/tabpage'
