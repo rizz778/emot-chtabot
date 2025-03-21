@@ -87,6 +87,14 @@ const Navbar = () => {
         >
           About Us
         </NavLink>
+      {isAuthenticated && (
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+        >
+          Logout
+        </button>
+      )}
       </nav>
 
       {/* Logo (Center) */}
@@ -97,14 +105,6 @@ const Navbar = () => {
       </div>
 
       {/* Logout Button */}
-      {isAuthenticated && (
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-        >
-          Logout
-        </button>
-      )}
     </header>
   );
 };
