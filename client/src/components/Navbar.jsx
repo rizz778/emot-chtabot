@@ -1,11 +1,25 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import logo6 from '../assets/images/logo6.jpg';
 
 const Navbar = () => {
   const location = useLocation();  // Access current location
+  const navigate = useNavigate();  // For redirection
+  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
 
-  // Check if the current page is '/about'
+  
   const backgroundClass = location.pathname === '/about' ? 'bg-gradient-to-r from-blue-400 to-purple-300' : 'bg-gradient-to-r from-pink-300 to-[#ffc0cb]';
+
+  // Logout function
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Remove token from storage
+    setIsAuthenticated(false); // Update authentication state
+    
+  };
+
+  useEffect(() => {
+    setIsAuthenticated(!!localStorage.getItem("token")); // Re-check auth status on mount
+  }, [location.pathname]);
 
   return (
     <header className={`flex items-center justify-between p-4 ${backgroundClass} h-20`}>
@@ -28,14 +42,7 @@ const Navbar = () => {
         >
           Self Assessment
         </NavLink>
-        {/* <NavLink
-          to='/login'
-          className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
-          }
-        >
-          Login
-        </NavLink> */}
+
         <NavLink
           to='/signup'
           className={({ isActive }) =>
@@ -44,6 +51,7 @@ const Navbar = () => {
         >
           ChatBot
         </NavLink>
+
         <NavLink
           to='/avatarexp'
           className={({ isActive }) =>
@@ -52,30 +60,16 @@ const Navbar = () => {
         >
           3D Avatar
         </NavLink>
-        {/* <NavLink
-          to='/therapists'
-          className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
-          }
-        >
-          Therapists
-        </NavLink>
-         <NavLink
-          to='/communityforum'
-          className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
-          }
-        >
-          Community Forum
-        </NavLink> */}
+
         <NavLink
           to='/twotabpage'
           className={({ isActive }) =>
             isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
           }
         >
-          Suppport Center
+          Support Center
         </NavLink>
+
         <NavLink
           to='/tabpage'
           className={({ isActive }) =>
@@ -84,6 +78,7 @@ const Navbar = () => {
         >
           Resources
         </NavLink>
+
         <NavLink
           to='/about'
           className={({ isActive }) =>
@@ -92,31 +87,6 @@ const Navbar = () => {
         >
           About Us
         </NavLink>
-        {/*
-        <NavLink
-          to='/relaxationtools'
-          className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
-          }
-        >
-          Relaxation Tools
-        </NavLink>
-        <NavLink
-          to='/resource'
-          className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
-          }
-        >
-        Wellness Library
-        </NavLink>
-        <NavLink
-          to='/helpline'
-          className={({ isActive }) =>
-            isActive ? "text-white font-bold" : "text-white hover:text-blue-200"
-          }
-        >
-          Helplines
-        </NavLink> */}
       </nav>
 
       {/* Logo (Center) */}
@@ -125,6 +95,16 @@ const Navbar = () => {
           <img src={logo6} alt='logo' className='w-28 h-18 object-contain' />
         </NavLink>
       </div>
+
+      {/* Logout Button */}
+      {isAuthenticated && (
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
+        >
+          Logout
+        </button>
+      )}
     </header>
   );
 };
