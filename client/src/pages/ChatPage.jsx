@@ -56,7 +56,7 @@ const ChatPage = () => {
 
   useEffect(() => {
     if (activeSession) {
-      fetchMessages(activeSession);
+      fetchMessages();
     }
   }, [activeSession]);
 
@@ -110,11 +110,12 @@ const ChatPage = () => {
     }
   };
 
-  const fetchMessages = async (sessionId) => {
+  const fetchMessages = async () => {
+    if (!activeSession) return;
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}`,
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -125,103 +126,158 @@ const ChatPage = () => {
     }
   };
 
+
   const handleNewSession = async () => {
     try {
       const token = localStorage.getItem("token");
+      
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+  
       const response = await axios.post(
         "https://emot-chtabot-1.onrender.com/api/chat/sessions",
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setTokenBalance(response.data.tokens);
+  
+      // Fix: Correctly extract session ID
+      const { sessionId, sessionName, tokens } = response.data;
+  
+      // Update state with new session information
+      setTokenBalance(tokens);
+      setChatSessions(prevSessions => [
+        ...prevSessions,
+        { _id: sessionId, sessionName }
+      ]);
+      setActiveSession(sessionId);
+      setMessages([]);
+  
+      // Persist active session
+      localStorage.setItem("activeSession", sessionId);
+  
       notification.success({
-        message: "Tokens Deducted",
+        message: "Session Created",
         description: "-2 tokens deducted from your account.",
         duration: 2,
       });
-
-      setChatSessions([...chatSessions, response.data]);
-      setActiveSession(response.data._id);
-      localStorage.setItem("activeSession", response.data._id);
-      setMessages([]);
     } catch (error) {
-      if (error.response.status === 403) {
-        navigate("/token");
-      }
       console.error("Failed to create session:", error);
+  
+      if (error.response?.status === 403) {
+        notification.error({
+          message: "Insufficient Tokens",
+          description: "Please purchase more tokens to continue.",
+          duration: 3,
+        });
+        navigate("/token");
+      } else {
+        notification.error({
+          message: "Session Creation Failed",
+          description: "Could not create a new chat session. Please try again.",
+          duration: 3,
+        });
+      }
     }
   };
-
+  
   const handleSendMessage = async () => {
-    if (!input.trim()) return;
-
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { sender: "user", text: input },
-    ]);
-
-    setInput(""); // Clear input field immediately after sending
-    setLoading(true); // Show "Model is typing..."
-
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
+    
+    const token = localStorage.getItem("token");
+    if (!token || !activeSession) {
+      notification.error({
+        message: "Authentication Error",
+        description: "Please log in again to continue.",
+        duration: 3,
+      });
+      navigate("/login");
+      return;
+    }
+    
+    // Optimistically update UI
+    const userMessage = { sender: "user", text: trimmedInput };
+    setMessages(prevMessages => [...prevMessages, userMessage]);
+    setInput(""); // Clear input immediately for better UX
+    setLoading(true);
+    
     try {
-      // Retrieve last 5 messages from the backend
-      const chatHistoryResponse = await axios.get(
+      // Step 1: Get conversation history
+      const { data: sessionData } = await axios.get(
         `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      const lastFiveMessages = chatHistoryResponse.data.messages.slice(-5); // Get the last 5 messages
-
-      // Send message to AI model, including session ID and conversation history
-      const response = await fetch("https://emot-chtabot.onrender.com/chat", {
+      
+      const lastFiveMessages = sessionData.messages.slice(-5);
+      
+      // Step 2: Get AI response
+      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: input,
-          session_id: activeSession, // Include session ID
-          conversation_history: lastFiveMessages, // Include last 5 messages
+          message: trimmedInput,
+          session_id: activeSession,
+          conversation_history: lastFiveMessages,
         }),
       });
-
-      const data = await response.json();
-
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { sender: "bot", text: data.response },
-      ]);
-
-      setAudioUrl(data.audio_url); // Store the audio URL in state
-      setLoading(false); // Hide "Model is typing..."
-
-      // Save user message to backend
-      await axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-        { sender: "user", text: input },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
-
-      // Save bot response to backend
-      await axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-        { sender: "bot", text: data.response },
-        {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        }
-      );
+      
+      if (!aiResponse.ok) {
+        throw new Error(`AI service responded with status: ${aiResponse.status}`);
+      }
+      
+      const aiData = await aiResponse.json();
+      
+      // Validate bot response
+      if (!aiData.response) {
+        throw new Error("Empty response from AI service");
+      }
+      
+      const botMessage = { sender: "bot", text: aiData.response };
+      
+      // Step 3: Save messages to backend (in parallel)
+      const saveMessagesPromises = [
+        axios.post(
+          `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+          userMessage,
+          { headers: { Authorization: `Bearer ${token}` } }
+        ),
+        axios.post(
+          `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+          botMessage,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      ];
+      
+      // Update UI with bot response
+      setMessages(prevMessages => [...prevMessages, botMessage]);
+      setAudioUrl(aiData.audio_url);
+      
+      // Wait for save operations to complete
+      await Promise.all(saveMessagesPromises);
+      
     } catch (error) {
-      console.error("Error fetching bot response:", error);
-      setMessages((prevMessages) => [
+      console.error("Error in message exchange:", error);
+      
+      // Add error message to UI
+      setMessages(prevMessages => [
         ...prevMessages,
-        { sender: "bot", text: "Error: Unable to get response" },
+        { 
+          sender: "bot", 
+          text: "Sorry, I couldn't process your message. Please try again." 
+        }
       ]);
-      setLoading(false); // Hide "Model is typing..."
+      
+      notification.error({
+        message: "Communication Error",
+        description: "Failed to get or save response. Please try again.",
+        duration: 3,
+      });
+    } finally {
+      setLoading(false);
     }
   };
-
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       handleSendMessage();
@@ -287,7 +343,7 @@ const ChatPage = () => {
         <div
           style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
         >
-          Tokens: <DollarOutlined /> {tokenBalance}
+      
         </div>
         <Menu
           theme="light"
@@ -320,7 +376,7 @@ const ChatPage = () => {
           }}
           hoverable="true"
         >
-          {!collapsed && <span>New Chat (-2 Tokens)</span>}
+          {!collapsed && <span>New Chat</span>}
         </Button>
 
         {/* Call button */}

@@ -24,9 +24,10 @@ import TabPage from "./pages/TabPage.jsx";
 import About2 from "./pages/About2.jsx";
 import TwoTabPage from "./pages/TwoTabPage.jsx";
 
+import { Navigate } from "react-router-dom";
 function App() {
   const location = useLocation();
-
+  const isAuthenticated = !!localStorage.getItem("token");
   // Apply the gradient background if on /token page
   useEffect(() => {
     if (location.pathname === '/token') {
@@ -40,8 +41,9 @@ function App() {
     <div>
       <Navbar />
       <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/chat" element={<PrivateRoute component={ChatPage} />} />
+        {/* Public Routes */}
+        <Route path="/login" element={isAuthenticated ? <Navigate to="/chat" /> : <Login />} />
+        <Route path="/signup" element={isAuthenticated ? <Navigate to="/chat" /> : <Signup />} />
         <Route path="/token" element={<BuyToken />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
