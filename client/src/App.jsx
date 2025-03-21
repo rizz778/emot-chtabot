@@ -23,8 +23,7 @@ import TherapistBookingPage from "./pages/TherapistBookingPage.jsx";
 import TabPage from "./pages/TabPage.jsx";
 import About2 from "./pages/About2.jsx";
 import TwoTabPage from "./pages/TwoTabPage.jsx";
-import ChatPage from "./pages/ChatPage";
-import PrivateRoute from "./routes/PrivateRoute";
+
 
 import { Navigate } from "react-router-dom";
 function App() {
