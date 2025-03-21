@@ -1,9 +1,9 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, Button, Row, Col } from "antd";
 import "./Therapists.css"; // Import custom styles
 
 const { Meta } = Card;
-
 const TherapistsData = [
   {
     id: 1,
@@ -38,9 +38,9 @@ const TherapistsData = [
 ];
 
 const Therapists = () => {
-  const handleBookAppointment = (therapistId) => {
-    alert(`Booking appointment with therapist ID: ${therapistId}`);
-    // You can replace this with a modal or a redirect to a booking page
+  const navigate = useNavigate(); 
+  const handleBookAppointment = () => {
+    navigate("/therapist_booking");
   };
 
   return (
