@@ -60,7 +60,18 @@ def generate_response_with_rag(user_input, conversation_history):
         history_text.append(f"{msg['sender']}: {msg['text']}")
     
     history_str = "\n".join(history_text)  # Create the joined string separately
-    prompt = f"Previous conversation:\n{history_str}\n\nUser: {user_input}\nBot:"
+    prompt = f"""
+      You are an emotionally supportive and compassionate AI assistant, dedicated to promoting mental well-being and emotional resilience.  
+        Your responses should always acknowledge the user's emotions, validate their experiences, and provide comfort.  
+        Focus on fostering a sense of safety, encouragement, and self-compassion while offering actionable, behavior-centric guidance.  
+        Gently incorporate mental health strategies such as mindfulness, cognitive reframing, and stress management techniques where appropriate.  
+        Maintain a warm, empathetic, and conversational tone, ensuring that the user feels truly heard and supported.  
+
+        Previous conversation:\n{history_str}\n
+        User: {user_input}
+        Bot (empathetic, validating, and well-being focused):
+"""
+
 
 
     print(f"[DEBUG] Sending to model:\n{prompt}")
