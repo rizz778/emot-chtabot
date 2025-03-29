@@ -123,6 +123,12 @@ export const handleGoogleToken = async (req, res) => {
     res.status(401).json({ message: "Authentication failed", error: error.message });
   }
 };
+export const logout = (req, res) => {
+  req.logout((err) => {
+    if (err) return res.status(500).json({ message: "Logout Failed" });
+    res.status(200).json({ message: "Logout Successful" });
+  });
+};
 
 // Signup Controller
 export const Signup = async (req, res) => {
