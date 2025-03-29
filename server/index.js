@@ -6,6 +6,7 @@ import connectDB from './config/db.js';
 import errorHandler from './middlewares/errorHandler.js';
 import authRoutes from './routes/authRouter.js';
 import chatRouter from './routes/chatRouter.js';
+import profileRouter from './routes/profileRouter.js'; // Ensure this route is defined
 import passport from 'passport';
 import './config/passport.js';
 import session from 'express-session';
@@ -47,7 +48,7 @@ app.use(passport.session());
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/chat', chatRouter);
-
+app.use('/api/profile', profileRouter); // Ensure this route is defined
 // Error Handler Middleware
 app.use(errorHandler);
 
