@@ -49,12 +49,42 @@ export const handleGoogleToken = async (req, res) => {
 
     // Verify the token with Google
     const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    
+    // Add more detailed error handling and logging
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: token,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+    } catch (verifyError) {
+      console.error("Token verification specific error:", {
+        message: verifyError.message,
+        code: verifyError.code,
+        statusCode: verifyError.response?.status,
+        details: verifyError.response?.data
+      });
+      return res.status(401).json({ message: "Token verification failed", error: verifyError.message });
+    }
+
+    const payload = ticket.getPayload();
+    
+    // Log successful payload for debugging
+    console.log("Successful token payload:", {
+      email: payload.email,
+      emailVerified: payload.email_verified,
+      domain: payload.hd, // This will show the domain for Google Workspace accounts
+      issuer: payload.iss,
+      audience: payload.aud,
+      expirationTime: new Date(payload.exp * 1000).toISOString()
     });
 
-    const { name, email, picture, sub } = ticket.getPayload();
+    const { name, email, picture, sub, email_verified } = payload;
+
+    // Add email verification check
+    if (!email_verified) {
+      return res.status(401).json({ message: "Email not verified with Google" });
+    }
 
     // Find or create user
     let user = await User.findOne({ googleId: sub });
@@ -86,15 +116,12 @@ export const handleGoogleToken = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("Google token verification error:", error);
-    res.status(401).json({ message: "Invalid token" });
+    console.error("Google token verification error:", {
+      message: error.message,
+      stack: error.stack
+    });
+    res.status(401).json({ message: "Authentication failed", error: error.message });
   }
-};
-export const logout = (req, res) => {
-  req.logout((err) => {
-    if (err) return res.status(500).json({ message: "Logout Failed" });
-    res.status(200).json({ message: "Logout Successful" });
-  });
 };
 
 // Signup Controller
