@@ -1,11 +1,11 @@
 import express from "express";
 import { saveUserProfile, getUserProfile } from "../controllers/userController.js"
-import authMiddleware from "../middlewares/authMiddleware.js"; // Import your authentication middleware
+import protect from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 
-router.post("/", authMiddleware, saveUserProfile);
-router.get("/", authMiddleware, getUserProfile);
+router.post("/", protect, saveUserProfile);
+router.get("/", protect, getUserProfile);
 
 export default router;
