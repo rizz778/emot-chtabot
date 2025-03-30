@@ -126,7 +126,8 @@ def init_conversation():
         for key, value in user_details.items():
             if key != "password" and key != "token":  # Skip sensitive information
                 user_details_str += f"- {key}: {value}\n"
-        
+        if not user_details:
+            user_details_str = "User Details: None provided.\n"
         greeting_prompt = f"""
         You are an emotionally supportive and compassionate AI assistant, dedicated to promoting mental well-being.
         

@@ -218,7 +218,48 @@ const handleNewSession = async () => {
         // Continue without a greeting if there's an error
       }
     }
-
+    else{
+      try {
+        // Call the model service directly
+        const initialGreetingResponse = await fetch("https://emot-chtabot.onrender.com/init-conversation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessionId,
+            user_details: {}
+          }),
+        });
+        
+        if (!initialGreetingResponse.ok) {
+          throw new Error(
+            `Model service responded with status: ${initialGreetingResponse.status}`
+          );
+        }
+        
+        const greetingData = await initialGreetingResponse.json();
+        
+        if (greetingData.message) {
+          const botGreeting = { 
+            sender: "bot", 
+            text: greetingData.message 
+          };
+          
+          // Add to UI
+          setMessages([botGreeting]);
+          setAudioUrl(greetingData.audio_url);
+          
+          // Save to backend
+          await axios.post(
+            `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+            botGreeting,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+      } catch (greetingError) {
+        console.error("Failed to get initial greeting:", greetingError);
+        // Continue without a greeting if there's an error
+      }
+    }
     notification.success({
       message: "Session Created",
       description: "-2 tokens deducted from your account.",
