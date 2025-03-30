@@ -1,7 +1,8 @@
-venv/
+myenv/
 env/
 audio_responses/
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+node_modules/
