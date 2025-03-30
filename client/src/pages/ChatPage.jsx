@@ -334,14 +334,14 @@ const handleSendMessage = async () => {
     const aiData = await aiResponse.json();
 
     // Validate bot response
-    if (!aiData.response || typeof aiData.severity_score === "undefined") {
+    if (!aiData.response || typeof aiData.distress_score === "undefined") {
       throw new Error("Invalid response from AI service");
     }
 
     const botMessage = { sender: "bot", text: aiData.response };
-
+    console.log(aiData.distress_score);
     // Check severity score
-    if (aiData.severity_score >= 7) {
+    if (aiData.distress_score >= 7) {
       notification.warning({
         message: "Urgent Help Suggested",
         description: "We recommend seeking professional support. Redirecting to the helpline...",

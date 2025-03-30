@@ -42,10 +42,6 @@ os.makedirs(AUDIO_DIR, exist_ok=True)
 # Speech recognition setup
 recognizer = sr.Recognizer()
 
-import re
-
-import re
-
 def assess_distress_level(user_input):
     """
     Analyzes the user's input and assigns a distress severity score (0-10).
@@ -135,8 +131,7 @@ def generate_response_with_user_details(user_input, conversation_history, user_d
         "requires_immediate_help": requires_immediate_help,
         "distress_score": distress_score
     }
-
-
+    
 def get_ngrok_url():
     """Fetches the ngrok URL dynamically from the ngrok API."""
     try:
@@ -206,54 +201,33 @@ def init_conversation():
         return jsonify({"error": str(e)}), 500
 
 # 1. Modify the chat route to accept user details
-from flask import Flask, request, jsonify, url_for
-import os
-import uuid
-from gtts import gTTS
-
-app = Flask(__name__)
-AUDIO_DIR = "static/audio"  # Ensure this directory exists
-
-if not os.path.exists(AUDIO_DIR):
-    os.makedirs(AUDIO_DIR)  # Create the directory if it doesn't exist
-
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
         data = request.get_json()
-
-        if not data or "message" not in data:
-            return jsonify({"response": "Error: Missing required data (message)."}), 400
-
-        user_message = data["message"].strip()
+        user_message = data.get("message")
         conversation_history = data.get("conversation_history", [])
-        user_details = data.get("user_details", {})  # Extract user details if provided
+        user_details = data.get("user_details", {})  # Get user details if provided
 
-        # Handle polite farewells
+        if not user_message:
+            return jsonify({"response": "Error: Missing required data."}), 400
+
         if any(word in user_message.lower() for word in ["bye", "thanks"]):
-            return jsonify({
-                "response": "Goodbye! Feel free to chat again anytime!",
-                "audio_url": None,
-                "requires_immediate_help": False
-            }), 200
+            return jsonify({"response": "Goodbye! Feel free to chat again anytime!"}), 200
 
-        # Generate response with distress analysis
+        # Pass user details to the response generator
         response_data = generate_response_with_user_details(user_message, conversation_history, user_details)
 
         response_text = response_data.get("response", "I'm here to help.")
         requires_immediate_help = response_data.get("requires_immediate_help", False)
         distress_score = response_data.get("distress_score", 0)
-
+       
         # Convert response to speech
+        tts = gTTS(response_text, lang="en")
         audio_file_path = os.path.join(AUDIO_DIR, f"{uuid.uuid4()}.mp3")
+        tts.save(audio_file_path)
 
-        try:
-            tts = gTTS(response_text, lang="en")
-            tts.save(audio_file_path)
-            audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
-        except Exception as tts_error:
-            print(f"[ERROR] TTS Generation Failed: {tts_error}")
-            audio_url = None  # If TTS fails, return only text response
+        audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
 
         return jsonify({
             "response": response_text,
@@ -261,11 +235,10 @@ def chat():
             "requires_immediate_help": requires_immediate_help,
             "distress_score": distress_score,
             "follow_up": "Is there anything else you'd like to ask?"
-        }), 200
+        })
 
     except Exception as e:
-        print(f"[ERROR] Unexpected Error: {e}")
-        return jsonify({"response": f"Internal Server Error: {str(e)}"}), 500
+        return jsonify({"response": f"Error: {str(e)}"}), 500
 
 
 @app.route('/audio/<filename>', methods=['GET'])
