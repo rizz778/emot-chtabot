@@ -42,45 +42,62 @@ os.makedirs(AUDIO_DIR, exist_ok=True)
 # Speech recognition setup
 recognizer = sr.Recognizer()
 
+import re
+
+def assess_risk(response_text, user_input):
+    """
+    Analyzes the AI response and user query to determine if immediate help is required.
+    """
+    high_risk_keywords = [
+        "suicide", "kill myself", "end my life", "hopeless", "can't go on",
+        "worthless", "no point in living", "hurt myself", "self-harm", "depressed"
+    ]
+
+    # Check if user input or AI response contains high-risk phrases
+    for keyword in high_risk_keywords:
+        if re.search(rf"\b{keyword}\b", user_input, re.IGNORECASE) or re.search(rf"\b{keyword}\b", response_text, re.IGNORECASE):
+            return True  # Immediate help needed
+
+    return False  # No immediate help required
+
+
 def generate_response_with_user_details(user_input, conversation_history, user_details=None):
     """
-    Generates a response by sending the conversation history along with user details and the user query to the model.
+    Generates an AI response and determines if the user requires immediate help.
     """
     if not isinstance(conversation_history, list):
         print("[ERROR] Invalid conversation_history format. Expected a list.")
-        return "Error: Invalid conversation format."
+        return {"error": "Invalid conversation format."}
 
     history_text = []
     
     for msg in conversation_history:
         if not isinstance(msg, dict) or "sender" not in msg or "text" not in msg:
-            print(f"[ERROR] Invalid message format: {msg}")  # Debugging print
-            return "Error: Malformed conversation history."
+            print(f"[ERROR] Invalid message format: {msg}")
+            return {"error": "Malformed conversation history."}
         
         history_text.append(f"{msg['sender']}: {msg['text']}")
-    
-    history_str = "\n".join(history_text)  # Create the joined string separately
-    
+
+    history_str = "\n".join(history_text)
+
     # Format user details if available
     user_details_str = ""
     if user_details:
         user_details_str = "User Details:\n"
         for key, value in user_details.items():
-            if key != "password" and key != "token":  # Skip sensitive information
+            if key not in ["password", "token"]:  # Skip sensitive information
                 user_details_str += f"- {key}: {value}\n"
-    
+
     prompt = f"""
-      You are an emotionally supportive and compassionate AI assistant, dedicated to promoting mental well-being and emotional resilience.  
-        Your responses should always acknowledge the user's emotions, validate their experiences, and provide comfort.  
-        Focus on fostering a sense of safety, encouragement, and self-compassion while offering actionable, behavior-centric guidance.  
-        Gently incorporate mental health strategies such as mindfulness, cognitive reframing, and stress management techniques where appropriate.  
-        Maintain a warm, empathetic, and conversational tone, ensuring that the user feels truly heard and supported.  
-        
-        {user_details_str}
-        Previous conversation:\n{history_str}\n
-        User: {user_input}
-        Bot (empathetic, validating, and well-being focused):
-"""
+      You are an emotionally supportive and compassionate AI assistant, dedicated to promoting mental well-being.
+      Your responses should always acknowledge the user's emotions, validate their experiences, and provide comfort.
+      Focus on fostering a sense of safety, encouragement, and self-compassion while offering actionable, behavior-centric guidance.
+      
+      {user_details_str}
+      Previous conversation:\n{history_str}\n
+      User: {user_input}
+      Bot (empathetic, validating, and well-being focused):
+    """
 
     print(f"[DEBUG] Sending to model:\n{prompt}")
 
@@ -89,11 +106,18 @@ def generate_response_with_user_details(user_input, conversation_history, user_d
         response_text = response.text.strip()
         response_text = re.sub(r'\*+', '', response_text)
 
-    except Exception as e:
-        print(f"[ERROR] AI Model Error: {str(e)}")  # Log error in console
-        return "Error generating response from AI."
+        # Assess if user requires immediate help
+        requires_help = assess_risk(response_text, user_input)
 
-    return response_text
+        return {
+            "response": response_text,
+            "requires_help": requires_help
+        }
+
+    except Exception as e:
+        print(f"[ERROR] AI Model Error: {str(e)}")
+        return {"error": "Error generating response from AI."}
+
 def get_ngrok_url():
     """Fetches the ngrok URL dynamically from the ngrok API."""
     try:

@@ -285,104 +285,106 @@ const handleNewSession = async () => {
   }
 };
 
-  const handleSendMessage = async () => {
-    const trimmedInput = input.trim();
-    if (!trimmedInput) return;
+const handleSendMessage = async () => {
+  const trimmedInput = input.trim();
+  if (!trimmedInput) return;
 
-    const token = localStorage.getItem("token");
-    if (!token || !activeSession) {
-      notification.error({
-        message: "Authentication Error",
-        description: "Please log in again to continue.",
-        duration: 3,
-      });
-      navigate("/login");
-      return;
+  const token = localStorage.getItem("token");
+  if (!token || !activeSession) {
+    notification.error({
+      message: "Authentication Error",
+      description: "Please log in again to continue.",
+      duration: 3,
+    });
+    navigate("/login");
+    return;
+  }
+
+  const userMessage = { sender: "user", text: trimmedInput };
+  setMessages((prevMessages) => [...prevMessages, userMessage]);
+  setInput(""); // Clear input immediately for better UX
+  setLoading(true);
+
+  try {
+    // Step 1: Fetch conversation history
+    const { data: sessionData } = await axios.get(
+      `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+
+    const lastFiveMessages = sessionData.messages.slice(-5);
+
+    // Step 2: Get AI response
+    const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: trimmedInput,
+        session_id: activeSession,
+        conversation_history: lastFiveMessages,
+        user_details: userDetails, // Pass user details for personalized response
+      }),
+    });
+
+    if (!aiResponse.ok) {
+      throw new Error(`AI service responded with status: ${aiResponse.status}`);
     }
 
-    // Optimistically update UI
-    const userMessage = { sender: "user", text: trimmedInput };
-    setMessages((prevMessages) => [...prevMessages, userMessage]);
-    setInput(""); // Clear input immediately for better UX
-    setLoading(true);
+    const aiData = await aiResponse.json();
 
-    try {
-      // Step 1: Get conversation history
-      const { data: sessionData } = await axios.get(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
+    if (!aiData.response) {
+      throw new Error("Empty response from AI service");
+    }
+
+    const botMessage = { sender: "bot", text: aiData.response };
+
+    // Step 3: Save messages to backend
+    const saveMessagesPromises = [
+      axios.post(
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        userMessage,
         { headers: { Authorization: `Bearer ${token}` } }
-      );
+      ),
+      axios.post(
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        botMessage,
+        { headers: { Authorization: `Bearer ${token}` } }
+      ),
+    ];
 
-      const lastFiveMessages = sessionData.messages.slice(-5);
-
-      // Step 2: Get AI response
-      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: trimmedInput,
-          session_id: activeSession,
-          conversation_history: lastFiveMessages,
-          user_details: userDetails, // Pass user details for personalized response
-        }),
+    // Step 4: Check if immediate help is required
+    if (aiData.requires_help) {
+      navigate("/helpline");  // Redirect user to helpline page
+      notification.warning({
+        message: "Support Alert",
+        description: "We've detected that you might need urgent emotional support. Redirecting you to our helpline.",
+        duration: 5,
       });
-
-      if (!aiResponse.ok) {
-        throw new Error(
-          `AI service responded with status: ${aiResponse.status}`
-        );
-      }
-
-      const aiData = await aiResponse.json();
-
-      // Validate bot response
-      if (!aiData.response) {
-        throw new Error("Empty response from AI service");
-      }
-
-      const botMessage = { sender: "bot", text: aiData.response };
-
-      // Step 3: Save messages to backend (in parallel)
-      const saveMessagesPromises = [
-        axios.post(
-          `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-          userMessage,
-          { headers: { Authorization: `Bearer ${token}` } }
-        ),
-        axios.post(
-          `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-          botMessage,
-          { headers: { Authorization: `Bearer ${token}` } }
-        ),
-      ];
-
-      // Update UI with bot response
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
-      setAudioUrl(aiData.audio_url);
-
-      // Wait for save operations to complete
-      await Promise.all(saveMessagesPromises);
-    } catch (error) {
-      console.error("Error in message exchange:", error);
-
-      // Add error message to UI
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          sender: "bot",
-          text: "Sorry, I couldn't process your message. Please try again.",
-        },
-      ]);
-
-      notification.error({
-        message: "Communication Error",
-        description: "Failed to get or save response. Please try again.",
-        duration: 3,
-      });
-    } finally {
-      setLoading(false);
     }
-  };
+
+    // Update UI with bot response
+    setMessages((prevMessages) => [...prevMessages, botMessage]);
+    setAudioUrl(aiData.audio_url);
+
+    await Promise.all(saveMessagesPromises);
+  } catch (error) {
+    console.error("Error in message exchange:", error);
+
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { sender: "bot", text: "Sorry, I couldn't process your message. Please try again." },
+    ]);
+
+    notification.error({
+      message: "Communication Error",
+      description: "Failed to get or save response. Please try again.",
+      duration: 3,
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
       handleSendMessage();
