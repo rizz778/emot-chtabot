@@ -38,6 +38,7 @@ const ChatPage = () => {
   const { transcript, listening, resetTranscript } = useSpeechRecognition();
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
+  const [userDetails, setUserDetails] = useState(null);
 
   // Call form states
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -50,6 +51,7 @@ const ChatPage = () => {
   }, [transcript]);
 
   useEffect(() => {
+    fetchUserProfile();
     fetchUserDetails();
     fetchSessions();
   }, []);
@@ -59,7 +61,22 @@ const ChatPage = () => {
       fetchMessages();
     }
   }, [activeSession]);
-
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        "https://emot-chtabot-1.onrender.com/api/profile",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      
+      // Store complete user details for API calls
+      setUserDetails(response.data);
+    } catch (error) {
+      console.error("Failed to fetch user details:", error);
+    }
+  };
   const fetchUserDetails = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -126,60 +143,106 @@ const ChatPage = () => {
     }
   };
 
-  const handleNewSession = async () => {
-    try {
-      const token = localStorage.getItem("token");
+  // Modify handleNewSession to call the model service directly
+const handleNewSession = async () => {
+  try {
+    const token = localStorage.getItem("token");
 
-      if (!token) {
-        navigate("/login");
-        return;
-      }
+    if (!token) {
+      navigate("/login");
+      return;
+    }
 
-      const response = await axios.post(
-        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
-        { sessionName: `Session ${chatSessions.length + 1}` },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+    const response = await axios.post(
+      "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+      { sessionName: `Session ${chatSessions.length + 1}` },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
 
-      // Fix: Correctly extract session ID
-      const { sessionId, sessionName, tokens } = response.data;
+    // Extract session ID
+    const { sessionId, sessionName, tokens } = response.data;
 
-      // Update state with new session information
-      setTokenBalance(tokens);
-      setChatSessions((prevSessions) => [
-        ...prevSessions,
-        { _id: sessionId, sessionName },
-      ]);
-      setActiveSession(sessionId);
-      setMessages([]);
+    // Update state with new session information
+    setTokenBalance(tokens);
+    setChatSessions((prevSessions) => [
+      ...prevSessions,
+      { _id: sessionId, sessionName },
+    ]);
+    setActiveSession(sessionId);
+    setMessages([]);
 
-      // Persist active session
-      localStorage.setItem("activeSession", sessionId);
-
-      notification.success({
-        message: "Session Created",
-        description: "-2 tokens deducted from your account.",
-        duration: 2,
-      });
-    } catch (error) {
-      console.error("Failed to create session:", error);
-
-      if (error.response?.status === 403) {
-        notification.error({
-          message: "Insufficient Tokens",
-          description: "Please purchase more tokens to continue.",
-          duration: 3,
+    // Persist active session
+    localStorage.setItem("activeSession", sessionId);
+    
+    // Use the stored userDetails to get initial greeting
+    // Call the model service directly from the frontend
+    if (userDetails) {
+      try {
+        // Call the model service directly
+        const initialGreetingResponse = await fetch("https://emot-chtabot.onrender.com/init-conversation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            session_id: sessionId,
+            user_details: userDetails
+          }),
         });
-        navigate("/token");
-      } else {
-        notification.error({
-          message: "Session Creation Failed",
-          description: "Could not create a new chat session. Please try again.",
-          duration: 3,
-        });
+        
+        if (!initialGreetingResponse.ok) {
+          throw new Error(
+            `Model service responded with status: ${initialGreetingResponse.status}`
+          );
+        }
+        
+        const greetingData = await initialGreetingResponse.json();
+        
+        if (greetingData.message) {
+          const botGreeting = { 
+            sender: "bot", 
+            text: greetingData.message 
+          };
+          
+          // Add to UI
+          setMessages([botGreeting]);
+          setAudioUrl(greetingData.audio_url);
+          
+          // Save to backend
+          await axios.post(
+            `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+            botGreeting,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+        }
+      } catch (greetingError) {
+        console.error("Failed to get initial greeting:", greetingError);
+        // Continue without a greeting if there's an error
       }
     }
-  };
+
+    notification.success({
+      message: "Session Created",
+      description: "-2 tokens deducted from your account.",
+      duration: 2,
+    });
+  } catch (error) {
+    console.error("Failed to create session:", error);
+
+    if (error.response?.status === 403) {
+      notification.error({
+        message: "Insufficient Tokens",
+        description: "Please purchase more tokens to continue.",
+        duration: 3,
+      });
+      navigate("/token");
+    } else {
+      notification.error({
+        message: "Session Creation Failed",
+        description: "Could not create a new chat session. Please try again.",
+        duration: 3,
+      });
+    }
+  }
+};
 
   const handleSendMessage = async () => {
     const trimmedInput = input.trim();
@@ -219,6 +282,7 @@ const ChatPage = () => {
           message: trimmedInput,
           session_id: activeSession,
           conversation_history: lastFiveMessages,
+          user_details: userDetails, // Pass user details for personalized response
         }),
       });
 
