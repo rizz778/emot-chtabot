@@ -1,20 +1,18 @@
-import UserProfile from "../models/userProfile.model.js";
+import UserProfile from "../models/UserProfile.js";
 
 // @desc   Save or update user profile
 // @route  POST /api/user-profile
 // @access Private (Requires Auth)
 export const saveUserProfile = async (req, res) => {
   try {
-    const userId = req.user._id; // Extracted from authMiddleware
+    const userId = req.user.id; // Extracted from authMiddleware
     const userData = req.body;
 
     let userProfile = await UserProfile.findOne({ userId });
 
     if (userProfile) {
       // Update existing user profile
-      userProfile = await UserProfile.findOneAndUpdate({ userId }, userData, {
-        new: true,
-      });
+      userProfile = await UserProfile.findOneAndUpdate({ userId }, userData, { new: true });
       return res.status(200).json({ success: true, userProfile });
     } else {
       // Create new user profile
@@ -23,9 +21,17 @@ export const saveUserProfile = async (req, res) => {
       return res.status(201).json({ success: true, userProfile });
     }
   } catch (error) {
+    if (error.name === "ValidationError") {
+      return res.status(400).json({
+        success: false,
+        message: "Validation Error",
+        errors: error.errors, // Returns detailed validation error messages
+      });
+    }
     res.status(500).json({ success: false, message: "Server Error", error });
   }
 };
+
 
 
 export const getUserProfile = async (req, res) => {
