@@ -300,13 +300,14 @@ const handleSendMessage = async () => {
     return;
   }
 
+  // Optimistically update UI
   const userMessage = { sender: "user", text: trimmedInput };
   setMessages((prevMessages) => [...prevMessages, userMessage]);
   setInput(""); // Clear input immediately for better UX
   setLoading(true);
 
   try {
-    // Step 1: Fetch conversation history
+    // Step 1: Get conversation history
     const { data: sessionData } = await axios.get(
       `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
       { headers: { Authorization: `Bearer ${token}` } }
@@ -314,7 +315,7 @@ const handleSendMessage = async () => {
 
     const lastFiveMessages = sessionData.messages.slice(-5);
 
-    // Step 2: Get AI response
+    // Step 2: Get AI response with severity assessment
     const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -322,7 +323,7 @@ const handleSendMessage = async () => {
         message: trimmedInput,
         session_id: activeSession,
         conversation_history: lastFiveMessages,
-        user_details: userDetails, // Pass user details for personalized response
+        user_details: userDetails,
       }),
     });
 
@@ -332,13 +333,24 @@ const handleSendMessage = async () => {
 
     const aiData = await aiResponse.json();
 
-    if (!aiData.response) {
-      throw new Error("Empty response from AI service");
+    // Validate bot response
+    if (!aiData.response || typeof aiData.severity_score === "undefined") {
+      throw new Error("Invalid response from AI service");
     }
 
     const botMessage = { sender: "bot", text: aiData.response };
 
-    // Step 3: Save messages to backend
+    // Check severity score
+    if (aiData.severity_score >= 7) {
+      notification.warning({
+        message: "Urgent Help Suggested",
+        description: "We recommend seeking professional support. Redirecting to the helpline...",
+        duration: 5,
+      });
+      navigate("/helpline"); // Redirect to helpline page
+    }
+
+    // Step 3: Save messages to backend (in parallel)
     const saveMessagesPromises = [
       axios.post(
         `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
@@ -352,24 +364,16 @@ const handleSendMessage = async () => {
       ),
     ];
 
-    // Step 4: Check if immediate help is required
-    if (aiData.requires_help) {
-      navigate("/helpline");  // Redirect user to helpline page
-      notification.warning({
-        message: "Support Alert",
-        description: "We've detected that you might need urgent emotional support. Redirecting you to our helpline.",
-        duration: 5,
-      });
-    }
-
     // Update UI with bot response
     setMessages((prevMessages) => [...prevMessages, botMessage]);
     setAudioUrl(aiData.audio_url);
 
+    // Wait for save operations to complete
     await Promise.all(saveMessagesPromises);
   } catch (error) {
     console.error("Error in message exchange:", error);
 
+    // Add error message to UI
     setMessages((prevMessages) => [
       ...prevMessages,
       { sender: "bot", text: "Sorry, I couldn't process your message. Please try again." },
@@ -384,6 +388,7 @@ const handleSendMessage = async () => {
     setLoading(false);
   }
 };
+
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
