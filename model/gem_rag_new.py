@@ -212,8 +212,6 @@ def chat():
         if not user_message:
             return jsonify({"response": "Error: Missing required data."}), 400
 
-        if any(word in user_message.lower() for word in ["bye", "thanks"]):
-            return jsonify({"response": "Goodbye! Feel free to chat again anytime!"}), 200
 
         # Pass user details to the response generator
         response_data = generate_response_with_user_details(user_message, conversation_history, user_details)
