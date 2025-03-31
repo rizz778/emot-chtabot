@@ -108,8 +108,6 @@ chatSchema.pre('save', function(next) {
   next();
 });
 
-
-
 // Static method to find recent chats for a user
 chatSchema.statics.findRecentByUser = function(userId, limit = 10) {
   return this.find({ user: userId })
