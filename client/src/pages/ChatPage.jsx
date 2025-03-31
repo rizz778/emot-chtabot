@@ -137,7 +137,13 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setMessages(response.data.messages);
+      
+      // Sort messages by timestamp before setting state
+      const sortedMessages = response.data.messages.sort(
+        (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+      );
+      
+      setMessages(sortedMessages);
     } catch (error) {
       console.error("Failed to fetch messages:", error);
     }
@@ -350,18 +356,20 @@ const handleSendMessage = async () => {
     }
 
     // Step 3: Save messages to backend (in parallel)
-    const saveMessagesPromises = [
+  saveMessagesPromises = [
       axios.post(
         `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
         userMessage,
         { headers: { Authorization: `Bearer ${token}` } }
       ),
+
+  
       axios.post(
         `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
         botMessage,
         { headers: { Authorization: `Bearer ${token}` } }
-      ),
-    ];
+      )
+    ]
 
     
 
