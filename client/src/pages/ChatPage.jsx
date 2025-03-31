@@ -307,13 +307,9 @@ const handleSendMessage = async () => {
   setLoading(true);
 
   try {
-    // Step 1: Get conversation history
-    const { data: sessionData } = await axios.get(
-      `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    
 
-    const lastFiveMessages = sessionData.messages.slice(-3);
+    const lastFiveMessages =messages.slice(-3);
 
     // Step 2: Get AI response with severity assessment
     const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
@@ -339,6 +335,9 @@ const handleSendMessage = async () => {
     }
 
     const botMessage = { sender: "bot", text: aiData.response };
+    // Update UI with bot response
+    setMessages((prevMessages) => [...prevMessages, botMessage]);
+    setAudioUrl(aiData.audio_url);
     console.log(aiData.distress_score);
     // Check severity score
     if (aiData.distress_score >= 7) {
@@ -364,9 +363,7 @@ const handleSendMessage = async () => {
       ),
     ];
 
-    // Update UI with bot response
-    setMessages((prevMessages) => [...prevMessages, botMessage]);
-    setAudioUrl(aiData.audio_url);
+    
 
     // Wait for save operations to complete
     await Promise.all(saveMessagesPromises);
