@@ -5,7 +5,6 @@ import {Edit} from 'react-feather';
 const ProfilePage = () => {
   // Mock user data based on the schema
   const [user, setUser] = useState({
-    email: "john.doe@example.com", // From login session
     name: "John Doe",
     age: 25,
     gender: "Male",
@@ -412,10 +411,7 @@ const ProfilePage = () => {
                     <h2 className="text-xl font-semibold">{user.name}</h2>
                   )}
                   
-                  <div className="flex items-center justify-center mt-1 text-gray-500">
-                    <Mail size={14} className="mr-1" />
-                    <span className="text-sm">{user.email}</span>
-                  </div>
+                 
                 </div>
                 
                 {/* Current emotional state */}
