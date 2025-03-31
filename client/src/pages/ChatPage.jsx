@@ -70,9 +70,12 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
-      // Store complete user details for API calls
-      setUserDetails(response.data);
+  
+      // Exclude the profilePicture field from the fetched user details
+      const { profilePicture, ...userDetailsWithoutProfilePicture } = response.data;
+  
+      // Store the user details without the profilePicture field
+      setUserDetails(userDetailsWithoutProfilePicture);
     } catch (error) {
       console.error("Failed to fetch user details:", error);
     }
