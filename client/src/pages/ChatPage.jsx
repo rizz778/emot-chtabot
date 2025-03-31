@@ -247,7 +247,8 @@ const handleNewSession = async () => {
         if (greetingData.message) {
           const botGreeting = { 
             sender: "bot", 
-            text: greetingData.message 
+            text: greetingData.message,
+            timestamp: new Date().toISOString()
           };
           
           // Add to UI
@@ -307,7 +308,11 @@ const handleSendMessage = async () => {
   }
 
   // Optimistically update UI
-  const userMessage = { sender: "user", text: trimmedInput };
+  const userMessage = { 
+    sender: "user", 
+    text: trimmedInput,
+    timestamp: new Date().toISOString() 
+  };
   setMessages((prevMessages) => [...prevMessages, userMessage]);
   setInput(""); // Clear input immediately for better UX
   setLoading(true);
@@ -340,7 +345,11 @@ const handleSendMessage = async () => {
       throw new Error("Invalid response from AI service");
     }
 
-    const botMessage = { sender: "bot", text: aiData.response };
+    const botMessage = { 
+      sender: "bot", 
+      text: aiData.response,
+      timestamp: new Date().toISOString() 
+    };
     // Update UI with bot response
     setMessages((prevMessages) => [...prevMessages, botMessage]);
     setAudioUrl(aiData.audio_url);

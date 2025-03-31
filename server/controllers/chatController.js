@@ -103,7 +103,7 @@ export const getSessionMessages = async (req, res) => {
 
 export const addMessage = async (req, res) => {
   const { sessionId } = req.params;
-  const { sender, text } = req.body;
+  const { sender, text,timestamp } = req.body;
   
   // Input validation
   if (!mongoose.Types.ObjectId.isValid(sessionId)) {
@@ -127,7 +127,7 @@ export const addMessage = async (req, res) => {
           messages: {
             sender,
             ...encryptMessage(text.trim()), // Destructure encryption results
-            timestamp: new Date()
+            timestamp
           }
         } 
       },
