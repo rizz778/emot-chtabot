@@ -365,25 +365,20 @@ const handleSendMessage = async () => {
     }
 
     // Step 3: Save messages to backend (in parallel)
-  saveMessagesPromises = [
-      axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-        userMessage,
-        { headers: { Authorization: `Bearer ${token}` } }
-      ),
+  // Save messages to backend
+  axios.post(
+    `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+    userMessage,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+
+  axios.post(
+    `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+    botMessage,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
 
   
-      axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-        botMessage,
-        { headers: { Authorization: `Bearer ${token}` } }
-      )
-    ]
-
-    
-
-    // Wait for save operations to complete
-    await Promise.all(saveMessagesPromises);
   } catch (error) {
     console.error("Error in message exchange:", error);
 
