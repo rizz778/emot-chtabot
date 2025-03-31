@@ -313,7 +313,7 @@ const handleSendMessage = async () => {
       { headers: { Authorization: `Bearer ${token}` } }
     );
 
-    const lastFiveMessages = sessionData.messages.slice(-5);
+    const lastFiveMessages = sessionData.messages.slice(-3);
 
     // Step 2: Get AI response with severity assessment
     const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
