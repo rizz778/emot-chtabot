@@ -137,27 +137,24 @@ const ChatPage = () => {
   // Function to sync pending messages with backend
   const syncPendingMessages = async () => {
     if (pendingMessagesRef.current.length === 0 || !activeSession) return;
-    
+  
     const token = localStorage.getItem("token");
     if (!token) return;
-    
+  
     const messagesToSync = [...pendingMessagesRef.current];
     pendingMessagesRef.current = []; // Clear the queue
-    
+  
     try {
-      // Use batch endpoint if available
-      
-        // Otherwise use individual message endpoint
-        const savePromises = messagesToSync.map(msg => 
-          axios.post(
-            `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-            msg,
-            { headers: { Authorization: `Bearer ${token}` } }
-          )
-        );
-        
-        await Promise.all(savePromises);
-      
+      const savePromises = messagesToSync.map((msg) =>
+        axios.post(
+          `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+          msg,
+          { headers: { Authorization: `Bearer ${token}` } }
+        )
+      );
+  
+      await Promise.all(savePromises);
+  
       console.log("Successfully synced pending messages with backend");
     } catch (error) {
       console.error("Failed to sync messages with backend:", error);
@@ -242,7 +239,6 @@ const ChatPage = () => {
       console.error("Failed to fetch sessions:", error);
     }
   };
-
   const fetchMessages = async () => {
     if (!activeSession) return;
     try {
@@ -253,7 +249,7 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setMessages(response.data.messages);
+      setMessages(response.data.messages); // Populate messages from backend
     } catch (error) {
       console.error("Failed to fetch messages:", error);
     }
