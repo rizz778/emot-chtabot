@@ -2,7 +2,12 @@ import os
 import json
 import re
 import uuid
-from flask import Flask, request, jsonify, send_file, url_for
+import cv2
+import numpy as np
+import base64
+import time
+import requests
+from flask import Flask, request, jsonify, send_file, url_for, render_template, Response
 from flask_cors import CORS
 import google.generativeai as genai
 from gtts import gTTS
@@ -11,9 +16,8 @@ import random
 from dotenv import load_dotenv
 from twilio.rest import Client
 from twilio.twiml.voice_response import VoiceResponse
-from flask import Flask, request, Response  # Import Response
-from twilio.twiml.voice_response import VoiceResponse
-import requests
+import urllib.parse
+from deepface import DeepFace
 
 # Load environment variables
 load_dotenv()
@@ -33,11 +37,12 @@ twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
-CORS(app)
+CORS(app)  # Allow all requests
 
-# Create directories for audio files
+# Create directories for audio files and images
 AUDIO_DIR = "audio_responses"
 os.makedirs(AUDIO_DIR, exist_ok=True)
+IMAGE_PATH = "captured_image.jpg"  # Path to save the captured image
 
 # Speech recognition setup
 recognizer = sr.Recognizer()
@@ -144,7 +149,83 @@ def get_ngrok_url():
     except Exception as e:
         print("Error fetching ngrok URL:", str(e))
         return None
-# Add this to your Flask backend
+
+def capture_image():
+    """Captures an image from the webcam, saves it, and returns base64 encoded image data."""
+    cap = cv2.VideoCapture(0)  # Open webcam
+    if not cap.isOpened():
+        return None, "Error: Could not access webcam"
+    
+    print("Adjusting camera... Please wait for 3 seconds.")
+    time.sleep(3)  # Allow camera to adjust
+    
+    # Capture a few frames before taking the final image
+    for _ in range(10):
+        ret, frame = cap.read()
+        if not ret:
+            cap.release()
+            return None, "Error: Failed to read frame"
+        cv2.imshow("Adjusting Camera...", frame)
+        cv2.waitKey(50)  # Display each frame for 50ms
+    
+    print("Capturing image now...")
+    ret, frame = cap.read()
+    cap.release()  # Release webcam
+    
+    if not ret:
+        return None, "Error: Failed to capture image"
+    
+    # Save and display the captured image
+    cv2.imwrite(IMAGE_PATH, frame)
+    cv2.imshow("Captured Image", frame)
+    cv2.waitKey(2000)  # Show for 2 seconds
+    cv2.destroyAllWindows()
+    
+    # Encode image to base64
+    _, buffer = cv2.imencode('.jpg', frame)
+    img_base64 = base64.b64encode(buffer).decode('utf-8')
+    
+    return img_base64, None
+
+# Routes
+
+@app.route('/')
+def home():
+    return render_template("index.html")  # HTML page to trigger capture
+
+@app.route('/capture', methods=['GET'])
+def capture_and_predict():
+    """Captures image from webcam and analyzes emotion"""
+    image_data, error = capture_image()
+    if error:
+        return jsonify({'error': error}), 500
+    
+    try:
+        # Predict emotion
+        result = DeepFace.analyze(img_path=IMAGE_PATH, actions=['emotion'], enforce_detection=False)
+        detected_emotion = result[0]['dominant_emotion']
+        
+        # Generate response based on detected emotion
+        user_message = f"My detected emotion is {detected_emotion}."
+        response_data = generate_response_with_user_details(user_message, [], {})
+        
+        # Convert response to speech
+        tts = gTTS(response_data["response"], lang="en")
+        audio_file_path = os.path.join(AUDIO_DIR, f"{uuid.uuid4()}.mp3")
+        tts.save(audio_file_path)
+        audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
+        
+        return jsonify({
+            'emotion': detected_emotion,
+            'image_base64': image_data,
+            'chatbot_response': response_data["response"],
+            'audio_url': audio_url,
+            'requires_immediate_help': response_data.get("requires_immediate_help", False),
+            'distress_score': response_data.get("distress_score", 0)
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/init-conversation', methods=['POST'])
 def init_conversation():
@@ -200,7 +281,6 @@ def init_conversation():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# 1. Modify the chat route to accept user details
 @app.route('/chat', methods=['POST'])
 def chat():
     try:
@@ -212,10 +292,6 @@ def chat():
         # Extract emotion from the user message
         emotion_match = re.search(r"My detected emotion is (\w+)", user_message)
         detected_emotion = emotion_match.group(1) if emotion_match else None
-
-        # Modify user message to include detected emotion
-        if detected_emotion:
-            user_message = f"The user is feeling {detected_emotion}. Respond empathetically."
 
         # Generate response
         response_data = generate_response_with_user_details(user_message, conversation_history, user_details)
@@ -237,7 +313,6 @@ def chat():
     except Exception as e:
         return jsonify({"response": f"Error: {str(e)}"}), 500
 
-
 @app.route('/audio/<filename>', methods=['GET'])
 def get_audio(filename):
     file_path = os.path.join(AUDIO_DIR, filename)
@@ -245,11 +320,6 @@ def get_audio(filename):
         return send_file(file_path, mimetype="audio/mpeg")
     else:
         return jsonify({"error": "Audio file not found."}), 404
-
-    #----------------------------Twilio----------------
-
-
-import urllib.parse
 
 @app.route('/make_call', methods=['POST'])
 def make_call():
@@ -262,20 +332,18 @@ def make_call():
             return jsonify({"error": "Phone number is required"}), 400
 
         # Generate AI response
-        response_text = generate_response_with_user_details(user_message, [])
+        response_data = generate_response_with_user_details(user_message, [])
+        response_text = response_data["response"]
 
         # URL-encode the response text
         encoded_response = urllib.parse.quote(response_text)
 
-        ngrok_url = get_ngrok_url()  # ✅ Fetch latest ngrok URL dynamically
+        ngrok_url = get_ngrok_url()  # Fetch latest ngrok URL dynamically
         if not ngrok_url:
             return jsonify({"error": "Ngrok is not running. Start ngrok first!"}), 500
 
         # Generate TwiML URL
         twiml_url = f"{ngrok_url}/twiml?message={encoded_response}"
-        # twiml_url = f"https://emot-chtabot-1.onrender.com/twiml?message={encoded_response}"
-
-                          
         print("Generated TwiML URL:", twiml_url)
 
         call = twilio_client.calls.create(
@@ -291,7 +359,6 @@ def make_call():
         print("Error in make_call:", str(e))  # Debugging
         return jsonify({"error": str(e)}), 500
 
-
 @app.route('/twiml', methods=['POST', 'GET'])
 def twiml_response():
     """
@@ -304,10 +371,8 @@ def twiml_response():
 
     return Response(str(response), mimetype='text/xml')
 
-
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5001, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)
 
 
 
