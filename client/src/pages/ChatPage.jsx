@@ -437,7 +437,7 @@ const ChatPage = () => {
     }
 
     try {
-      const response = await axios.post("http://127.0.0.1:5000/make_call", {
+      const response = await axios.post("https://emot-chtabot.onrender.com/make_call", {
         phone: phoneNumber,
         message: userMessage,
       });
@@ -463,7 +463,7 @@ const ChatPage = () => {
   const handleCapture = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://127.0.0.1:5000/capture", {
+      const response = await fetch("https://emot-chtabot.onrender.com/capture", {
         mode: "cors",
       });
       const data = await response.json();
