@@ -70,7 +70,7 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       // Store complete user details for API calls
       setUserDetails(response.data);
     } catch (error) {
@@ -137,12 +137,12 @@ const ChatPage = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       // Sort messages by timestamp before setting state
       const sortedMessages = response.data.messages.sort(
         (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
       );
-      
+
       setMessages(sortedMessages);
     } catch (error) {
       console.error("Failed to fetch messages:", error);
@@ -150,254 +150,260 @@ const ChatPage = () => {
   };
 
   // Modify handleNewSession to call the model service directly
-const handleNewSession = async () => {
-  try {
-    const token = localStorage.getItem("token");
+  const handleNewSession = async () => {
+    try {
+      const token = localStorage.getItem("token");
 
-    if (!token) {
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+
+      const response = await axios.post(
+        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+        { sessionName: `Session ${chatSessions.length + 1}` },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // Extract session ID
+      const { sessionId, sessionName, tokens } = response.data;
+
+      // Update state with new session information
+      setTokenBalance(tokens);
+      setChatSessions((prevSessions) => [
+        ...prevSessions,
+        { _id: sessionId, sessionName },
+      ]);
+      setActiveSession(sessionId);
+      setMessages([]);
+
+      // Persist active session
+      localStorage.setItem("activeSession", sessionId);
+
+      // Use the stored userDetails to get initial greeting
+      // Call the model service directly from the frontend
+      if (userDetails) {
+        try {
+          // Call the model service directly
+          const initialGreetingResponse = await fetch(
+            "https://emot-chtabot.onrender.com/init-conversation",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                session_id: sessionId,
+                user_details: userDetails,
+              }),
+            }
+          );
+
+          if (!initialGreetingResponse.ok) {
+            throw new Error(
+              `Model service responded with status: ${initialGreetingResponse.status}`
+            );
+          }
+
+          const greetingData = await initialGreetingResponse.json();
+
+          if (greetingData.message) {
+            const botGreeting = {
+              sender: "bot",
+              text: greetingData.message,
+            };
+
+            // Add to UI
+            setMessages([botGreeting]);
+            setAudioUrl(greetingData.audio_url);
+
+            // Save to backend
+            await axios.post(
+              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+              botGreeting,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          }
+        } catch (greetingError) {
+          console.error("Failed to get initial greeting:", greetingError);
+          // Continue without a greeting if there's an error
+        }
+      } else {
+        try {
+          // Call the model service directly
+          const initialGreetingResponse = await fetch(
+            "https://emot-chtabot.onrender.com/init-conversation",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                session_id: sessionId,
+                user_details: {},
+              }),
+            }
+          );
+
+          if (!initialGreetingResponse.ok) {
+            throw new Error(
+              `Model service responded with status: ${initialGreetingResponse.status}`
+            );
+          }
+
+          const greetingData = await initialGreetingResponse.json();
+
+          if (greetingData.message) {
+            const botGreeting = {
+              sender: "bot",
+              text: greetingData.message,
+              timestamp: new Date().toISOString(),
+            };
+
+            // Add to UI
+            setMessages([botGreeting]);
+            setAudioUrl(greetingData.audio_url);
+
+            // Save to backend
+            await axios.post(
+              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+              botGreeting,
+              { headers: { Authorization: `Bearer ${token}` } }
+            );
+          }
+        } catch (greetingError) {
+          console.error("Failed to get initial greeting:", greetingError);
+          // Continue without a greeting if there's an error
+        }
+      }
+      notification.success({
+        message: "Session Created",
+        description: "-2 tokens deducted from your account.",
+        duration: 2,
+      });
+    } catch (error) {
+      console.error("Failed to create session:", error);
+
+      if (error.response?.status === 403) {
+        notification.error({
+          message: "Insufficient Tokens",
+          description: "Please purchase more tokens to continue.",
+          duration: 3,
+        });
+        navigate("/token");
+      } else {
+        notification.error({
+          message: "Session Creation Failed",
+          description: "Could not create a new chat session. Please try again.",
+          duration: 3,
+        });
+      }
+    }
+  };
+
+  const handleSendMessage = async () => {
+    const trimmedInput = input.trim();
+    if (!trimmedInput) return;
+
+    const token = localStorage.getItem("token");
+    if (!token || !activeSession) {
+      notification.error({
+        message: "Authentication Error",
+        description: "Please log in again to continue.",
+        duration: 3,
+      });
       navigate("/login");
       return;
     }
 
-    const response = await axios.post(
-      "https://emot-chtabot-1.onrender.com/api/chat/sessions",
-      { sessionName: `Session ${chatSessions.length + 1}` },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-
-    // Extract session ID
-    const { sessionId, sessionName, tokens } = response.data;
-
-    // Update state with new session information
-    setTokenBalance(tokens);
-    setChatSessions((prevSessions) => [
-      ...prevSessions,
-      { _id: sessionId, sessionName },
-    ]);
-    setActiveSession(sessionId);
-    setMessages([]);
-
-    // Persist active session
-    localStorage.setItem("activeSession", sessionId);
-    
-    // Use the stored userDetails to get initial greeting
-    // Call the model service directly from the frontend
-    if (userDetails) {
-      try {
-        // Call the model service directly
-        const initialGreetingResponse = await fetch("https://emot-chtabot.onrender.com/init-conversation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            session_id: sessionId,
-            user_details: userDetails
-          }),
-        });
-        
-        if (!initialGreetingResponse.ok) {
-          throw new Error(
-            `Model service responded with status: ${initialGreetingResponse.status}`
-          );
-        }
-        
-        const greetingData = await initialGreetingResponse.json();
-        
-        if (greetingData.message) {
-          const botGreeting = { 
-            sender: "bot", 
-            text: greetingData.message 
-          };
-          
-          // Add to UI
-          setMessages([botGreeting]);
-          setAudioUrl(greetingData.audio_url);
-          
-          // Save to backend
-          await axios.post(
-            `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
-            botGreeting,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        }
-      } catch (greetingError) {
-        console.error("Failed to get initial greeting:", greetingError);
-        // Continue without a greeting if there's an error
-      }
-    }
-    else{
-      try {
-        // Call the model service directly
-        const initialGreetingResponse = await fetch("https://emot-chtabot.onrender.com/init-conversation", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            session_id: sessionId,
-            user_details: {}
-          }),
-        });
-        
-        if (!initialGreetingResponse.ok) {
-          throw new Error(
-            `Model service responded with status: ${initialGreetingResponse.status}`
-          );
-        }
-        
-        const greetingData = await initialGreetingResponse.json();
-        
-        if (greetingData.message) {
-          const botGreeting = { 
-            sender: "bot", 
-            text: greetingData.message,
-            timestamp: new Date().toISOString()
-          };
-          
-          // Add to UI
-          setMessages([botGreeting]);
-          setAudioUrl(greetingData.audio_url);
-          
-          // Save to backend
-          await axios.post(
-            `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
-            botGreeting,
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
-        }
-      } catch (greetingError) {
-        console.error("Failed to get initial greeting:", greetingError);
-        // Continue without a greeting if there's an error
-      }
-    }
-    notification.success({
-      message: "Session Created",
-      description: "-2 tokens deducted from your account.",
-      duration: 2,
-    });
-  } catch (error) {
-    console.error("Failed to create session:", error);
-
-    if (error.response?.status === 403) {
-      notification.error({
-        message: "Insufficient Tokens",
-        description: "Please purchase more tokens to continue.",
-        duration: 3,
-      });
-      navigate("/token");
-    } else {
-      notification.error({
-        message: "Session Creation Failed",
-        description: "Could not create a new chat session. Please try again.",
-        duration: 3,
-      });
-    }
-  }
-};
-
-const handleSendMessage = async () => {
-  const trimmedInput = input.trim();
-  if (!trimmedInput) return;
-
-  const token = localStorage.getItem("token");
-  if (!token || !activeSession) {
-    notification.error({
-      message: "Authentication Error",
-      description: "Please log in again to continue.",
-      duration: 3,
-    });
-    navigate("/login");
-    return;
-  }
-
-  // Optimistically update UI
-  const userMessage = { 
-    sender: "user", 
-    text: trimmedInput,
-    timestamp: new Date().toISOString() 
-  };
-  setMessages((prevMessages) => [...prevMessages, userMessage]);
-  setInput(""); // Clear input immediately for better UX
-  setLoading(true);
-
-  try {
-    
-
-    const lastFiveMessages =messages.slice(-3);
-
-    // Step 2: Get AI response with severity assessment
-    const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: trimmedInput,
-        session_id: activeSession,
-        conversation_history: lastFiveMessages,
-        user_details: userDetails,
-      }),
-    });
-
-    if (!aiResponse.ok) {
-      throw new Error(`AI service responded with status: ${aiResponse.status}`);
-    }
-
-    const aiData = await aiResponse.json();
-
-    // Validate bot response
-    if (!aiData.response || typeof aiData.distress_score === "undefined") {
-      throw new Error("Invalid response from AI service");
-    }
-
-    const botMessage = { 
-      sender: "bot", 
-      text: aiData.response,
-      timestamp: new Date().toISOString() 
+    // Optimistically update UI
+    const userMessage = {
+      sender: "user",
+      text: trimmedInput,
+      timestamp: new Date().toISOString(),
     };
-    // Update UI with bot response
-    setMessages((prevMessages) => [...prevMessages, botMessage]);
-    setAudioUrl(aiData.audio_url);
-    console.log(aiData.distress_score);
-    // Check severity score
-    if (aiData.distress_score >= 7) {
-      notification.warning({
-        message: "Urgent Help Suggested",
-        description: "We recommend seeking professional support. Redirecting to the helpline...",
-        duration: 5,
+    setMessages((prevMessages) => [...prevMessages, userMessage]);
+    setInput(""); // Clear input immediately for better UX
+    setLoading(true);
+
+    try {
+      const lastFiveMessages = messages.slice(-3);
+
+      // Step 2: Get AI response with severity assessment
+      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: trimmedInput,
+          session_id: activeSession,
+          conversation_history: lastFiveMessages,
+          user_details: userDetails,
+        }),
       });
-      navigate("/helpline"); // Redirect to helpline page
+
+      if (!aiResponse.ok) {
+        throw new Error(
+          `AI service responded with status: ${aiResponse.status}`
+        );
+      }
+
+      const aiData = await aiResponse.json();
+
+      // Validate bot response
+      if (!aiData.response || typeof aiData.distress_score === "undefined") {
+        throw new Error("Invalid response from AI service");
+      }
+
+      const botMessage = {
+        sender: "bot",
+        text: aiData.response,
+        timestamp: new Date().toISOString(),
+      };
+      // Update UI with bot response
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
+      setAudioUrl(aiData.audio_url);
+      console.log(aiData.distress_score);
+      // Check severity score
+      if (aiData.distress_score >= 7) {
+        notification.warning({
+          message: "Urgent Help Suggested",
+          description:
+            "We recommend seeking professional support. Redirecting to the helpline...",
+          duration: 5,
+        });
+        navigate("/helpline"); // Redirect to helpline page
+      }
+
+      // Step 3: Save messages to backend (in parallel)
+      // Save messages to backend
+      axios.post(
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        userMessage,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      axios.post(
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        botMessage,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (error) {
+      console.error("Error in message exchange:", error);
+
+      // Add error message to UI
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          sender: "bot",
+          text: "Sorry, I couldn't process your message. Please try again.",
+        },
+      ]);
+
+      notification.error({
+        message: "Communication Error",
+        description: "Failed to get or save response. Please try again.",
+        duration: 3,
+      });
+    } finally {
+      setLoading(false);
     }
-
-    // Step 3: Save messages to backend (in parallel)
-  // Save messages to backend
-  axios.post(
-    `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-    userMessage,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-
-  axios.post(
-    `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-    botMessage,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-
-  
-  } catch (error) {
-    console.error("Error in message exchange:", error);
-
-    // Add error message to UI
-    setMessages((prevMessages) => [
-      ...prevMessages,
-      { sender: "bot", text: "Sorry, I couldn't process your message. Please try again." },
-    ]);
-
-    notification.error({
-      message: "Communication Error",
-      description: "Failed to get or save response. Please try again.",
-      duration: 3,
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
+  };
 
   const handleKeyPress = (event) => {
     if (event.key === "Enter") {
@@ -447,6 +453,32 @@ const handleSendMessage = async () => {
     } catch (error) {
       console.error("Error making call:", error);
       antdMessage.error("Error making call.");
+    }
+  };
+
+  const handleCapture = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch("http://127.0.0.1:5000/capture", {
+        mode: "cors",
+      });
+      const data = await response.json();
+
+      if (data.error) {
+        alert("Error: " + data.error);
+      } else {
+        // Add chatbot's response directly
+        const botMessage = {
+          sender: "bot",
+          text: data.chatbot_response, // Only chatbot's response
+        };
+
+        setMessages((prevMessages) => [...prevMessages, botMessage]);
+      }
+    } catch (error) {
+      alert("Failed to connect to API: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -518,6 +550,10 @@ const handleSendMessage = async () => {
           }}
         >
           {!collapsed && <span>Make a Call</span>}
+        </Button>
+
+        <Button onClick={handleCapture} disabled={loading}>
+          {loading ? "Detecting..." : "Capture Emotion"}
         </Button>
       </Sider>
 

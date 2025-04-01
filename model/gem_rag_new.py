@@ -205,34 +205,33 @@ def init_conversation():
 def chat():
     try:
         data = request.get_json()
-        user_message = data.get("message")
+        user_message = data.get("message", "")
         conversation_history = data.get("conversation_history", [])
-        user_details = data.get("user_details", {})  # Get user details if provided
+        user_details = data.get("user_details", {})
 
-        if not user_message:
-            return jsonify({"response": "Error: Missing required data."}), 400
+        # Extract emotion from the user message
+        emotion_match = re.search(r"My detected emotion is (\w+)", user_message)
+        detected_emotion = emotion_match.group(1) if emotion_match else None
 
+        # Modify user message to include detected emotion
+        if detected_emotion:
+            user_message = f"The user is feeling {detected_emotion}. Respond empathetically."
 
-        # Pass user details to the response generator
+        # Generate response
         response_data = generate_response_with_user_details(user_message, conversation_history, user_details)
 
-        response_text = response_data.get("response", "I'm here to help.")
-        requires_immediate_help = response_data.get("requires_immediate_help", False)
-        distress_score = response_data.get("distress_score", 0)
-       
         # Convert response to speech
-        tts = gTTS(response_text, lang="en")
+        tts = gTTS(response_data["response"], lang="en")
         audio_file_path = os.path.join(AUDIO_DIR, f"{uuid.uuid4()}.mp3")
         tts.save(audio_file_path)
-
         audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
 
         return jsonify({
-            "response": response_text,
+            "response": response_data["response"],
             "audio_url": audio_url,
-            "requires_immediate_help": requires_immediate_help,
-            "distress_score": distress_score,
-            "follow_up": "Is there anything else you'd like to ask?"
+            "requires_immediate_help": response_data.get("requires_immediate_help", False),
+            "distress_score": response_data.get("distress_score", 0),
+            "follow_up": "Is there anything else you'd like to share?"
         })
 
     except Exception as e:
@@ -263,7 +262,7 @@ def make_call():
             return jsonify({"error": "Phone number is required"}), 400
 
         # Generate AI response
-        response_text = generate_response_with_rag(user_message, [])
+        response_text = generate_response_with_user_details(user_message, [])
 
         # URL-encode the response text
         encoded_response = urllib.parse.quote(response_text)
@@ -308,7 +307,7 @@ def twiml_response():
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5001, debug=True)
 
 
 
