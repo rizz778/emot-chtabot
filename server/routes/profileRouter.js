@@ -1,11 +1,21 @@
 import express from "express";
-import { saveUserProfile, getUserProfile } from "../controllers/userController.js"
+import { upload } from '../config/cloudinary.js';
+import {
+    saveUserProfile, 
+  getUserProfile, 
+  uploadProfilePicture, 
+  deleteProfilePicture 
+
+} from "../controllers/userController.js"
 import protect from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
+router.use(protect);
 
-
-router.post("/", protect, saveUserProfile);
-router.get("/", protect, getUserProfile);
+// Profile routes
+router.get('/', getUserProfile);
+router.post('/', saveUserProfile);
+router.post('/upload-picture', upload.single('profilePicture'), uploadProfilePicture);
+router.delete('/delete-picture', deleteProfilePicture);
 
 export default router;

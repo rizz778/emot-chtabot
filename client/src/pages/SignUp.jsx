@@ -33,7 +33,7 @@ const Signup = () => {
 
       message.success('SignUp successful!');
       const redirectPath = location.state?.from?.pathname || "/chat";
-      navigate(redirectPath);
+      navigate('/profile');
     } catch (error) {
       console.error('Signup error:', error);
       message.error(error.response?.data?.message || 'Signup failed. Please try again.');
