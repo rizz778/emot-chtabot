@@ -168,8 +168,8 @@ const ChatPage = () => {
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
-      // Extract session ID
+      const detectedEmotion = await handleCapture(); // Get detected emotion
+       // Extract session ID
       const { sessionId, sessionName, tokens } = response.data;
 
       // Update state with new session information
@@ -197,6 +197,7 @@ const ChatPage = () => {
               body: JSON.stringify({
                 session_id: sessionId,
                 user_details: userDetails,
+                detected_emotion:detectedEmotion
               }),
             }
           );
@@ -241,6 +242,7 @@ const ChatPage = () => {
               body: JSON.stringify({
                 session_id: sessionId,
                 user_details: {},
+                detected_emotion:detectedEmotion
               }),
             }
           );
@@ -322,6 +324,8 @@ const ChatPage = () => {
       text: trimmedInput,
       timestamp: new Date().toISOString(),
     };
+    const detectedEmotion = await handleCapture(); // Get detected emotion
+
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput(""); // Clear input immediately for better UX
     setLoading(true);
@@ -338,6 +342,7 @@ const ChatPage = () => {
           session_id: activeSession,
           conversation_history: lastFiveMessages,
           user_details: userDetails,
+          detected_emotion:detectedEmotion,
         }),
       });
 
@@ -467,20 +472,16 @@ const ChatPage = () => {
         mode: "cors",
       });
       const data = await response.json();
-
+  
       if (data.error) {
-        alert("Error: " + data.error);
-      } else {
-        // Add chatbot's response directly
-        const botMessage = {
-          sender: "bot",
-          text: data.chatbot_response, // Only chatbot's response
-        };
-
-        setMessages((prevMessages) => [...prevMessages, botMessage]);
+        console.error("Error capturing emotion:", data.error);
+        return null;
       }
+  
+      return data.emotion; // Return the detected emotion
     } catch (error) {
-      alert("Failed to connect to API: " + error.message);
+      console.error("Failed to connect to API:", error.message);
+      return null;
     } finally {
       setLoading(false);
     }

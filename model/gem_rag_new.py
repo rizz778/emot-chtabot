@@ -72,10 +72,10 @@ def assess_distress_level(user_input):
     return score, requires_immediate_help
 
 
-def generate_response_with_user_details(user_input, conversation_history, user_details=None):
+def generate_response_with_user_details(user_input, conversation_history, user_details=None, detected_emotion=None):
     """
     Generates a response by assessing distress levels and responding with empathy.
-    If distress level is high, sets a flag for redirecting the user to a helpline.
+    Now includes detected facial emotion as an additional context.
     """
     if not isinstance(conversation_history, list):
         print("[ERROR] Invalid conversation_history format. Expected a list.")
@@ -100,6 +100,12 @@ def generate_response_with_user_details(user_input, conversation_history, user_d
             if key not in ["password", "token"]:  # Skip sensitive information
                 user_details_str += f"- {key}: {value}\n"
 
+    # Add detected emotion information if available
+    emotion_str = ""
+    if detected_emotion:
+        emotion_str = f"Detected Facial Emotion: {detected_emotion}\n"
+        print(f"[INFO] Using detected emotion: {detected_emotion}")
+
     # Assess distress level
     distress_score, requires_immediate_help = assess_distress_level(user_input)
 
@@ -109,12 +115,13 @@ def generate_response_with_user_details(user_input, conversation_history, user_d
       Your responses should always acknowledge the user's emotions, validate their experiences, and provide comfort.  
       Focus on fostering a sense of safety, encouragement, and self-compassion while offering actionable, behavior-centric guidance.  
       Gently incorporate mental health strategies such as mindfulness, cognitive reframing, and stress management techniques where appropriate.  
-      Maintain a warm, empathetic, and conversational tone, ensuring that the user feels truly heard and supported.  
+      Maintain a warm, empathetic, and conversational tone, ensuring that the user feels truly heard and supported.
       
       {user_details_str}
+      {emotion_str}
       Previous conversation:\n{history_str}\n
       User: {user_input}
-      Bot (empathetic, validating, and well-being focused):
+      Bot (empathetic, validating, and well-being focused, considering detected emotions):
     """
 
     print(f"[DEBUG] Sending to model:\n{prompt}")
@@ -205,9 +212,14 @@ def capture_and_predict():
         result = DeepFace.analyze(img_path=IMAGE_PATH, actions=['emotion'], enforce_detection=False)
         detected_emotion = result[0]['dominant_emotion']
         
-        # Generate response based on detected emotion
-        user_message = f"My detected emotion is {detected_emotion}."
-        response_data = generate_response_with_user_details(user_message, [], {})
+        # Generate response based on detected emotion (adding emotion directly)
+        user_message = "Hi, how can you help me today?"  # Default message
+        response_data = generate_response_with_user_details(
+            user_message, 
+            [], 
+            {}, 
+            detected_emotion
+        )
         
         # Convert response to speech
         tts = gTTS(response_data["response"], lang="en")
@@ -233,6 +245,7 @@ def init_conversation():
         data = request.get_json()
         user_details = data.get("user_details", {})
         session_id = data.get("session_id")
+        detected_emotion = data.get("detected_emotion")  # Get emotion if provided
         
         if not session_id:
             return jsonify({"error": "Session ID is required"}), 400
@@ -247,13 +260,20 @@ def init_conversation():
                 user_details_str += f"- {key}: {value}\n"
         if not user_details:
             user_details_str = "User Details: None provided.\n"
+            
+        # Add emotion context if available
+        emotion_context = ""
+        if detected_emotion:
+            emotion_context = f"The user's detected facial emotion is: {detected_emotion}. Respond appropriately to this emotional state."
+            
         greeting_prompt = f"""
         You are an emotionally supportive and compassionate AI assistant, dedicated to promoting mental well-being.
         
         {user_details_str}
+        {emotion_context}
         
         Generate a warm, personalized greeting for this user who has just started a new conversation.
-        Keep it brief (2-3 sentences) but make it feel personalized based on their details.
+        Keep it brief (2-3 sentences) but make it feel personalized based on their details and emotional state if provided.
         Be welcoming and offer support without being overly formal.
         """
         
@@ -288,13 +308,15 @@ def chat():
         user_message = data.get("message", "")
         conversation_history = data.get("conversation_history", [])
         user_details = data.get("user_details", {})
+        detected_emotion = data.get("detected_emotion")  # Get emotion if provided
 
-        # Extract emotion from the user message
-        emotion_match = re.search(r"My detected emotion is (\w+)", user_message)
-        detected_emotion = emotion_match.group(1) if emotion_match else None
-
-        # Generate response
-        response_data = generate_response_with_user_details(user_message, conversation_history, user_details)
+        # Generate response, now including detected emotion
+        response_data = generate_response_with_user_details(
+            user_message, 
+            conversation_history, 
+            user_details,
+            detected_emotion
+        )
 
         # Convert response to speech
         tts = gTTS(response_data["response"], lang="en")
@@ -327,12 +349,18 @@ def make_call():
         data = request.get_json()
         user_number = data.get("phone")
         user_message = data.get("message", "Hello!")
+        detected_emotion = data.get("detected_emotion")  # Get emotion if provided
 
         if not user_number:
             return jsonify({"error": "Phone number is required"}), 400
 
-        # Generate AI response
-        response_data = generate_response_with_user_details(user_message, [])
+        # Generate AI response including emotion context
+        response_data = generate_response_with_user_details(
+            user_message, 
+            [], 
+            {},
+            detected_emotion
+        )
         response_text = response_data["response"]
 
         # URL-encode the response text
@@ -349,7 +377,7 @@ def make_call():
         call = twilio_client.calls.create(
             to=user_number,
             from_=TWILIO_PHONE_NUMBER,
-            method="POST",  # Use POST instead of GET
+            method="POST",
             url=twiml_url
         )
 
@@ -373,6 +401,5 @@ def twiml_response():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
 
 
