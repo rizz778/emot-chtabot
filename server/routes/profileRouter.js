@@ -15,7 +15,7 @@ router.use(protect);
 // Profile routes
 router.get('/', getUserProfile);
 router.post('/', saveUserProfile);
-router.post('/upload-picture', upload.single('profilePicture'), uploadProfilePicture);
-router.delete('/delete-picture', deleteProfilePicture);
+router.post('/upload-picture',upload.single('profilePicture'), uploadProfilePicture);
+router.delete('/delete-picture',deleteProfilePicture);
 
 export default router;

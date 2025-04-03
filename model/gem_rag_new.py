@@ -37,7 +37,12 @@ twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 # Initialize Flask app
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
-CORS(app)  # Allow all requests
+
+# Allow CORS for specific origins
+CORS(app)
+
+# Explicitly handle OPTIONS for preflight
+
 
 # Create directories for audio files and images
 AUDIO_DIR = "audio_responses"
@@ -158,42 +163,37 @@ def get_ngrok_url():
         return None
 
 def capture_image():
-    """Captures an image from the webcam, saves it, and returns base64 encoded image data."""
-    cap = cv2.VideoCapture(0)  # Open webcam
+    """Captures an image from the webcam without GUI functions."""
+    cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         return None, "Error: Could not access webcam"
     
+    # Let camera adjust (no GUI needed)
     print("Adjusting camera... Please wait for 3 seconds.")
     time.sleep(3)  # Allow camera to adjust
     
-    # Capture a few frames before taking the final image
+    # Capture a few frames to ensure stability
     for _ in range(10):
         ret, frame = cap.read()
         if not ret:
             cap.release()
             return None, "Error: Failed to read frame"
-        cv2.imshow("Adjusting Camera...", frame)
-        cv2.waitKey(50)  # Display each frame for 50ms
     
-    print("Capturing image now...")
+    # Capture the final frame
     ret, frame = cap.read()
-    cap.release()  # Release webcam
+    cap.release()  # Release the camera
     
     if not ret:
         return None, "Error: Failed to capture image"
     
-    # Save and display the captured image
+    # Save the image (optional, only if needed for DeepFace)
     cv2.imwrite(IMAGE_PATH, frame)
-    cv2.imshow("Captured Image", frame)
-    cv2.waitKey(2000)  # Show for 2 seconds
-    cv2.destroyAllWindows()
     
     # Encode image to base64
     _, buffer = cv2.imencode('.jpg', frame)
     img_base64 = base64.b64encode(buffer).decode('utf-8')
     
     return img_base64, None
-
 # Routes
 
 @app.route('/')
@@ -202,43 +202,31 @@ def home():
 
 @app.route('/capture', methods=['GET'])
 def capture_and_predict():
-    """Captures image from webcam and analyzes emotion"""
-    image_data, error = capture_image()
-    if error:
-        return jsonify({'error': error}), 500
-    
     try:
-        # Predict emotion
-        result = DeepFace.analyze(img_path=IMAGE_PATH, actions=['emotion'], enforce_detection=False)
-        detected_emotion = result[0]['dominant_emotion']
-        
-        # Generate response based on detected emotion (adding emotion directly)
-        user_message = "Hi, how can you help me today?"  # Default message
-        response_data = generate_response_with_user_details(
-            user_message, 
-            [], 
-            {}, 
-            detected_emotion
-        )
-        
-        # Convert response to speech
-        tts = gTTS(response_data["response"], lang="en")
-        audio_file_path = os.path.join(AUDIO_DIR, f"{uuid.uuid4()}.mp3")
-        tts.save(audio_file_path)
-        audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
-        
+        # (1) Capture image (no GUI)
+        image_data, error = capture_image()
+        if error:
+            return jsonify({'error': error}), 500
+
+        # (2) Analyze emotion
+        try:
+            result = DeepFace.analyze(
+                img_path=IMAGE_PATH,  # or use a temp file
+                actions=['emotion'],
+                enforce_detection=False  # Don't fail if no face detected
+            )
+            detected_emotion = result[0]['dominant_emotion']
+        except Exception as e:
+            return jsonify({'error': f"Emotion detection failed: {str(e)}"}), 500
+
         return jsonify({
             'emotion': detected_emotion,
-            'image_base64': image_data,
-            'chatbot_response': response_data["response"],
-            'audio_url': audio_url,
-            'requires_immediate_help': response_data.get("requires_immediate_help", False),
-            'distress_score': response_data.get("distress_score", 0)
+            'image_base64': image_data  # Send base64 to frontend
         })
-    
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
+    except Exception as e:
+        print(f"[SERVER ERROR] {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
 @app.route('/init-conversation', methods=['POST'])
 def init_conversation():
     try:

@@ -1,5 +1,6 @@
 import UserProfile from "../models/UserProfile.js";
 import { cloudinary } from "../config/cloudinary.js";
+import { truncate } from "fs/promises";
 
 // @desc   Save or update user profile
 // @route  POST /api/user-profile
@@ -38,8 +39,15 @@ export const saveUserProfile = async (req, res) => {
 // @access Private (Requires Auth)
 export const uploadProfilePicture = async (req, res) => {
   try {
-    const userId = req.user.id;
-    
+    const userId = req.user?._id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized access" });
+    }
+      // Log debugging information
+      console.log("Request received for upload:", { 
+        userId: userId,
+        file: req.file ? { path: req.file.path, filename: req.file.filename } : 'No file'
+      });
     // Check if file exists (multer should have attached it to req.file)
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No image file provided" });
@@ -56,7 +64,7 @@ export const uploadProfilePicture = async (req, res) => {
     const userProfile = await UserProfile.findOneAndUpdate(
       { userId },
       { profilePicture: profilePictureData },
-      { new: true }
+      { new: true ,upsert:truncate}
     );
     
     if (!userProfile) {
@@ -73,6 +81,7 @@ export const uploadProfilePicture = async (req, res) => {
     
   } catch (error) {
     console.error("Error uploading profile picture:", error);
+    
     res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };

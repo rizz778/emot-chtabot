@@ -146,30 +146,29 @@ const ProfilePage = () => {
       const formData = new FormData();
       formData.append('profilePicture', selectedPictureFile);
       
-      const token = localStorage.getItem('token'); // Retrieve token from localStorage
-    if (!token) {
-      console.error('No token found in localStorage');
-      return;
-    }
-
-    const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile/upload-picture', {
-      method: 'POST',
-      body: formData,
-      headers: {
-        'Authorization': `Bearer ${token}`, // Include token for authentication
-      },
-    });
-
-      
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+  
+      const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile/upload-picture', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          // Don't set Content-Type - let the browser set it with boundary
+        },
+      });
+  
       if (!response.ok) {
-        throw new Error(`Failed to upload profile picture: ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload profile picture');
       }
       
-      const result = await response.json();
-      return result.profilePicture; // Return the Cloudinary info (url and publicId)
+      return await response.json();
       
     } catch (error) {
-      console.error('Error uploading profile picture:', error);
+      console.error('Upload error:', error);
       throw error;
     } finally {
       setIsUploading(false);

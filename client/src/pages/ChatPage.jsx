@@ -468,19 +468,15 @@ const ChatPage = () => {
   const handleCapture = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://emot-chtabot.onrender.com/capture", {
-        mode: "cors",
-      });
+      const response = await fetch("https://emot-chtabot.onrender.com/capture");
       const data = await response.json();
   
-      if (data.error) {
-        console.error("Error capturing emotion:", data.error);
-        return null;
-      }
-  
-      return data.emotion; // Return the detected emotion
+      
+      console.log(data.emotion)
+      return data.emotion;
+
     } catch (error) {
-      console.error("Failed to connect to API:", error.message);
+      console.error("Error:", error);
       return null;
     } finally {
       setLoading(false);
