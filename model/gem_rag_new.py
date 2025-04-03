@@ -76,7 +76,6 @@ def assess_distress_level(user_input):
     requires_immediate_help = score >= 7
     return score, requires_immediate_help
 
-
 def generate_response_with_user_details(user_input, conversation_history, user_details=None, detected_emotion=None):
     """
     Generates a response by assessing distress levels and responding with empathy.

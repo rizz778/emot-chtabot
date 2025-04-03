@@ -1,17 +1,18 @@
-import axios from 'axios';
+import axios from "axios";
 import { exec } from "child_process";
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
 import { promises as fs } from "fs";
-import { writeFileSync } from 'fs';
-import * as mm from 'music-metadata';
-import { phonemize } from 'phonemize';
+import { writeFileSync } from "fs";
+import * as mm from "music-metadata";
+import { phonemize } from "phonemize";
 import fetch from "node-fetch";
 import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
 import path from "path";
 import { fileURLToPath } from "url";
+import DeepFace from "deepface";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -58,27 +59,35 @@ const getVoiceForLanguage = (language) => {
 async function textToSpeech(text, language, outputFilename) {
   try {
     const voice = getVoiceForLanguage(language); // Get the voice based on the language
-    const url = `https://code.responsivevoice.org/getvoice.php?t=${encodeURIComponent(text)}&voice=${encodeURIComponent(voice)}&lang=${encodeURIComponent(language)}&key=uJKFIn5M`;
-    const response = await axios.get(url, { responseType: 'arraybuffer' });
+    const url = `https://code.responsivevoice.org/getvoice.php?t=${encodeURIComponent(
+      text
+    )}&voice=${encodeURIComponent(voice)}&lang=${encodeURIComponent(
+      language
+    )}&key=uJKFIn5M`;
+    const response = await axios.get(url, { responseType: "arraybuffer" });
 
     if (fileExists(outputFilename)) {
-      console.log(`File ${outputFilename} already exists. Replacing it with new content.`);
+      console.log(
+        `File ${outputFilename} already exists. Replacing it with new content.`
+      );
     }
 
     writeFileSync(outputFilename, response.data);
     console.log(`Audio file saved as ${outputFilename}`);
   } catch (error) {
-    console.error('Error fetching voice data:', error.message);
+    console.error("Error fetching voice data:", error.message);
   }
 }
 
 const app = express();
 const port = 3000;
-app.use(cors({
-  origin: 'https://emot-chtabot-2.onrender.com', // Add the frontend URL
-  methods: ['GET', 'POST'], // Allow necessary HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allow headers that are needed
-}));
+app.use(
+  cors({
+    origin: "https://emot-chtabot-2.onrender.com", // Add the frontend URL
+    methods: ["GET", "POST"], // Allow necessary HTTP methods
+    allowedHeaders: ["Content-Type", "Authorization"], // Allow headers that are needed
+  })
+);
 app.use(express.json());
 ffmpeg.setFfmpegPath(ffmpegPath);
 
@@ -98,17 +107,35 @@ const getAudioDuration = async (filePath) => {
 };
 
 const phonemeToViseme = {
-  p: "B", b: "B", m: "B",
-  d: "C", t: "C", n: "C", l: "C",
-  h: "D", H: "D",
-  f: "E", v: "E",
-  ʃ: "F", ʒ: "F", tʃ: "F", dʒ: "F",
-  j: "G", w: "G",
-  θ: "H", ð: "H",
-  s: "A", z: "A",
-  k: "A", g: "A",
+  p: "B",
+  b: "B",
+  m: "B",
+  d: "C",
+  t: "C",
+  n: "C",
+  l: "C",
+  h: "D",
+  H: "D",
+  f: "E",
+  v: "E",
+  ʃ: "F",
+  ʒ: "F",
+  tʃ: "F",
+  dʒ: "F",
+  j: "G",
+  w: "G",
+  θ: "H",
+  ð: "H",
+  s: "A",
+  z: "A",
+  k: "A",
+  g: "A",
   r: "A",
-  a: "X", e: "X", i: "X", o: "X", u: "X"
+  a: "X",
+  e: "X",
+  i: "X",
+  o: "X",
+  u: "X",
 };
 
 const generateTimedPhonemes = async (text, audioPath) => {
@@ -131,7 +158,7 @@ const generateTimedPhonemes = async (text, audioPath) => {
   let totalDuration = text.length * 0.1; // Default estimated duration
 
   if (audioPath && (await fileExists(audioPath))) {
-    totalDuration = await getAudioDuration(audioPath) || 1.5;
+    totalDuration = (await getAudioDuration(audioPath)) || 1.5;
   }
 
   console.log(`Total estimated duration: ${totalDuration}s`);
@@ -142,26 +169,31 @@ const generateTimedPhonemes = async (text, audioPath) => {
   let startTime = 0;
   const mouthCues = phonemeArray.map((phoneme) => {
     const cleanedPhoneme = phoneme.replace(/[ˈˌ!?.]/g, "").split("");
-    const viseme = cleanedPhoneme
-      .map(p => phonemeToViseme[p] || "X")
-      .find(v => v !== "X") || "X";
+    const viseme =
+      cleanedPhoneme
+        .map((p) => phonemeToViseme[p] || "X")
+        .find((v) => v !== "X") || "X";
     const endTime = startTime + phonemeDuration;
-    const entry = { start: parseFloat(startTime.toFixed(2)), end: parseFloat(endTime.toFixed(2)), value: viseme };
+    const entry = {
+      start: parseFloat(startTime.toFixed(2)),
+      end: parseFloat(endTime.toFixed(2)),
+      value: viseme,
+    };
     startTime = endTime;
     return entry;
   });
 
   console.log("Returning Data:", {
     metadata: { soundFile: audioPath, duration: totalDuration },
-    mouthCues
+    mouthCues,
   });
 
   return {
     metadata: {
       soundFile: audioPath,
-      duration: totalDuration
+      duration: totalDuration,
     },
-    mouthCues
+    mouthCues,
   };
 };
 
@@ -169,13 +201,13 @@ const convertMp3ToWav = (mp3File, wavFile) => {
   return new Promise((resolve, reject) => {
     ffmpeg(mp3File)
       .output(wavFile)
-      .audioCodec('pcm_s16le')
-      .on('end', () => {
+      .audioCodec("pcm_s16le")
+      .on("end", () => {
         console.log(`MP3 to WAV conversion completed.`);
         resolve();
       })
-      .on('error', (err) => {
-        console.error('Error during conversion:', err);
+      .on("error", (err) => {
+        console.error("Error during conversion:", err);
         reject(err);
       })
       .run();
@@ -199,6 +231,35 @@ const lipSyncMessage = async (message, text) => {
     console.error("Error during lip sync process:", error);
   }
 };
+
+// ------------------------------------------------
+
+const captureImageFromWebcam = async () => {
+  return new Promise((resolve, reject) => {
+    const imagePath = path.join(__dirname, "webcam_image.jpg");
+    exec(`fswebcam -r 640x480 --jpeg 85 -D 1 ${imagePath}`, (error) => {
+      if (error) {
+        console.error("Error capturing webcam image:", error);
+        reject(error);
+      } else {
+        resolve(imagePath);
+      }
+    });
+  });
+};
+
+const detectEmotion = async () => {
+  try {
+    const imagePath = await captureImageFromWebcam();
+    const analysis = await DeepFace.analyze(imagePath, ["emotion"]);
+    fs.unlinkSync(imagePath); // Clean up after detection
+    return analysis[0].dominant_emotion;
+  } catch (error) {
+    console.error("Error detecting emotion:", error);
+    return "neutral";
+  }
+};
+// ------------------------------------------------
 
 const generateTextWithHuggingFace = async (prompt) => {
   console.log("Generating text with Hugging Face...");
@@ -229,9 +290,15 @@ const generateTextWithHuggingFace = async (prompt) => {
   console.log("Generated text:", data[0].generated_text);
   return data[0].generated_text;
 };
+
 app.post("/chat", async (req, res) => {
   const { message, language = "en" } = req.body; // Accept language from frontend
-  console.log("POST /chat called with user message:", message, "and language:", language);
+  console.log(
+    "POST /chat called with user message:",
+    message,
+    "and language:",
+    language
+  );
 
   if (!message) {
     console.log("No user message received, sending default response");
@@ -265,21 +332,29 @@ app.post("/chat", async (req, res) => {
     return;
   }
 
+  // --------------------------------------
+  let detectedEmotion = "neutral";
   try {
-    // Generate response using Hugging Face Mistral
+    detectedEmotion = await detectEmotion();
+  } catch (error) {
+    console.error("Error detecting emotion, defaulting to neutral");
+  }
+  // ------------------------------------------
+
+  try {
     const prompt = `You are a virtual therapist.
 Always reply with a JSON array of messages, with a maximum of 3 messages.
 Each message must have text, facialExpression, and animation properties.
 The different facial expressions are: smile, sad, angry, surprised, funnyFace, and default.
 The different animations are: Talking_0, Talking_1, Talking_2, Crying, Laughing, Rumba, Idle, Terrified, and Angry.
-IMPORTANT RULES:
-- Respond in the user's selected language (${languageToInstruction[language] || "English"}).
-- Do NOT add any explanations, headers, or additional text, or "Response" heading.
-- ONLY output a valid JSON array.
-- Your response must be strictly JSON format and nothing else.
+User's detected emotion: ${detectedEmotion}
+Respond in the user's selected language (${
+      languageToInstruction[language] || "English"
+    }).
+
 Respond to the following user message with a valid JSON array of messages:
 User message: "${message}"
-  
+
 Format your response as follows:
 [
   {
@@ -289,6 +364,8 @@ Format your response as follows:
   }
 ]
 `;
+    // -------------------------------------------------------
+
     const generatedText = await generateTextWithHuggingFace(prompt);
 
     // Parse the generated text as JSON

@@ -9,25 +9,21 @@ import "./AvatarExperience.css";
 function AvatarExperience() {
   const [loading, setLoading] = useState(false);
 
+  //------------------------------
   const handleCapture = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/capture", {
-        mode: "cors",
+      const response = await fetch("http://localhost:3000/chat", {
+        method: "POST",
       });
       const data = await response.json();
-
-      if (data.error) {
-        alert("Error: " + data.error);
-      } else {
-        alert(`Detected Emotion: ${data.emotion}`);
-      }
+      console.log("Detected Emotion:", data.emotion);
     } catch (error) {
-      alert("Failed to connect to API: " + error.message);
-    } finally {
-      setLoading(false);
+      console.error("Error capturing emotion:", error);
     }
+    setLoading(false);
   };
+//---------------------------------------
 
   return (
     <>
