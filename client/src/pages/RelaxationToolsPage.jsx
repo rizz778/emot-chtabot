@@ -78,7 +78,7 @@ const RelaxationToolsPage = () => {
     <div className="relaxation-page">
       <Title level={2} className="relaxation-title">Relaxation Tools</Title>
 
-      <Tabs defaultActiveKey="1" centered>
+      <Tabs defaultActiveKey="1" centered className="larger-tabs">
         {/* Guided Meditation */}
        
 

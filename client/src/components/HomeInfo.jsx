@@ -23,13 +23,13 @@ const HomeInfo = () => {
   >
     Get Started
   </Link>
-
+{/* 
   <Link
     to='/avatarexp' // Replace with your desired route
     className='inline-block mt-2 bg-[#ff1e56] text-white px-6 py-2 rounded-xl hover:bg-[#ff0844] transition duration-300 shadow-2xl shadow-[#ff1e56]/60 hover:shadow-pink-400/70 transform hover:scale-105'
   >
     Try Sentio's 3D Avatar
-  </Link>
+  </Link> */}
 </div>
 
 

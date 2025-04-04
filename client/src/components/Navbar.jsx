@@ -8,7 +8,7 @@ const Navbar = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
 
   
-  const backgroundClass = location.pathname === '/about' ? 'bg-gradient-to-r from-blue-400 to-purple-300' : 'bg-gradient-to-r from-pink-300 to-[#ffc0cb]';
+  const backgroundClass =  'bg-gradient-to-r from-pink-300 to-[#ffc0cb]';
 
   // Logout function
   const handleLogout = () => {
