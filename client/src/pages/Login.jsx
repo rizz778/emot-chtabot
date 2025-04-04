@@ -21,7 +21,7 @@ const Login = () => {
     const { email, password } = values;
     setLoading(true);
     try {
-      const response = await axios.post('https://emot-chtabot-1.onrender.com/api/auth/login', {
+      const response = await axios.post('http://localhost:4000/api/auth/login', {
         email, password
       });
 
@@ -48,7 +48,7 @@ const Login = () => {
       const { credential } = credentialResponse;
   
       // Send the credential token to your backend
-      const response = await axios.post('https://emot-chtabot-1.onrender.com/api/auth/google/callback', {
+      const response = await axios.post('http://localhost:4000/api/auth/google/callback', {
         token: credential, // Send the credential token
       });
   

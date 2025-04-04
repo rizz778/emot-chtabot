@@ -70,7 +70,7 @@ const ProfilePage = () => {
         }
 
         // Call API to delete the profile picture from Cloudinary
-        const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile/delete-picture', {
+        const response = await fetch('http://localhost:4000/api/profile/delete-picture', {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`, // Include token for authentication
@@ -151,7 +151,7 @@ const ProfilePage = () => {
         throw new Error('No authentication token found');
       }
   
-      const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile/upload-picture', {
+      const response = await fetch('http://localhost:4000/api/profile/upload-picture', {
         method: 'POST',
         body: formData,
         headers: {
@@ -188,11 +188,11 @@ const ProfilePage = () => {
       if (selectedPictureFile) {
         updatedProfilePicture = await uploadProfilePicture();
       }
-      
+      console.log(updatedProfilePicture)
       // Prepare the data to be sent
       const profileData = {
         ...editedUser,
-        profilePicture: updatedProfilePicture
+        profilePicture: updatedProfilePicture.profilePicture
       };
       
       const token = localStorage.getItem('token'); // Retrieve token from localStorage
@@ -202,7 +202,7 @@ const ProfilePage = () => {
     }
 
     // Make the API call to update the profile
-    const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile', {
+    const response = await fetch('http://localhost:4000/api/profile', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -218,6 +218,7 @@ const ProfilePage = () => {
       const result = await response.json();
       
       // Update local state with the saved data
+      console.log(result.userProfile)
       setUser(result.userProfile);
       setIsEditing(false);
       setSelectedPictureFile(null);
@@ -251,7 +252,7 @@ const ProfilePage = () => {
         return;
       }
 
-      const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile', {
+      const response = await fetch('http://localhost:4000/api/profile', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`, // Include token for authentication
@@ -261,6 +262,7 @@ const ProfilePage = () => {
         if (response.ok) {
           const data = await response.json();
           if (data.success && data.userProfile) {
+            console.log()
             setUser(data.userProfile);
             setEditedUser(data.userProfile);
           }

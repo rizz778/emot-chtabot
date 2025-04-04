@@ -52,102 +52,251 @@ IMAGE_PATH = "captured_image.jpg"  # Path to save the captured image
 # Speech recognition setup
 recognizer = sr.Recognizer()
 
-def assess_distress_level(user_input):
-    """
-    Analyzes the user's input and assigns a distress severity score (0-10).
-    Returns a severity score and a flag indicating if immediate help is required.
-    """
-    distress_keywords = {
-        "high": ["suicidal", "hopeless", "end it all", "can't go on", "no point", "want to die"],
-        "moderate": ["depressed", "alone", "anxious", "panic", "overwhelmed", "stressed", "crying"],
-        "low": ["tired", "sad", "upset", "frustrated", "worried", "down"]
-    }
+# def assess_distress_level(user_input, conversation_history=None):
+#     """
+#     Analyzes the user's input and conversation context to assign a distress severity score (0-10).
+#     Returns a severity score and a flag indicating if immediate help is required.
+    
+#     Parameters:
+#     - user_input: The current message from the user
+#     - conversation_history: List of previous conversation messages for context
+    
+#     Returns:
+#     - score: Distress severity score (0-10)
+#     - requires_immediate_help: Boolean flag for critical situations
+#     """
+#     # If we have conversation history, build context for better assessment
+#     context = user_input
+#     if conversation_history and isinstance(conversation_history, list):
+#         # Get the last few user messages for context (up to 3)
+#         user_messages = [msg["text"] for msg in conversation_history[-6:] 
+#                         if msg.get("sender") == "User" and "text" in msg]
+#         if user_messages:
+#             context = " ".join(user_messages) + " " + user_input
+    
+#     # Use a model to analyze the emotional content and context
+#     # This would be where you integrate with your language model
+#     # For demonstration, I'll create a placeholder function
+    
+#     def analyze_emotional_context(text):
+#         """
+#         This function would integrate with your AI model to analyze the text
+#         and return a distress assessment based on context understanding.
+        
+#         In a real implementation, you would:
+#         1. Send the text to your language model
+#         2. Ask it to evaluate the emotional state and distress level
+#         3. Parse the response to extract a numerical score
+#         """
+#         # Example prompt for your AI model
+#         prompt = f"""
+#         Analyze the following text and evaluate the level of emotional distress
+#         on a scale from 0 to 10, where:
+        
+#         0-2: No significant distress, neutral or positive
+#         3-4: Mild distress, some concern but functioning well
+#         5-6: Moderate distress, impacting well-being
+#         7-8: Severe distress, significantly impacted functioning
+#         9-10: Critical distress, potential harm to self or others
+        
+#         Consider the context, emotional tone, expressed thoughts, and indicators of
+#         mental state. Don't just look for keywords but understand the overall meaning.
+        
+#         Text to analyze: {text}
+        
+#         Response format:
+#         Distress score (0-10): [SCORE]
+#         Reasoning: [BRIEF EXPLANATION]
+#         Immediate help needed (True/False): [BOOLEAN]
+#         """
+        
+#         # In your implementation, send this prompt to your model
+#         # and parse the response to get the score and immediate help flag
+        
+#         # For now, return a placeholder
+#         return {
+#             "score": 0,  # Replace with actual model output
+#             "requires_immediate_help": False  # Replace with actual model output
+#         }
+    
+#     # Get the analysis result
+#     analysis_result = analyze_emotional_context(context)
+    
+#     # Extract the score and immediate help flag
+#     score = analysis_result["score"]
+#     requires_immediate_help = analysis_result["requires_immediate_help"]
+    
+#     return score, requires_immediate_help
+import re
 
-    score = 0
-    for level, words in distress_keywords.items():
-        if any(word in user_input.lower() for word in words):
-            if level == "high":
-                score = max(score, 9)
-            elif level == "moderate":
-                score = max(score, 6)
-            else:
-                score = max(score, 3)
+def assess_distress_level(user_input, conversation_history, user_details=None):
+    """
+    Uses an LLM to analyze the user’s input and context, returning a distress severity score (0–10)
+    and a boolean indicating if immediate help is needed.
+    """
+    # Build conversation history text
+    history_text = ""
+    for msg in conversation_history:
+        if "sender" in msg and "text" in msg:
+            history_text += f"{msg['sender']}: {msg['text']}\n"
 
-    requires_immediate_help = score >= 7
-    return score, requires_immediate_help
+    # Build user details string (for context)
+    user_details_str = ""
+    if user_details:
+        user_details_str = "User Profile:\n"
+        for key, value in user_details.items():
+            if key not in ["password", "token"]:
+                user_details_str += f"- {key}: {value}\n"
+
+    # Construct LLM prompt
+    distress_prompt = f"""
+You are a mental health assessment assistant.
+
+Given the user's input, their previous conversation, and their personal context, your job is to assess their emotional distress level.
+
+Assign a distress score from 0 to 10 based on the emotional intensity and language of the message:
+- 0 means emotionally stable and calm.
+- 10 means extremely distressed, at risk of harm, or needing immediate help.
+
+Respond only with a JSON object like this:
+{{
+  "distress_score": <number between 0 and 10>,
+  "requires_immediate_help": <true or false>
+}}
+
+User Input: "{user_input}"
+
+{user_details_str}
+Previous Conversation:
+{history_text}
+"""
+
+    print(f"[DEBUG] Sending to model:\n{distress_prompt}")
+
+    try:
+        response = model.generate_content(distress_prompt)
+        raw_text = response.text.strip()
+
+        # Extract JSON safely
+        match = re.search(r'{.*}', raw_text, re.DOTALL)
+        if match:
+            distress_data = eval(match.group())  # You can also use `json.loads()` if safer
+            return distress_data["distress_score"], distress_data["requires_immediate_help"]
+        else:
+            print("[ERROR] Could not extract JSON from model response.")
+            return 0, False
+
+    except Exception as e:
+        print(f"[ERROR] AI Distress Scoring Error: {str(e)}")
+        return 0, False
+
+import re
+import json
+
+import json
+import re
 
 def generate_response_with_user_details(user_input, conversation_history, user_details=None, detected_emotion=None):
     """
-    Generates a response by assessing distress levels and responding with empathy.
-    Now includes detected facial emotion as an additional context.
+    Unified version: Uses a single prompt to generate both the response and distress score from LLM.
     """
+
+    # Validate conversation history
     if not isinstance(conversation_history, list):
         print("[ERROR] Invalid conversation_history format. Expected a list.")
         return {"response": "Error: Invalid conversation format.", "requires_immediate_help": False}
 
     history_text = []
-    
     for msg in conversation_history:
         if not isinstance(msg, dict) or "sender" not in msg or "text" not in msg:
-            print(f"[ERROR] Invalid message format: {msg}")  # Debugging print
+            print(f"[ERROR] Invalid message format: {msg}")
             return {"response": "Error: Malformed conversation history.", "requires_immediate_help": False}
-        
         history_text.append(f"{msg['sender']}: {msg['text']}")
-    
-    history_str = "\n".join(history_text)  # Create the joined string separately
+    history_str = "\n".join(history_text)
 
-    # Format user details if available (excluding sensitive info)
+    # User details string
     user_details_str = ""
     if user_details:
         user_details_str = "User Details:\n"
         for key, value in user_details.items():
-            if key not in ["password", "token"]:  # Skip sensitive information
+            if key not in ["password", "token"]:
                 user_details_str += f"- {key}: {value}\n"
 
-    # Add detected emotion information if available
-    emotion_str = ""
-    if detected_emotion:
-        emotion_str = f"Detected Facial Emotion: {detected_emotion}\n"
-        print(f"[INFO] Using detected emotion: {detected_emotion}")
+    # Detected emotion
+    emotion_str = f"Detected Facial Emotion: {detected_emotion}\n" if detected_emotion else ""
 
-    # Assess distress level
-    distress_score, requires_immediate_help = assess_distress_level(user_input)
+    # --- Unified Prompt ---
+    unified_prompt = f"""
+You are a highly empathetic AI assistant specialized in mental health and emotional support.
 
-    # Construct the AI prompt
-    prompt = f"""
-      You are an emotionally supportive and compassionate AI assistant, dedicated to promoting mental well-being and emotional resilience.  
-      Your responses should always acknowledge the user's emotions, validate their experiences, and provide comfort.  
-      Focus on fostering a sense of safety, encouragement, and self-compassion while offering actionable, behavior-centric guidance.  
-      Gently incorporate mental health strategies such as mindfulness, cognitive reframing, and stress management techniques where appropriate.  
-      Maintain a warm, empathetic, and conversational tone, ensuring that the user feels truly heard and supported.
-      
-      {user_details_str}
-      {emotion_str}
-      Previous conversation:\n{history_str}\n
-      User: {user_input}
-      Bot (empathetic, validating, and well-being focused, considering detected emotions):
-    """
+Your task is two-fold:
+1. Assess the emotional distress level of the user and return a JSON with:
+    {{
+      "distress_score": (integer 0–10),
+      "requires_immediate_help": (true/false)
+    }}
 
-    print(f"[DEBUG] Sending to model:\n{prompt}")
+Scoring rubric:
+- 0–3 → Low distress (e.g., tired, sad, frustrated)
+- 4–6 → Moderate distress (e.g., anxious, overwhelmed, crying)
+- 7–10 → High distress (e.g., suicidal thoughts, hopeless, 'can't go on', 'want to die')
+
+**If you detect any signs of suicidal ideation or emotional crisis, the score must be >= 9 and requires_immediate_help must be true.**
+
+2. After the JSON, output an empathetic and supportive message to the user that:
+- Acknowledges their emotion
+- Validates their experience
+- Offers gentle support or coping strategies (mindfulness, grounding, etc.)
+- Sounds warm, human, and caring
+
+Always return in this format exactly:
+
+<BEGIN_JSON>
+{{ "distress_score": ..., "requires_immediate_help": ... }}
+<END_JSON>
+
+<BEGIN_MESSAGE>
+Your empathetic, warm, validating message goes here...
+<END_MESSAGE>
+
+--- Context ---
+User Input: "{user_input}"
+
+{user_details_str}
+{emotion_str}
+Conversation History:
+{history_str}
+"""
 
     try:
-        response = model.generate_content(prompt)
-        response_text = response.text.strip()
-        response_text = re.sub(r'\*+', '', response_text)  # Remove markdown artifacts
+        raw = model.generate_content(unified_prompt)
+        output = raw.text.strip()
 
-    except Exception as e:
-        print(f"[ERROR] AI Model Error: {str(e)}")  # Log error in console
+        # Extract JSON and message
+        json_match = re.search(r"<BEGIN_JSON>\s*(.*?)\s*<END_JSON>", output, re.DOTALL)
+        message_match = re.search(r"<BEGIN_MESSAGE>\s*(.*?)\s*<END_MESSAGE>", output, re.DOTALL)
+
+        if json_match and message_match:
+            distress_data = json.loads(json_match.group(1))
+            response_text = message_match.group(1).strip()
+        else:
+            raise ValueError("Output format parsing failed.")
+
         return {
-            "response": "Error generating response from AI.",
-            "requires_immediate_help": False
+            "response": response_text,
+            "requires_immediate_help": distress_data.get("requires_immediate_help", False),
+            "distress_score": distress_data.get("distress_score", 0)
         }
 
-    return {
-        "response": response_text,
-        "requires_immediate_help": requires_immediate_help,
-        "distress_score": distress_score
-    }
-    
+    except Exception as e:
+        print(f"[ERROR] Unified generation failed: {e}")
+        return {
+            "response": "I'm here to support you. Please feel free to share more about how you're feeling.",
+            "requires_immediate_help": False,
+            "distress_score": 0
+        }
+
+
 def get_ngrok_url():
     """Fetches the ngrok URL dynamically from the ngrok API."""
     try:
@@ -305,15 +454,15 @@ def chat():
             detected_emotion
         )
 
-        # Convert response to speech
-        tts = gTTS(response_data["response"], lang="en")
-        audio_file_path = os.path.join(AUDIO_DIR, f"{uuid.uuid4()}.mp3")
-        tts.save(audio_file_path)
-        audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
+        # # Convert response to speech
+        # tts = gTTS(response_data["response"], lang="en")
+        # audio_file_path = os.path.join(AUDIO_DIR, f"{uuid.uuid4()}.mp3")
+        # tts.save(audio_file_path)
+        # audio_url = url_for('get_audio', filename=os.path.basename(audio_file_path), _external=True)
 
         return jsonify({
             "response": response_data["response"],
-            "audio_url": audio_url,
+            # "audio_url": audio_url,
             "requires_immediate_help": response_data.get("requires_immediate_help", False),
             "distress_score": response_data.get("distress_score", 0),
             "follow_up": "Is there anything else you'd like to share?"

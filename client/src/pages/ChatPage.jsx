@@ -9,6 +9,7 @@ import {
   notification,
   Modal,
 } from "antd";
+
 import { motion } from "framer-motion";
 import { DollarOutlined, PhoneOutlined } from "@ant-design/icons";
 import {
@@ -64,12 +65,9 @@ const ChatPage = () => {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(
-        "https://emot-chtabot-1.onrender.com/api/profile",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const response = await axios.get("http://localhost:4000/api/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       // Exclude the profilePicture field from the fetched user details
       const { profilePicture, ...userDetailsWithoutProfilePicture } =
@@ -85,7 +83,7 @@ const ChatPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "https://emot-chtabot-1.onrender.com/api/auth/details",
+        "http://localhost:4000/api/auth/details",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -99,7 +97,7 @@ const ChatPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+        "http://localhost:4000/api/chat/sessions",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -117,7 +115,7 @@ const ChatPage = () => {
         localStorage.setItem("activeSession", response.data[0]._id);
       } else {
         const newSession = await axios.post(
-          "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+          "http://localhost:4000/api/chat/sessions",
           { sessionName: "Session 1" },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -136,7 +134,7 @@ const ChatPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
+        `http://localhost:4000/api/chat/sessions/${activeSession}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -164,12 +162,12 @@ const ChatPage = () => {
       }
 
       const response = await axios.post(
-        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+        "http://localhost:4000/api/chat/sessions",
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const detectedEmotion = await handleCapture(); // Get detected emotion
-       // Extract session ID
+      // Extract session ID
       const { sessionId, sessionName, tokens } = response.data;
 
       // Update state with new session information
@@ -190,14 +188,14 @@ const ChatPage = () => {
         try {
           // Call the model service directly
           const initialGreetingResponse = await fetch(
-            "https://emot-chtabot.onrender.com/init-conversation",
+            "http://localhost:5000/init-conversation",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 session_id: sessionId,
                 user_details: userDetails,
-                detected_emotion:detectedEmotion
+                detected_emotion: detectedEmotion,
               }),
             }
           );
@@ -222,7 +220,7 @@ const ChatPage = () => {
 
             // Save to backend
             await axios.post(
-              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+              `http://localhost:4000/api/chat/sessions/${sessionId}/messages`,
               botGreeting,
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -235,14 +233,14 @@ const ChatPage = () => {
         try {
           // Call the model service directly
           const initialGreetingResponse = await fetch(
-            "https://emot-chtabot.onrender.com/init-conversation",
+            "http://localhost:5000/init-conversation",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 session_id: sessionId,
                 user_details: {},
-                detected_emotion:detectedEmotion
+                detected_emotion: detectedEmotion,
               }),
             }
           );
@@ -268,7 +266,7 @@ const ChatPage = () => {
 
             // Save to backend
             await axios.post(
-              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+              `http://localhost:4000/api/chat/sessions/${sessionId}/messages`,
               botGreeting,
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -318,23 +316,22 @@ const ChatPage = () => {
       return;
     }
 
-    // Optimistically update UI
     const userMessage = {
       sender: "user",
       text: trimmedInput,
       timestamp: new Date().toISOString(),
     };
-    const detectedEmotion = await handleCapture(); // Get detected emotion
+
+    const detectedEmotion = await handleCapture();
 
     setMessages((prevMessages) => [...prevMessages, userMessage]);
-    setInput(""); // Clear input immediately for better UX
+    setInput("");
     setLoading(true);
 
     try {
       const lastFiveMessages = messages.slice(-3);
 
-      // Step 2: Get AI response with severity assessment
-      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
+      const aiResponse = await fetch("http://localhost:5000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -342,7 +339,7 @@ const ChatPage = () => {
           session_id: activeSession,
           conversation_history: lastFiveMessages,
           user_details: userDetails,
-          detected_emotion:detectedEmotion,
+          detected_emotion: detectedEmotion,
         }),
       });
 
@@ -354,53 +351,89 @@ const ChatPage = () => {
 
       const aiData = await aiResponse.json();
 
-      // Validate bot response
       if (!aiData.response || typeof aiData.distress_score === "undefined") {
         throw new Error("Invalid response from AI service");
       }
 
-      const botMessage = {
-        sender: "bot",
-        text: aiData.response,
-        timestamp: new Date().toISOString(),
-      };
-      // Update UI with bot response
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
-      setAudioUrl(aiData.audio_url);
-      console.log(aiData.distress_score);
-      // Check severity score
+      let botText = aiData.response;
+      let displayText = botText;
+      let jsx = null;
+
       if (aiData.distress_score >= 7) {
-        notification.warning({
-          message: "Urgent Help Suggested",
+        notification.info({
+          message: "Support Resources Available",
           description:
-            "We recommend seeking professional support. Redirecting to the helpline...",
+            "We've provided some resources that might help you right now.",
           duration: 5,
         });
-        navigate("/helpline"); // Redirect to helpline page
+
+        jsx = (
+          <div>
+            <p>{botText}</p>
+            <p>
+              I notice you might be going through a difficult time. Here are
+              some resources that could help:
+            </p>
+            <ul>
+              <li>
+                <span
+                  onClick={() => navigate("/therapists")}
+                  style={{ color: "blue", cursor: "pointer" }}
+                >
+                  Speak with one of our expert therapists
+                </span>
+              </li>
+              <li>
+                <span
+                  onClick={() => navigate("/helpline")}
+                  style={{ color: "blue", cursor: "pointer" }}
+                >
+                  24/7 Crisis Helpline Support
+                </span>
+              </li>
+              <li>
+                <span
+                  onClick={() => navigate("/resources")}
+                  style={{ color: "blue", cursor: "pointer" }}
+                >
+                  Self-care resources
+                </span>
+              </li>
+            </ul>
+          </div>
+        );
       }
 
-      // Step 3: Save messages to backend (in parallel)
-      // Save messages to backend
+      const botMessage = {
+        sender: "bot",
+        text: botText, // for backend
+        jsx: jsx || null, // only if distress score >= 7
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
+
+      // Save both user and bot message
       axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
         userMessage,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
-        botMessage,
+        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        { ...botMessage, jsx: undefined }, // remove JSX before sending to backend
         { headers: { Authorization: `Bearer ${token}` } }
       );
     } catch (error) {
       console.error("Error in message exchange:", error);
 
-      // Add error message to UI
       setMessages((prevMessages) => [
         ...prevMessages,
         {
           sender: "bot",
           text: "Sorry, I couldn't process your message. Please try again.",
+          timestamp: new Date().toISOString(),
         },
       ]);
 
@@ -428,11 +461,11 @@ const ChatPage = () => {
   };
 
   const formatText = (text) => {
-    // Replace line breaks with <br /> and add paragraph spacing
+    if (typeof text !== "string") return text; // JSX safe
+
     return text
-      .replace(/[*•-]/g, "") // Remove *, •, and -
-      .replace(/^\d+[\.\)]\s*/gm, "") // Remove numbered bullets like "1.", "2)", etc.
-      .replace(/(\r\n|\n|\r)/g, "<br />"); // Replace line breaks with <br />
+      .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\n/g, "<br/>");
   };
 
   const handleCallUser = async () => {
@@ -442,7 +475,7 @@ const ChatPage = () => {
     }
 
     try {
-      const response = await axios.post("https://emot-chtabot.onrender.com/make_call", {
+      const response = await axios.post("http://localhost:5000/make_call", {
         phone: phoneNumber,
         message: userMessage,
       });
@@ -468,13 +501,11 @@ const ChatPage = () => {
   const handleCapture = async () => {
     setLoading(true);
     try {
-      const response = await fetch("https://emot-chtabot.onrender.com/capture");
+      const response = await fetch("http://localhost:5000/capture");
       const data = await response.json();
-  
-      
-      console.log(data.emotion)
-      return data.emotion;
 
+      console.log(data.emotion);
+      return data.emotion;
     } catch (error) {
       console.error("Error:", error);
       return null;
@@ -563,11 +594,15 @@ const ChatPage = () => {
           <motion.div className="chat-messages">
             {messages.map((msg, index) => (
               <motion.div key={index} className={`chat-message ${msg.sender}`}>
-                <div
-                  dangerouslySetInnerHTML={{
-                    __html: formatText(msg.text), // Format text before displaying
-                  }}
-                />
+                {msg.jsx ? (
+                  msg.jsx // Render JSX directly if present (for distress message)
+                ) : (
+                  <div
+                    dangerouslySetInnerHTML={{
+                      __html: formatText(msg.text), // Otherwise, format & render text
+                    }}
+                  />
+                )}
               </motion.div>
             ))}
             {loading && (
@@ -576,6 +611,7 @@ const ChatPage = () => {
               </div>
             )}
           </motion.div>
+
           <div className="chat-input-container">
             <Input
               value={input}
