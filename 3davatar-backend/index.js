@@ -83,7 +83,7 @@ const app = express();
 const port = 3000;
 app.use(
   cors({
-    origin: "http://localhost:5173", // Add the frontend URL
+    origin: "https://emot-chtabot-2.onrender.com", // Add the frontend URL
     methods: ["GET", "POST"], // Allow necessary HTTP methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allow headers that are needed
   })
