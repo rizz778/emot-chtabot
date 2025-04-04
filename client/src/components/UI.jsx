@@ -6,6 +6,7 @@ export const UI = ({ hidden, ...props }) => {
   const input = useRef();
   const { chat, loading, cameraZoomed, setCameraZoomed, message } = useChat();
   const [selectedLanguage, setSelectedLanguage] = useState("en"); // Default language is English
+  const [isListening, setIsListening] = useState(false);
 
   const sendMessage = () => {
     const text = input.current.value;
@@ -17,6 +18,54 @@ export const UI = ({ hidden, ...props }) => {
 
   const handleLanguageChange = (event) => {
     setSelectedLanguage(event.target.value);
+  };
+
+  const handleVoiceInput = () => {
+    // Toggle listening state
+    setIsListening(!isListening);
+    
+    // Only proceed if browser supports SpeechRecognition
+    if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      
+      recognition.lang = selectedLanguage === 'en' ? 'en-US' : 
+                         selectedLanguage === 'it' ? 'it-IT' : 
+                         selectedLanguage === 'fr' ? 'fr-FR' : 
+                         selectedLanguage === 'de' ? 'de-DE' : 
+                         selectedLanguage === 'zh' ? 'zh-CN' : 
+                         selectedLanguage === 'hi' ? 'hi-IN' : 'en-US';
+      
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        input.current.value = transcript;
+      };
+      
+      recognition.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+      };
+      
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+      
+      if (isListening) {
+        recognition.stop();
+      } else {
+        recognition.start();
+      }
+    } else {
+      alert('Speech recognition is not supported by your browser');
+      setIsListening(false);
+    }
   };
 
   if (hidden) {
@@ -104,6 +153,25 @@ export const UI = ({ hidden, ...props }) => {
               }
             }}
           />
+          <button
+            onClick={handleVoiceInput}
+            className={`p-4 rounded-md ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-pink-500 hover:bg-pink-600'} text-white`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z"
+              />
+            </svg>
+          </button>
           <select
             value={selectedLanguage}
             onChange={handleLanguageChange}
@@ -114,16 +182,29 @@ export const UI = ({ hidden, ...props }) => {
             <option value="fr">French</option>
             <option value="de">German</option>
             <option value="zh">Chinese</option>
-            <option value="hi">Hindi</option> {/* Added Hindi */}
+            <option value="hi">Hindi</option>
           </select>
           <button
             disabled={loading || message}
             onClick={sendMessage}
-            className={`bg-pink-500 hover:bg-pink-600 text-white p-4 px-10 font-semibold uppercase rounded-md ${
+            className={`bg-pink-500 hover:bg-pink-600 text-white p-4 rounded-md ${
               loading || message ? "cursor-not-allowed opacity-30" : ""
             }`}
           >
-            Send
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth={1.5}
+              stroke="currentColor"
+              className="w-6 h-6"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"
+              />
+            </svg>
           </button>
         </div>
       </div>
