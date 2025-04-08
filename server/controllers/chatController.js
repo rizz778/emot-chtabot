@@ -1,9 +1,9 @@
-import Chat from '../models/Chat.js'
-import mongoose from 'mongoose'
-import User from '../models/User.js'
-import { encryptMessage,decryptMessage } from '../config/encrypt.js';
+import Chat from '../models/Chat.js';
+import mongoose from 'mongoose';
+import User from '../models/User.js';
+import { encryptMessage, decryptMessage } from '../config/encrypt.js';
 
-
+// Original functions from your controller
 export const createSession = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
@@ -37,25 +37,20 @@ export const createSession = async (req, res) => {
   }
 };
 
-
-
-
-//Retreive all sessions for a user
 export const getSessions = async (req, res) => {
-    try {
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({ message: "Unauthorized: User not found" });
-      }
-
-      const sessions = await Chat.find({ user: req.user._id }).select("sessionName createdAt");
-      res.status(200).json(sessions);
-    } catch (error) {
-      console.error("Error retrieving sessions:", error);
-      res.status(500).json({ message: "Server Error" });
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({ message: "Unauthorized: User not found" });
     }
-  };
 
-// Retrieve a specific session's messages
+    const sessions = await Chat.find({ user: req.user._id }).select("sessionName createdAt");
+    res.status(200).json(sessions);
+  } catch (error) {
+    console.error("Error retrieving sessions:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 export const getSessionMessages = async (req, res) => {
   const { sessionId } = req.params;
   
@@ -103,7 +98,7 @@ export const getSessionMessages = async (req, res) => {
 
 export const addMessage = async (req, res) => {
   const { sessionId } = req.params;
-  const { sender, text,timestamp } = req.body;
+  const { sender, text, timestamp, emotion, distressScore } = req.body;
   
   // Input validation
   if (!mongoose.Types.ObjectId.isValid(sessionId)) {
@@ -119,18 +114,26 @@ export const addMessage = async (req, res) => {
   }
   
   try {
+    // Prepare message object with encryption
+    const messageData = {
+      sender,
+      ...encryptMessage(text.trim()),
+      timestamp: timestamp || new Date()
+    };
+    
+    // Add emotion data if available
+    if (emotion) {
+      messageData.emotion = emotion;
+    }
+    
+    if (typeof distressScore === 'number' && distressScore >= 0 && distressScore <= 10) {
+      messageData.distressScore = distressScore;
+    }
+    
     // Find and update in one operation for better performance
     const session = await Chat.findOneAndUpdate(
       { _id: sessionId, user: req.user._id },
-      { 
-        $push: { 
-          messages: {
-            sender,
-            ...encryptMessage(text.trim()), // Destructure encryption results
-            timestamp
-          }
-        } 
-      },
+      { $push: { messages: messageData } },
       { new: true, runValidators: true }
     );
     

@@ -4,7 +4,8 @@ import {
     saveUserProfile, 
   getUserProfile, 
   uploadProfilePicture, 
-  deleteProfilePicture 
+  deleteProfilePicture,
+   getUserEmotionAnalytics
 
 } from "../controllers/userController.js"
 import protect from "../middlewares/authMiddleware.js";
@@ -17,5 +18,5 @@ router.get('/', getUserProfile);
 router.post('/', saveUserProfile);
 router.post('/upload-picture',upload.single('profilePicture'), uploadProfilePicture);
 router.delete('/delete-picture',deleteProfilePicture);
-
+router.get('/user', getUserEmotionAnalytics);
 export default router;

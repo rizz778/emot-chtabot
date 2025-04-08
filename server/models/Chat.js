@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-// Define message schema with improved validation and methods
+// Define message schema with emotion and distress score
 const messageSchema = new mongoose.Schema({
   sender: {
     type: String,
@@ -12,7 +12,7 @@ const messageSchema = new mongoose.Schema({
     type: String,
     required: [true, "Encrypted message text is required"]
   },
-  // Encryption metadata fields with validation
+  // Encryption metadata fields
   iv: {
     type: String,
     required: [true, "Initialization vector is required"],
@@ -39,57 +39,49 @@ const messageSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
     index: true // Index for sorting and querying by time
+  },
+  // New fields for emotion tracking
+  emotion: {
+    type: String,
+    enum: ["happy", "sad", "angry", "fear", "surprise", "disgust", "neutral", "unknown"],
+    default: "unknown"
+  },
+  distressScore: {
+    type: Number,
+    min: 0,
+    max: 10,
+    default: 0
   }
-}, { 
+}, {
   _id: true // Explicitly enable _id for messages
 });
 
-// Define chat session schema with indexes and metadata
+// Define chat session schema
 const chatSchema = new mongoose.Schema({
-  user: { 
-    type: mongoose.Schema.Types.ObjectId, 
-    ref: "User", 
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
     required: [true, "User ID is required"],
     index: true // Index for fast user lookups
   },
-  sessionName: { 
-    type: String, 
+  sessionName: {
+    type: String,
     required: [true, "Session name is required"],
     trim: true,
     maxlength: [100, "Session name cannot exceed 100 characters"]
   },
   messages: [messageSchema],
-  createdAt: { 
-    type: Date, 
+  createdAt: {
+    type: Date,
     default: Date.now,
     index: true // Index for sorting and querying
-  },
-  lastUpdated: {
-    type: Date,
-    default: Date.now
-  },
-  messageCount: {
-    type: Number,
-    default: 0
   }
-}, { 
-  timestamps: { createdAt: false, updatedAt: 'lastUpdated' },
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+}, {
+  timestamps: true
 });
 
 // Indexes for improved query performance
 chatSchema.index({ user: 1, createdAt: -1 }); // Compound index for user's sessions by date
-
-// Method to decrypt message text
-messageSchema.methods.getDecryptedText = function(decryptFn) {
-  try {
-    return decryptFn(this.text, this.iv, this.authTag);
-  } catch (error) {
-    console.error("Decryption error:", error);
-    throw new Error("Failed to decrypt message");
-  }
-};
 
 // Virtual for most recent message
 chatSchema.virtual('lastMessage').get(function() {
@@ -98,23 +90,6 @@ chatSchema.virtual('lastMessage').get(function() {
   }
   return null;
 });
-
-// Pre-save hook to update messageCount
-chatSchema.pre('save', function(next) {
-  if (this.isModified('messages')) {
-    this.messageCount = this.messages.length;
-    this.lastUpdated = new Date();
-  }
-  next();
-});
-
-// Static method to find recent chats for a user
-chatSchema.statics.findRecentByUser = function(userId, limit = 10) {
-  return this.find({ user: userId })
-    .sort({ lastUpdated: -1 })
-    .limit(limit)
-    .select('sessionName lastUpdated messageCount');
-};
 
 // Compile the model
 const Chat = mongoose.model('Chat', chatSchema);
