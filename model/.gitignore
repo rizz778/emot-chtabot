@@ -3,7 +3,7 @@ env/
 venv/
 tf_env/
 audio_responses/
-captured_image.png
+captured_image.jpg
 audio_files/
 chatbot.log
 __pycache__/

@@ -1,397 +1,318 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, RadarChart, Radar, 
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, Scatter, ScatterChart,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Treemap, Sector 
-} from 'recharts';
-import { 
-  CalendarClock, 
-  MessageCircle, 
-  Activity,
-  TrendingUp, 
-  Heart,
-  Brain,
-  ChevronDown,
-  ArrowRight,
-  TrendingDown,
-  ChartBar,
-  Calendar,
-  Search,
-  Filter,
-  Clock,
-  Download,
-  Info,
-  BarChart2,
-  PieChart as PieChartIcon,
-  Target
-} from 'lucide-react';
-
-// Mock data based on the actual backend structure
-const mockData = {
-  userId: "12345",
-  totalSessions: 24,
-  totalUserMessages: 186,
-  averageDistressScore: 4.7,
-  emotionCounts: {
-    happy: 42,
-    sad: 35,
-    angry: 18,
-    fear: 22,
-    surprise: 15,
-    disgust: 8,
-    neutral: 28,
-    unknown: 6
-  },
-  emotionPercentages: {
-    happy: 22.6,
-    sad: 18.8,
-    angry: 9.7,
-    fear: 11.8,
-    surprise: 8.1,
-    disgust: 4.3,
-    neutral: 15.1,
-    unknown: 3.2
-  },
-  dominantEmotion: "happy",
-  sessionsByDistress: {
-    high: [
-      { sessionId: "s1", sessionName: "Difficult morning", avgDistress: 8.2, createdAt: "2025-03-12T10:30:00" },
-      { sessionId: "s2", sessionName: "Work anxiety", avgDistress: 7.5, createdAt: "2025-03-15T16:20:00" }
-    ],
-    medium: [
-      { sessionId: "s3", sessionName: "Family concerns", avgDistress: 6.3, createdAt: "2025-03-18T14:15:00" },
-      { sessionId: "s4", sessionName: "Health worries", avgDistress: 5.8, createdAt: "2025-03-22T19:40:00" },
-      { sessionId: "s5", sessionName: "Relationship discussion", avgDistress: 4.5, createdAt: "2025-03-25T20:10:00" }
-    ],
-    low: [
-      { sessionId: "s6", sessionName: "Weekend reflection", avgDistress: 3.7, createdAt: "2025-03-28T11:05:00" },
-      { sessionId: "s7", sessionName: "Progress check-in", avgDistress: 2.2, createdAt: "2025-04-01T09:30:00" },
-      { sessionId: "s8", sessionName: "Gratitude practice", avgDistress: 1.5, createdAt: "2025-04-05T17:45:00" }
-    ]
-  },
-  sessionAnalytics: [
-    { sessionId: "s1", sessionName: "Difficult morning", messageCount: 24, averageDistress: 8.2, createdAt: "2025-03-12T10:30:00" },
-    { sessionId: "s2", sessionName: "Work anxiety", messageCount: 18, averageDistress: 7.5, createdAt: "2025-03-15T16:20:00" },
-    { sessionId: "s3", sessionName: "Family concerns", messageCount: 22, averageDistress: 6.3, createdAt: "2025-03-18T14:15:00" },
-    { sessionId: "s4", sessionName: "Health worries", messageCount: 19, averageDistress: 5.8, createdAt: "2025-03-22T19:40:00" },
-    { sessionId: "s5", sessionName: "Relationship discussion", messageCount: 28, averageDistress: 4.5, createdAt: "2025-03-25T20:10:00" },
-    { sessionId: "s6", sessionName: "Weekend reflection", messageCount: 15, averageDistress: 3.7, createdAt: "2025-03-28T11:05:00" },
-    { sessionId: "s7", sessionName: "Progress check-in", messageCount: 21, averageDistress: 2.2, createdAt: "2025-04-01T09:30:00" },
-    { sessionId: "s8", sessionName: "Gratitude practice", messageCount: 16, averageDistress: 1.5, createdAt: "2025-04-05T17:45:00" }
-  ],
-  distressTrend: [
-    { timestamp: "2025-03-10T11:30:00", score: 7.8, sessionId: "s1", sessionName: "Difficult morning" },
-    { timestamp: "2025-03-15T14:45:00", score: 7.2, sessionId: "s2", sessionName: "Work anxiety" },
-    { timestamp: "2025-03-18T09:20:00", score: 6.5, sessionId: "s3", sessionName: "Family concerns" },
-    { timestamp: "2025-03-22T16:35:00", score: 5.9, sessionId: "s4", sessionName: "Health worries" },
-    { timestamp: "2025-03-25T13:10:00", score: 4.7, sessionId: "s5", sessionName: "Relationship discussion" },
-    { timestamp: "2025-03-28T10:55:00", score: 3.6, sessionId: "s6", sessionName: "Weekend reflection" },
-    { timestamp: "2025-04-01T15:40:00", score: 2.8, sessionId: "s7", sessionName: "Progress check-in" },
-    { timestamp: "2025-04-05T12:15:00", score: 1.9, sessionId: "s8", sessionName: "Gratitude practice" }
-  ],
-  emotionTrend: [
-    { timestamp: "2025-03-10T11:30:00", emotion: "angry", sessionId: "s1", sessionName: "Difficult morning" },
-    { timestamp: "2025-03-15T14:45:00", emotion: "fear", sessionId: "s2", sessionName: "Work anxiety" },
-    { timestamp: "2025-03-18T09:20:00", emotion: "sad", sessionId: "s3", sessionName: "Family concerns" },
-    { timestamp: "2025-03-22T16:35:00", emotion: "sad", sessionId: "s4", sessionName: "Health worries" },
-    { timestamp: "2025-03-25T13:10:00", emotion: "surprise", sessionId: "s5", sessionName: "Relationship discussion" },
-    { timestamp: "2025-03-28T10:55:00", emotion: "neutral", sessionId: "s6", sessionName: "Weekend reflection" },
-    { timestamp: "2025-04-01T15:40:00", emotion: "happy", sessionId: "s7", sessionName: "Progress check-in" },
-    { timestamp: "2025-04-05T12:15:00", emotion: "happy", sessionId: "s8", sessionName: "Gratitude practice" }
-  ]
-};
-
-// Baby pink themed color palette for emotions
-const emotionColors = {
-  happy: "#FF8FAB", // soft pink
-  sad: "#A2D2FF", // baby blue
-  angry: "#FF5C8D", // deeper pink
-  fear: "#FFC2D1", // light pink
-  surprise: "#DDA0DD", // plum
-  disgust: "#B5EAD7", // mint
-  neutral: "#E5E5E5", // light gray
-  unknown: "#F8F9FA" // off-white
-};
-
-// Custom gradient colors - baby pink theme
-const gradientColors = {
-  primary: ["#FFC2D1", "#FF8FAB"],
-  secondary: ["#FFAFCC", "#FFC8DD"],
-  tertiary: ["#BDE0FE", "#A2D2FF"]
-};
-
-// Enhanced dashboard component with baby pink theme
-export default function Dashboard() {
-  const [data, setData] = useState(mockData);
-  const [activeTab, setActiveTab] = useState('overview');
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedFilters, setSelectedFilters] = useState({
-    distressLevel: "all",
-    dateRange: "all"
-  });
+    LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, RadarChart, Radar, 
+    PolarGrid, PolarAngleAxis, PolarRadiusAxis, AreaChart, Area, Scatter, ScatterChart,
+    XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Treemap, Sector 
+  } from 'recharts';
+  import { 
+    CalendarClock, 
+    MessageCircle, 
+    Activity,
+    TrendingUp, 
+    Heart,
+    Brain,
+    ChevronDown,
+    ArrowRight,
+    TrendingDown,
+    ChartBar,
+    Calendar,
+    Search,
+    Filter,
+    Clock,
+    Download,
+    Info,
+    BarChart2,
+    PieChartIcon,
+    Target
+  } from 'lucide-react';
   
-  // In a real app, you would fetch the data here
-  useEffect(() => {
-    // Example fetch call (commented out)
-    // const fetchData = async () => {
-    //   const response = await fetch(`/api/user-analytics/${userId}`);
-    //   const userData = await response.json();
-    //   setData(userData);
-    // };
-    // fetchData();
-  }, []);
-
-  // Data formatting functions
-  const formatDistressTrend = () => {
-    return data.distressTrend.map(item => ({
-      date: new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      score: item.score,
-      session: item.sessionName
-    }));
+  // Baby pink themed color palette for emotions
+  const emotionColors = {
+    happy: "#FF8FAB", // soft pink
+    sad: "#A2D2FF", // baby blue
+    angry: "#FF5C8D", // deeper pink
+    fear: "#FFC2D1", // light pink
+    surprise: "#DDA0DD", // plum
+    disgust: "#B5EAD7", // mint
+    neutral: "#E5E5E5", // light gray
+    unknown: "#F8F9FA" // off-white
   };
-
-  const formatEmotionTrend = () => {
-    const result = [];
-    const emotions = Object.keys(data.emotionCounts);
-    
-    // Create data points for all emotions over time
-    data.emotionTrend.forEach((item, index) => {
-      const date = new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-      const existingDate = result.find(point => point.date === date);
-      
-      if (existingDate) {
-        existingDate[item.emotion] = (existingDate[item.emotion] || 0) + 1;
-      } else {
-        const newPoint = { date, sessionName: item.sessionName };
-        emotions.forEach(emotion => {
-          newPoint[emotion] = emotion === item.emotion ? 1 : 0;
-        });
-        result.push(newPoint);
-      }
+  
+  // Custom gradient colors - baby pink theme
+  const gradientColors = {
+    primary: ["#FFC2D1", "#FF8FAB"],
+    secondary: ["#FFAFCC", "#FFC8DD"],
+    tertiary: ["#BDE0FE", "#A2D2FF"]
+  };
+  
+  // Enhanced dashboard component with baby pink theme
+  export default function Dashboard() {
+    const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('overview');
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedFilters, setSelectedFilters] = useState({
+      distressLevel: "all",
+      dateRange: "all"
     });
     
-    return result;
-  };
-
-  const formatEmotionRadar = () => {
-    return Object.keys(data.emotionCounts)
-      .filter(key => key !== 'unknown')
-      .map(emotion => ({
-        emotion: emotion.charAt(0).toUpperCase() + emotion.slice(1),
-        count: data.emotionCounts[emotion],
-        fullMark: Math.max(...Object.values(data.emotionCounts)) + 10
-      }));
-  };
-  
-  const formatEmotionPie = () => {
-    return Object.keys(data.emotionPercentages)
-      .filter(emotion => data.emotionPercentages[emotion] > 0 && emotion !== 'unknown')
-      .map(emotion => ({
-        name: emotion.charAt(0).toUpperCase() + emotion.slice(1),
-        value: data.emotionPercentages[emotion]
-      }));
-  };
-  
-  const formatSessionsTreemap = () => {
-    const allSessions = [
-      ...data.sessionsByDistress.high.map(s => ({ ...s, category: 'High' })),
-      ...data.sessionsByDistress.medium.map(s => ({ ...s, category: 'Medium' })),
-      ...data.sessionsByDistress.low.map(s => ({ ...s, category: 'Low' }))
-    ];
-    
-    return allSessions.map(session => ({
-      name: session.sessionName,
-      size: session.avgDistress * 10,
-      category: session.category
-    }));
-  };
-  
-  const formatDistressScatter = () => {
-    return data.distressTrend.map(item => ({
-      x: new Date(item.timestamp).getTime(),
-      y: item.score,
-      name: item.sessionName
-    }));
-  };
-
-  const formatSessionCards = () => {
-    return [...data.sessionAnalytics]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 3);
-  };
-
-  // Filter sessions based on search term and filters
-  const getFilteredSessions = () => {
-    let filteredSessions = [...data.sessionAnalytics];
-    
-    // Apply search filter
-    if (searchTerm.trim() !== "") {
-      filteredSessions = filteredSessions.filter(session => 
-        session.sessionName.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    
-    // Apply distress level filter
-    if (selectedFilters.distressLevel !== "all") {
-      if (selectedFilters.distressLevel === "high") {
-        filteredSessions = filteredSessions.filter(session => session.averageDistress >= 7);
-      } else if (selectedFilters.distressLevel === "medium") {
-        filteredSessions = filteredSessions.filter(session => session.averageDistress >= 4 && session.averageDistress < 7);
-      } else if (selectedFilters.distressLevel === "low") {
-        filteredSessions = filteredSessions.filter(session => session.averageDistress < 4);
-      }
-    }
-    
-    // Apply date range filter
-    if (selectedFilters.dateRange !== "all") {
-      const today = new Date();
-      let filterDate = new Date();
+    // Fetch data from the backend API
+    useEffect(() => {
+      const fetchData = async () => {
+        try {
+          setLoading(true);
+          // Use the actual API endpoint
+          const response = await fetch(`http://localhost:4000/api/profile/emotion/user`, {
+            headers: {
+              'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming token-based auth
+            }
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Error: ${response.status}`);
+          }
+          
+          const result = await response.json();
+          
+          if (result.success) {
+            setData(result.data);
+          } else {
+            throw new Error(result.message || 'Failed to fetch data');
+          }
+        } catch (err) {
+          setError(err.message);
+          console.error("Error fetching analytics data:", err);
+        } finally {
+          setLoading(false);
+        }
+      };
       
-      if (selectedFilters.dateRange === "week") {
-        filterDate.setDate(today.getDate() - 7);
-      } else if (selectedFilters.dateRange === "month") {
-        filterDate.setMonth(today.getMonth() - 1);
-      }
-      
-      filteredSessions = filteredSessions.filter(session => 
-        new Date(session.createdAt) >= filterDate
-      );
-    }
-    
-    return filteredSessions;
-  };
-
-  // Calculate trend direction and stats
-  const calculateTrendDirection = () => {
-    if (data.distressTrend.length < 2) return "steady";
-    
-    const sortedTrend = [...data.distressTrend].sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    );
-    
-    const firstScore = sortedTrend[0].score;
-    const lastScore = sortedTrend[sortedTrend.length - 1].score;
-    
-    if (lastScore < firstScore) return "decreasing";
-    if (lastScore > firstScore) return "increasing";
-    return "steady";
-  };
+      fetchData();
+    }, []);
   
-  const distressTrendDirection = calculateTrendDirection();
-  const trendPercentage = () => {
-    if (data.distressTrend.length < 2) return 0;
-    
-    const sortedTrend = [...data.distressTrend].sort((a, b) => 
-      new Date(a.timestamp) - new Date(b.timestamp)
-    );
-    
-    const firstScore = sortedTrend[0].score;
-    const lastScore = sortedTrend[sortedTrend.length - 1].score;
-    
-    return Math.abs(Math.round((lastScore - firstScore) / firstScore * 100));
-  };
-
-  // Formatted data
-  const distressData = formatDistressTrend();
-  const emotionTrendData = formatEmotionTrend();
-  const emotionRadarData = formatEmotionRadar();
-  const emotionPieData = formatEmotionPie();
-  const sessionsTreemapData = formatSessionsTreemap();
-  const distressScatterData = formatDistressScatter();
-  const recentSessions = formatSessionCards();
-  const filteredSessions = getFilteredSessions();
-
-  // Custom components
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
+    // Return loading state while waiting for API response
+    if (loading) {
       return (
-        <div className="bg-white p-3 shadow-md rounded-md border border-pink-100">
-          <p className="text-pink-700 font-medium">{label}</p>
-          <p className="text-sm text-pink-600">
-            {payload[0].name}: <span className="font-medium">{payload[0].value}</span>
-          </p>
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-300 mx-auto"></div>
+            <p className="mt-4 text-lg text-pink-600">Loading your emotional analytics...</p>
+          </div>
         </div>
       );
     }
-    return null;
-  };
-
-  const CustomActiveShape = (props) => {
-    const RADIAN = Math.PI / 180;
-    const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle,
-      fill, payload, percent, value } = props;
-    const sin = Math.sin(-RADIAN * midAngle);
-    const cos = Math.cos(-RADIAN * midAngle);
-    const sx = cx + (outerRadius + 10) * cos;
-    const sy = cy + (outerRadius + 10) * sin;
-    const mx = cx + (outerRadius + 30) * cos;
-    const my = cy + (outerRadius + 30) * sin;
-    const ex = mx + (cos >= 0 ? 1 : -1) * 22;
-    const ey = my;
-    const textAnchor = cos >= 0 ? 'start' : 'end';
   
-    return (
-      <g>
-        <text x={cx} y={cy} dy={8} textAnchor="middle" fill="#F472B6" className="text-sm font-medium">
-          {payload.name}
-        </text>
-        <Sector
-          cx={cx}
-          cy={cy}
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          fill={fill}
-        />
-        <Sector
-          cx={cx}
-          cy={cy}
-          startAngle={startAngle}
-          endAngle={endAngle}
-          innerRadius={outerRadius + 6}
-          outerRadius={outerRadius + 10}
-          fill={fill}
-        />
-        <path d={`M${sx},${sy}L${mx},${my}L${ex},${ey}`} stroke={fill} fill="none" />
-        <circle cx={ex} cy={ey} r={2} fill={fill} stroke="none" />
-        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} textAnchor={textAnchor} fill="#F472B6" className="text-xs">
-          {`${value.toFixed(1)}%`}
-        </text>
-        <text x={ex + (cos >= 0 ? 1 : -1) * 12} y={ey} dy={18} textAnchor={textAnchor} fill="#FBCFE8" className="text-xs">
-          {`(${(percent * 100).toFixed(0)}%)`}
-        </text>
-      </g>
-    );
-  };
-
-  // State for active pie sector
-  const [activeIndex, setActiveIndex] = useState(0);
-  const onPieEnter = (_, index) => {
-    setActiveIndex(index);
-  };
-
-  // Prepare custom gradient definitions
-  const renderGradients = () => (
-    <defs>
-      <linearGradient id="primaryGradient" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="5%" stopColor={gradientColors.primary[0]} stopOpacity={0.8}/>
-        <stop offset="95%" stopColor={gradientColors.primary[1]} stopOpacity={0.2}/>
-      </linearGradient>
-      <linearGradient id="secondaryGradient" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="5%" stopColor={gradientColors.secondary[0]} stopOpacity={0.8}/>
-        <stop offset="95%" stopColor={gradientColors.secondary[1]} stopOpacity={0.2}/>
-      </linearGradient>
-      <linearGradient id="tertiaryGradient" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="5%" stopColor={gradientColors.tertiary[0]} stopOpacity={0.8}/>
-        <stop offset="95%" stopColor={gradientColors.tertiary[1]} stopOpacity={0.2}/>
-      </linearGradient>
-      <filter id="shadow" height="130%">
-        <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.1"/>
-      </filter>
-    </defs>
-  );
-
+    // Return error state if API call fails
+    if (error || !data) {
+      return (
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-center p-6 bg-pink-50 rounded-lg shadow-md">
+            <div className="text-3xl text-pink-500 mb-4">😕</div>
+            <h2 className="text-xl text-pink-700 font-medium mb-2">Unable to load your analytics</h2>
+            <p className="text-pink-600 mb-4">{error || "An unknown error occurred"}</p>
+            <button 
+              className="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 transition-colors"
+              onClick={() => window.location.reload()}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      );
+    }
+  
+    // Data formatting functions
+    const formatDistressTrend = () => {
+      return data.distressTrend.map(item => ({
+        date: new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        score: item.score,
+        session: item.sessionName
+      }));
+    };
+  
+    const formatEmotionTrend = () => {
+      const result = [];
+      const emotions = Object.keys(data.emotionCounts);
+      
+      // Create data points for all emotions over time
+      data.emotionTrend.forEach((item) => {
+        const date = new Date(item.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const existingDate = result.find(point => point.date === date);
+        
+        if (existingDate) {
+          existingDate[item.emotion] = (existingDate[item.emotion] || 0) + 1;
+        } else {
+          const newPoint = { date, sessionName: item.sessionName };
+          emotions.forEach(emotion => {
+            newPoint[emotion] = emotion === item.emotion ? 1 : 0;
+          });
+          result.push(newPoint);
+        }
+      });
+      
+      return result;
+    };
+  
+    const formatEmotionRadar = () => {
+      return Object.keys(data.emotionCounts)
+        .filter(key => key !== 'unknown')
+        .map(emotion => ({
+          emotion: emotion.charAt(0).toUpperCase() + emotion.slice(1),
+          count: data.emotionCounts[emotion],
+          fullMark: Math.max(...Object.values(data.emotionCounts)) + 10
+        }));
+    };
+    
+    const formatEmotionPie = () => {
+      return Object.keys(data.emotionPercentages)
+        .filter(emotion => data.emotionPercentages[emotion] > 0 && emotion !== 'unknown')
+        .map(emotion => ({
+          name: emotion.charAt(0).toUpperCase() + emotion.slice(1),
+          value: data.emotionPercentages[emotion]
+        }));
+    };
+    
+    const formatSessionsTreemap = () => {
+      const allSessions = [
+        ...data.sessionsByDistress.high.map(s => ({ ...s, category: 'High' })),
+        ...data.sessionsByDistress.medium.map(s => ({ ...s, category: 'Medium' })),
+        ...data.sessionsByDistress.low.map(s => ({ ...s, category: 'Low' }))
+      ];
+      
+      return allSessions.map(session => ({
+        name: session.sessionName,
+        size: session.avgDistress * 10,
+        category: session.category
+      }));
+    };
+    
+    const formatDistressScatter = () => {
+      return data.distressTrend.map(item => ({
+        x: new Date(item.timestamp).getTime(),
+        y: item.score,
+        name: item.sessionName
+      }));
+    };
+  
+    const formatSessionCards = () => {
+      return [...data.sessionAnalytics]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+        .slice(0, 3);
+    };
+  
+    // Filter sessions based on search term and filters
+    const getFilteredSessions = () => {
+      let filteredSessions = [...data.sessionAnalytics];
+      
+      // Apply search filter
+      if (searchTerm.trim() !== "") {
+        filteredSessions = filteredSessions.filter(session => 
+          session.sessionName.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+      }
+      
+      // Apply distress level filter
+      if (selectedFilters.distressLevel !== "all") {
+        if (selectedFilters.distressLevel === "high") {
+          filteredSessions = filteredSessions.filter(session => session.averageDistress >= 7);
+        } else if (selectedFilters.distressLevel === "medium") {
+          filteredSessions = filteredSessions.filter(session => session.averageDistress >= 4 && session.averageDistress < 7);
+        } else if (selectedFilters.distressLevel === "low") {
+          filteredSessions = filteredSessions.filter(session => session.averageDistress < 4);
+        }
+      }
+      
+      // Apply date range filter
+      if (selectedFilters.dateRange !== "all") {
+        const today = new Date();
+        let filterDate = new Date();
+        
+        if (selectedFilters.dateRange === "week") {
+          filterDate.setDate(today.getDate() - 7);
+        } else if (selectedFilters.dateRange === "month") {
+          filterDate.setMonth(today.getMonth() - 1);
+        }
+        
+        filteredSessions = filteredSessions.filter(session => 
+          new Date(session.createdAt) >= filterDate
+        );
+      }
+      
+      return filteredSessions;
+    };
+  
+    // Calculate trend direction and stats
+    const calculateTrendDirection = () => {
+      if (data.distressTrend.length < 2) return "steady";
+      
+      const sortedTrend = [...data.distressTrend].sort((a, b) => 
+        new Date(a.timestamp) - new Date(b.timestamp)
+      );
+      
+      const firstScore = sortedTrend[0].score;
+      const lastScore = sortedTrend[sortedTrend.length - 1].score;
+      
+      if (lastScore < firstScore) return "decreasing";
+      if (lastScore > firstScore) return "increasing";
+      return "steady";
+    };
+    
+    const distressTrendDirection = calculateTrendDirection();
+    const trendPercentage = () => {
+      if (data.distressTrend.length < 2) return 0;
+      
+      const sortedTrend = [...data.distressTrend].sort((a, b) => 
+        new Date(a.timestamp) - new Date(b.timestamp)
+      );
+      
+      const firstScore = sortedTrend[0].score;
+      const lastScore = sortedTrend[sortedTrend.length - 1].score;
+      
+      if (firstScore === 0) return 0; // Avoid division by zero
+      
+      return Math.abs(Math.round((lastScore - firstScore) / firstScore * 100));
+    };
+  
+    // Formatted data
+    const distressData = formatDistressTrend();
+    const emotionTrendData = formatEmotionTrend();
+    const emotionRadarData = formatEmotionRadar();
+    const emotionPieData = formatEmotionPie();
+    const sessionsTreemapData = formatSessionsTreemap();
+    const distressScatterData = formatDistressScatter();
+    const recentSessions = formatSessionCards();
+    const filteredSessions = getFilteredSessions();
+  
+    // Custom components
+    const CustomTooltip = ({ active, payload, label }) => {
+      if (active && payload && payload.length) {
+        return (
+          <div className="bg-white p-3 shadow-md rounded-md border border-pink-100">
+            <p className="text-pink-700 font-medium">{label}</p>
+            <p className="text-sm text-pink-600">
+              {payload[0].name}: <span className="font-medium">{payload[0].value}</span>
+            </p>
+          </div>
+        );
+      }
+      return null;
+    };
+  
+    const CustomActiveShape = (props) => {
+      const RADIAN = Math.PI / 180;
+      const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle,
+        fill, payload, percent, value } = props;
+      const sin = Math.sin(-RADIAN * midAngle);
+      const cos = Math.cos(-RADIAN * midAngle);
+      const sx = cx + (outerRadius + 10) * cos;
+      const sy = cy + (outerRadius + 10) * sin;
+      const mx = cx + (outerRadius + 30) * cos;
+      const my = cy + (outerRadius + 30) * sin;
+      const ex = mx + (cos >= 0 ? 1 : -1) * 22;
+      const ey = my;
+      const textAnchor = cos >= 0 ? 'start' : 'end';
+      }
   return (
     <div className="min-h-screen bg-pink-50">
       {/* Header with gradient background */}

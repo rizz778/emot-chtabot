@@ -19,16 +19,18 @@ const Navbar = () => {
       if (isAuthenticated) {
         try {
           const token = localStorage.getItem("token");
-          const response = await axios.get('/api/user/profile', {
+          const response = await axios.get('http://localhost:4000/api/profile', {
             headers: { Authorization: `Bearer ${token}` }
           });
-          setUserProfile(response.data);
+          console.log("User profile response:", response.data.userProfile);
+          console.log("Profile picture data:",response.data.userProfile.profilePicture);
+          setUserProfile(response.data.userProfile);
         } catch (error) {
           console.error("Error fetching user profile:", error);
         }
       }
     };
-
+  
     fetchUserProfile();
   }, [isAuthenticated]);
 
@@ -58,7 +60,22 @@ const Navbar = () => {
   useEffect(() => {
     setIsAuthenticated(!!localStorage.getItem("token"));
   }, [location.pathname]);
-
+  const getOptimizedImageUrl = (url, width = 300) => {
+    if (!url) return null;
+    
+    // Check if it's a Cloudinary URL
+    if (url.includes('cloudinary.com')) {
+      // Extract base URL and file path
+      const urlParts = url.split('/upload/');
+      if (urlParts.length === 2) {
+        // Add transformations between /upload/ and the rest of the path
+        return `${urlParts[0]}/upload/w_${width},c_fill,g_face/${urlParts[1]}`;
+      }
+    }
+    
+    // Return original URL if not cloudinary or can't parse
+    return url;
+  };
   return (
     <header className={`flex items-center justify-between p-4 ${backgroundClass} h-20 relative`}>
       {/* Profile Picture & Dropdown at left corner */}
@@ -69,16 +86,25 @@ const Navbar = () => {
             className="focus:outline-none"
           >
             {userProfile && userProfile.profilePicture && userProfile.profilePicture.url ? (
-              <img
-                src={userProfile.profilePicture.url}
-                alt="Profile"
-                className="w-10 h-10 rounded-full object-cover border-2 border-white"
-              />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 border-2 border-white">
-                {userProfile && userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
-              </div>
-            )}
+  <img 
+    src={getOptimizedImageUrl(userProfile.profilePicture.url, 300)} 
+    alt="profile" 
+    className="w-10 h-10 rounded-full object-cover border-2 border-white" 
+    onError={(e) => {
+      console.error("Error loading image:", e);
+      e.target.onerror = null; 
+      e.target.src = ''; // Set to default image or empty
+      e.target.className = "hidden";
+      e.target.parentNode.innerHTML = `<div class="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 border-2 border-white">
+        ${userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+      </div>`;
+    }}
+  />
+) : (
+  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 border-2 border-white">
+    {userProfile && userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+  </div>
+)}
           </button>
           
           {/* Dropdown Menu */}
