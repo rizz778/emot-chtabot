@@ -2,6 +2,7 @@ myenv/
 env/
 venv/
 audio_responses/
+captured_image.png
 audio_files/
 chatbot.log
 __pycache__/
