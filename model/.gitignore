@@ -1,6 +1,7 @@
 myenv/
 env/
 venv/
+tf_env/
 audio_responses/
 audio_files/
 chatbot.log

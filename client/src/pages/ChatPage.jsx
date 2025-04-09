@@ -52,6 +52,19 @@ const ChatPage = () => {
   }, [transcript]);
 
   useEffect(() => {
+    // Once speech ends, send message automatically
+    if (!listening && transcript.trim()) {
+      handleVoiceMessage(transcript.trim());
+    }
+  }, [listening]);
+
+  useEffect(() => {
+    if (listening) {
+      setInput(""); // wipe input as soon as listening starts
+    }
+  }, [listening]);
+
+  useEffect(() => {
     fetchUserProfile();
     fetchUserDetails();
     fetchSessions();
@@ -62,6 +75,141 @@ const ChatPage = () => {
       fetchMessages();
     }
   }, [activeSession]);
+
+  const handleVoiceMessage = async (voiceInput) => {
+    resetTranscript();
+    setInput(""); // Just in case
+
+    if (!voiceInput) return;
+
+    const token = localStorage.getItem("token");
+    if (!token || !activeSession) {
+      notification.error({
+        message: "Authentication Error",
+        description: "Please log in again to continue.",
+        duration: 3,
+      });
+      navigate("/login");
+      return;
+    }
+
+    // ✅ Step 1: Add user's voice message to chat
+    const userMessage = {
+      sender: "user",
+      text: voiceInput,
+      timestamp: new Date().toISOString(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    const detectedEmotion = await handleCapture();
+
+    setLoading(true);
+    resetTranscript(); // clear previous speech input
+
+    try {
+      const lastFiveMessages = [...messages.slice(-3), userMessage]; // Include the latest message
+
+      const aiResponse = await fetch("http://localhost:5000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: voiceInput,
+          session_id: activeSession,
+          conversation_history: lastFiveMessages,
+          user_details: userDetails,
+          detected_emotion: detectedEmotion,
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        throw new Error(`AI service error: ${aiResponse.status}`);
+      }
+
+      const aiData = await aiResponse.json();
+      if (!aiData.response || typeof aiData.distress_score === "undefined") {
+        throw new Error("Invalid AI response");
+      }
+
+      let botText = aiData.response;
+      let jsx = null;
+
+      if (aiData.distress_score >= 7) {
+        notification.info({
+          message: "Support Resources Available",
+          description: "We've provided some resources that might help.",
+          duration: 5,
+        });
+
+        jsx = (
+          <div>
+            <p>{botText}</p>
+            <p>
+              I notice you might be going through a difficult time. Here are
+              some resources:
+            </p>
+            <ul>
+              <li>
+                <span
+                  onClick={() => navigate("/therapists")}
+                  style={{ color: "blue", cursor: "pointer" }}
+                >
+                  Talk to a therapist
+                </span>
+              </li>
+              <li>
+                <span
+                  onClick={() => navigate("/helpline")}
+                  style={{ color: "blue", cursor: "pointer" }}
+                >
+                  24/7 Crisis Helpline
+                </span>
+              </li>
+              <li>
+                <span
+                  onClick={() => navigate("/resources")}
+                  style={{ color: "blue", cursor: "pointer" }}
+                >
+                  Self-care resources
+                </span>
+              </li>
+            </ul>
+          </div>
+        );
+      }
+
+      const botMessage = {
+        sender: "bot",
+        text: botText,
+        jsx,
+        timestamp: new Date().toISOString(),
+      };
+
+      setMessages((prev) => [...prev, botMessage]);
+
+      // Store both user and bot messages to backend
+      await axios.post(
+        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        userMessage,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      await axios.post(
+        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        { ...botMessage, jsx: undefined },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+    } catch (err) {
+      console.error("Voice send error:", err);
+      notification.error({
+        message: "Communication Error",
+        description: "Something went wrong with voice input.",
+        duration: 3,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
@@ -128,7 +276,6 @@ const ChatPage = () => {
       console.error("Failed to fetch sessions:", error);
     }
   };
-
   const fetchMessages = async () => {
     if (!activeSession) return;
     try {
@@ -613,20 +760,40 @@ const ChatPage = () => {
           </motion.div>
 
           <div className="chat-input-container">
+            {/* <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Ask what you want..."
+            /> */}
             <Input
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder="Ask what you want..."
             />
-            <Button
+
+            {/* <Button
               icon={<AudioOutlined />}
               onClick={() => {
                 listening
                   ? SpeechRecognition.stopListening()
                   : SpeechRecognition.startListening();
               }}
+            /> */}
+
+            <Button
+              icon={<AudioOutlined />}
+              onClick={() => {
+                if (listening) {
+                  SpeechRecognition.stopListening();
+                } else {
+                  resetTranscript(); // reset before new listening
+                  SpeechRecognition.startListening({ continuous: false });
+                }
+              }}
             />
+
             <Button icon={<SendOutlined />} onClick={handleSendMessage} />
           </div>
           {audioUrl && (
