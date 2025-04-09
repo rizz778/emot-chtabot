@@ -1,29 +1,127 @@
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import logo6 from '../assets/images/logo6.jpg';
+import axios from 'axios'; // Make sure axios is installed
 
 const Navbar = () => {
-  const location = useLocation();  // Access current location
-  const navigate = useNavigate();  // For redirection
+  const location = useLocation();
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem("token"));
-
+  const [userProfile, setUserProfile] = useState(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
   
-  const backgroundClass =  'bg-gradient-to-r from-pink-300 to-[#ffc0cb]';
+  const backgroundClass = 'bg-gradient-to-r from-pink-300 to-[#ffc0cb]';
+
+  // Fetch user profile data
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (isAuthenticated) {
+        try {
+          const token = localStorage.getItem("token");
+          const response = await axios.get('/api/user/profile', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setUserProfile(response.data);
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [isAuthenticated]);
+
+  // Handle click outside to close dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   // Logout function
   const handleLogout = () => {
-    localStorage.removeItem("token"); // Remove token from storage
-    setIsAuthenticated(false); // Update authentication state
-    navigate("/"); // Redirect to login page
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+    setUserProfile(null);
+    setDropdownOpen(false);
+    navigate("/");
   };
 
   useEffect(() => {
-    setIsAuthenticated(!!localStorage.getItem("token")); // Re-check auth status on mount
+    setIsAuthenticated(!!localStorage.getItem("token"));
   }, [location.pathname]);
 
   return (
-    <header className={`flex items-center justify-between p-4 ${backgroundClass} h-20`}>
-      {/* Navigation Links (Left) */}
+    <header className={`flex items-center justify-between p-4 ${backgroundClass} h-20 relative`}>
+      {/* Profile Picture & Dropdown at left corner */}
+      {isAuthenticated && (
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10" ref={dropdownRef}>
+          <button
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="focus:outline-none"
+          >
+            {userProfile && userProfile.profilePicture && userProfile.profilePicture.url ? (
+              <img
+                src={userProfile.profilePicture.url}
+                alt="Profile"
+                className="w-10 h-10 rounded-full object-cover border-2 border-white"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center text-gray-600 border-2 border-white">
+                {userProfile && userProfile.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+              </div>
+            )}
+          </button>
+          
+          {/* Dropdown Menu */}
+          {dropdownOpen && (
+            <div className="absolute left-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20">
+              {userProfile && (
+                <div className="px-4 py-2 border-b border-gray-100">
+                  <p className="text-sm font-medium text-gray-700">{userProfile.name}</p>
+                </div>
+              )}
+              <NavLink 
+                to="/profile" 
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setDropdownOpen(false)}
+              >
+                My Profile
+              </NavLink>
+              <NavLink 
+                to="/dashboard" 
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setDropdownOpen(false)}
+              >
+                Dashboard
+              </NavLink>
+              <NavLink 
+                to="/settings" 
+                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                onClick={() => setDropdownOpen(false)}
+              >
+                Settings
+              </NavLink>
+              <button
+                onClick={handleLogout}
+                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+              >
+                Logout
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Navigation Links (Center) */}
       <nav className='flex gap-8 font-medium text-lg justify-center w-full'>
         <NavLink
           to='/'
@@ -87,24 +185,14 @@ const Navbar = () => {
         >
           About Us
         </NavLink>
-      {isAuthenticated && (
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition"
-        >
-          Logout
-        </button>
-      )}
       </nav>
 
-      {/* Logo (Center) */}
+      {/* Logo (Right) */}
       <div className='absolute left-15/16 transform -translate-x-1/2 hidden sm:block'>
         <NavLink to='/'>
           <img src={logo6} alt='logo' className='w-28 h-18 object-contain' />
         </NavLink>
       </div>
-
-      {/* Logout Button */}
     </header>
   );
 };
