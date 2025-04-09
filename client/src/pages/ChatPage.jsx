@@ -463,17 +463,19 @@ const ChatPage = () => {
       return;
     }
 
+   
+
+    const detectedEmotion = await handleCapture();
     const userMessage = {
       sender: "user",
+      emotion: detectedEmotion||"nuetral",
       text: trimmedInput,
       timestamp: new Date().toISOString(),
     };
-
-    const detectedEmotion = await handleCapture();
-
     setMessages((prevMessages) => [...prevMessages, userMessage]);
     setInput("");
     setLoading(true);
+   
 
     try {
       const lastFiveMessages = messages.slice(-3);
@@ -550,7 +552,7 @@ const ChatPage = () => {
           </div>
         );
       }
-
+      userMessage.distressScore = aiData.distress_score;
       const botMessage = {
         sender: "bot",
         text: botText, // for backend

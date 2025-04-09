@@ -12,7 +12,7 @@ import ffmpeg from "fluent-ffmpeg";
 import ffmpegPath from "ffmpeg-static";
 import path from "path";
 import { fileURLToPath } from "url";
-import DeepFace from "deepface";
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -81,9 +81,20 @@ async function textToSpeech(text, language, outputFilename) {
 
 const app = express();
 const port = 3000;
+const allowedOrigins = [
+  "http://localhost:5173", // Frontend during development
+  "https://emot-chtabot-2.onrender.com", // Deployed frontend
+];
+
 app.use(
   cors({
-    origin: "https://emot-chtabot-2.onrender.com", // Add the frontend URL
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true); // Allow the request
+      } else {
+        callback(new Error("Not allowed by CORS")); // Block the request
+      }
+    },
     methods: ["GET", "POST"], // Allow necessary HTTP methods
     allowedHeaders: ["Content-Type", "Authorization"], // Allow headers that are needed
   })
@@ -250,12 +261,17 @@ const captureImageFromWebcam = async () => {
 
 const detectEmotion = async () => {
   try {
-    const imagePath = await captureImageFromWebcam();
-    const analysis = await DeepFace.analyze(imagePath, ["emotion"]);
-    fs.unlinkSync(imagePath); // Clean up after detection
-    return analysis[0].dominant_emotion;
+    const response = await fetch("http://localhost:5000/capture");
+    const data = await response.json();
+    if (data.emotion) {
+      console.log("Detected emotion:", data.emotion);
+      return data.emotion; // Return the detected emotion
+    } else {
+      console.error("No emotion detected in the response.");
+      return "neutral";
+    }
   } catch (error) {
-    console.error("Error detecting emotion:", error);
+    console.error("Error detecting emotion:", error.message);
     return "neutral";
   }
 };

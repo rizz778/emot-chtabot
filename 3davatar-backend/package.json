@@ -15,7 +15,6 @@
     "child_process": "^1.0.2",
     "cmu-pronouncing-dictionary": "^3.0.0",
     "cors": "^2.8.5",
-    "deepface": "^1.0.0",
     "dotenv": "^16.4.7",
     "elevenlabs-node": "^1.2.0",
     "espeak-ng": "^1.0.2",
@@ -34,5 +33,6 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  }
+  },
+  "license": "ISC"
 }
