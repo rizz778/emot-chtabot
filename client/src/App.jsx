@@ -22,6 +22,7 @@ import TherapistBookingPage from "./pages/TherapistBookingPage.jsx";
 import TabPage from "./pages/TabPage.jsx";
 import TwoTabPage from "./pages/TwoTabPage.jsx";
 import ProfilePage from "./pages/ProfilePage.jsx";
+import Dashboard from "./components/Dashboard.jsx"
 function App() {
   const location = useLocation();
   const isAuthenticated = !!localStorage.getItem("token");
@@ -60,6 +61,8 @@ function App() {
         <Route path="/twotabpage" element={isAuthenticated ? <TwoTabPage /> : <Navigate to="/login" />} />
         <Route path="/chat" element={isAuthenticated ? <ChatPage /> : <Navigate to="/login" />} />
         <Route path="/profile" element={isAuthenticated ? <ProfilePage /> : <Navigate to="/login" />} />
+        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/dashboard" />} />
+
       </Routes>
     </div>
   );
