@@ -9,21 +9,7 @@ import "./AvatarExperience.css";
 function AvatarExperience() {
   const [loading, setLoading] = useState(false);
 
-  //------------------------------
-  const handleCapture = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("http://localhost:3000/chat", {
-        method: "POST",
-      });
-      const data = await response.json();
-      console.log("Detected Emotion:", data.emotion);
-    } catch (error) {
-      console.error("Error capturing emotion:", error);
-    }
-    setLoading(false);
-  };
-//---------------------------------------
+ 
 
   return (
     <>
@@ -38,12 +24,8 @@ function AvatarExperience() {
         <Experience />
       </Canvas>
 
-      {/* Button container positioned at the bottom-center */}
-      <div className="capture-button-container">
-        <button onClick={handleCapture} disabled={loading}>
-          {loading ? "Detecting..." : "Capture Emotion"}
-        </button>
-      </div>
+     
+     
     </>
   );
 }
