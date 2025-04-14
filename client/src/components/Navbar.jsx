@@ -19,7 +19,7 @@ const Navbar = () => {
       if (isAuthenticated) {
         try {
           const token = localStorage.getItem("token");
-          const response = await axios.get('http://localhost:4000/api/profile', {
+          const response = await axios.get('http://https://emot-chtabot.onrender-1.com', {
             headers: { Authorization: `Bearer ${token}` }
           });
           console.log("User profile response:", response.data.userProfile);
