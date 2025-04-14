@@ -38,11 +38,16 @@ twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 app = Flask(__name__)
 app.secret_key = os.getenv("FLASK_SECRET_KEY")
 
-# Allow CORS for specific origins
-CORS(app)
+# Enhanced CORS configuration to fix cross-origin issues
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
-# Explicitly handle OPTIONS for preflight
-
+# Explicitly handle OPTIONS for preflight requests
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 # Create directories for audio files and images
 AUDIO_DIR = "audio_responses"
@@ -52,86 +57,9 @@ IMAGE_PATH = "captured_image.jpg"  # Path to save the captured image
 # Speech recognition setup
 recognizer = sr.Recognizer()
 
-# def assess_distress_level(user_input, conversation_history=None):
-#     """
-#     Analyzes the user's input and conversation context to assign a distress severity score (0-10).
-#     Returns a severity score and a flag indicating if immediate help is required.
-    
-#     Parameters:
-#     - user_input: The current message from the user
-#     - conversation_history: List of previous conversation messages for context
-    
-#     Returns:
-#     - score: Distress severity score (0-10)
-#     - requires_immediate_help: Boolean flag for critical situations
-#     """
-#     # If we have conversation history, build context for better assessment
-#     context = user_input
-#     if conversation_history and isinstance(conversation_history, list):
-#         # Get the last few user messages for context (up to 3)
-#         user_messages = [msg["text"] for msg in conversation_history[-6:] 
-#                         if msg.get("sender") == "User" and "text" in msg]
-#         if user_messages:
-#             context = " ".join(user_messages) + " " + user_input
-    
-#     # Use a model to analyze the emotional content and context
-#     # This would be where you integrate with your language model
-#     # For demonstration, I'll create a placeholder function
-    
-#     def analyze_emotional_context(text):
-#         """
-#         This function would integrate with your AI model to analyze the text
-#         and return a distress assessment based on context understanding.
-        
-#         In a real implementation, you would:
-#         1. Send the text to your language model
-#         2. Ask it to evaluate the emotional state and distress level
-#         3. Parse the response to extract a numerical score
-#         """
-#         # Example prompt for your AI model
-#         prompt = f"""
-#         Analyze the following text and evaluate the level of emotional distress
-#         on a scale from 0 to 10, where:
-        
-#         0-2: No significant distress, neutral or positive
-#         3-4: Mild distress, some concern but functioning well
-#         5-6: Moderate distress, impacting well-being
-#         7-8: Severe distress, significantly impacted functioning
-#         9-10: Critical distress, potential harm to self or others
-        
-#         Consider the context, emotional tone, expressed thoughts, and indicators of
-#         mental state. Don't just look for keywords but understand the overall meaning.
-        
-#         Text to analyze: {text}
-        
-#         Response format:
-#         Distress score (0-10): [SCORE]
-#         Reasoning: [BRIEF EXPLANATION]
-#         Immediate help needed (True/False): [BOOLEAN]
-#         """
-        
-#         # In your implementation, send this prompt to your model
-#         # and parse the response to get the score and immediate help flag
-        
-#         # For now, return a placeholder
-#         return {
-#             "score": 0,  # Replace with actual model output
-#             "requires_immediate_help": False  # Replace with actual model output
-#         }
-    
-#     # Get the analysis result
-#     analysis_result = analyze_emotional_context(context)
-    
-#     # Extract the score and immediate help flag
-#     score = analysis_result["score"]
-#     requires_immediate_help = analysis_result["requires_immediate_help"]
-    
-#     return score, requires_immediate_help
-import re
-
 def assess_distress_level(user_input, conversation_history, user_details=None):
     """
-    Uses an LLM to analyze the user’s input and context, returning a distress severity score (0–10)
+    Uses an LLM to analyze the user's input and context, returning a distress severity score (0–10)
     and a boolean indicating if immediate help is needed.
     """
     # Build conversation history text
@@ -189,12 +117,6 @@ Previous Conversation:
     except Exception as e:
         print(f"[ERROR] AI Distress Scoring Error: {str(e)}")
         return 0, False
-
-import re
-import json
-
-import json
-import re
 
 def generate_response_with_user_details(user_input, conversation_history, user_details=None, detected_emotion=None):
     """
@@ -348,8 +270,11 @@ def capture_image():
 def home():
     return render_template("index.html")  # HTML page to trigger capture
 
-@app.route('/capture', methods=['GET'])
+@app.route('/capture', methods=['GET', 'OPTIONS'])
 def capture_and_predict():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         # (1) Capture image (no GUI)
         image_data, error = capture_image()
@@ -375,8 +300,12 @@ def capture_and_predict():
     except Exception as e:
         print(f"[SERVER ERROR] {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-@app.route('/init-conversation', methods=['POST'])
+
+@app.route('/init-conversation', methods=['POST', 'OPTIONS'])
 def init_conversation():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         data = request.get_json()
         user_details = data.get("user_details", {})
@@ -437,8 +366,11 @@ def init_conversation():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/chat', methods=['POST'])
+@app.route('/chat', methods=['POST', 'OPTIONS'])
 def chat():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         data = request.get_json()
         user_message = data.get("message", "")
@@ -479,8 +411,11 @@ def get_audio(filename):
     else:
         return jsonify({"error": "Audio file not found."}), 404
 
-@app.route('/make_call', methods=['POST'])
+@app.route('/make_call', methods=['POST', 'OPTIONS'])
 def make_call():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
     try:
         data = request.get_json()
         user_number = data.get("phone")
@@ -537,5 +472,3 @@ def twiml_response():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)
-
-
