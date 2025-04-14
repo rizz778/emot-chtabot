@@ -101,7 +101,7 @@ import {
         try {
           setLoading(true);
           // Use the actual API endpoint
-          const response = await fetch(`https://emot-chtabot.onrender-1.com/api/profile/user`, {
+          const response = await fetch(`https://emot-chtabot-1.onrender.com/api/profile/user`, {
             headers: {
               'Authorization': `Bearer ${localStorage.getItem('token')}` // Assuming token-based auth
             }
