@@ -109,7 +109,7 @@ const ChatPage = () => {
     try {
       const lastFiveMessages = [...messages.slice(-3), userMessage]; // Include the latest message
 
-      const aiResponse = await fetch("http://localhost:5000/chat", {
+      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -188,13 +188,13 @@ const ChatPage = () => {
 
       // Store both user and bot messages to backend
       await axios.post(
-        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
         userMessage,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       await axios.post(
-        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
         { ...botMessage, jsx: undefined },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -213,7 +213,7 @@ const ChatPage = () => {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:4000/api/profile", {
+      const response = await axios.get("https://emot-chtabot-1.onrender.com/api/profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -231,7 +231,7 @@ const ChatPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:4000/api/auth/details",
+        "https://emot-chtabot-1.onrender.com/api/auth/details",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -245,7 +245,7 @@ const ChatPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "http://localhost:4000/api/chat/sessions",
+        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -263,7 +263,7 @@ const ChatPage = () => {
         localStorage.setItem("activeSession", response.data[0]._id);
       } else {
         const newSession = await axios.post(
-          "http://localhost:4000/api/chat/sessions",
+          "https://emot-chtabot-1.onrender.com/api/chat/sessions",
           { sessionName: "Session 1" },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -281,7 +281,7 @@ const ChatPage = () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:4000/api/chat/sessions/${activeSession}`,
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -309,7 +309,7 @@ const ChatPage = () => {
       }
 
       const response = await axios.post(
-        "http://localhost:4000/api/chat/sessions",
+        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -335,7 +335,7 @@ const ChatPage = () => {
         try {
           // Call the model service directly
           const initialGreetingResponse = await fetch(
-            "http://localhost:5000/init-conversation",
+            "https://emot-chtabot.onrender.com/init-conversation",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -367,7 +367,7 @@ const ChatPage = () => {
 
             // Save to backend
             await axios.post(
-              `http://localhost:4000/api/chat/sessions/${sessionId}/messages`,
+              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
               botGreeting,
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -380,7 +380,7 @@ const ChatPage = () => {
         try {
           // Call the model service directly
           const initialGreetingResponse = await fetch(
-            "http://localhost:5000/init-conversation",
+            "https://emot-chtabot.onrender.com/init-conversation",
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -413,7 +413,7 @@ const ChatPage = () => {
 
             // Save to backend
             await axios.post(
-              `http://localhost:4000/api/chat/sessions/${sessionId}/messages`,
+              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
               botGreeting,
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -480,7 +480,7 @@ const ChatPage = () => {
     try {
       const lastFiveMessages = messages.slice(-3);
 
-      const aiResponse = await fetch("http://localhost:5000/chat", {
+      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -564,13 +564,13 @@ const ChatPage = () => {
 
       // Save both user and bot message
       axios.post(
-        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
         userMessage,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       axios.post(
-        `http://localhost:4000/api/chat/sessions/${activeSession}/messages`,
+        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
         { ...botMessage, jsx: undefined }, // remove JSX before sending to backend
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -624,7 +624,7 @@ const ChatPage = () => {
     }
 
     try {
-      const response = await axios.post("http://localhost:5000/make_call", {
+      const response = await axios.post("https://emot-chtabot.onrender.com/make_call", {
         phone: phoneNumber,
         message: userMessage,
       });
@@ -650,7 +650,7 @@ const ChatPage = () => {
   const handleCapture = async () => {
     setLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/capture");
+      const response = await fetch("https://emot-chtabot.onrender.com/capture");
       const data = await response.json();
 
       console.log(data.emotion);
