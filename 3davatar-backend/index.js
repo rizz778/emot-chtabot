@@ -304,7 +304,6 @@ const captureImageFromWebcam = async () => {
           message: "Camera Access Required",
           description: "Camera access is needed for emotion detection. Click 'Test Camera' to enable access.",
           duration: 10,
-          icon: <ExclamationCircleOutlined style={{ color: '#faad14' }} />
         });
       }, 1000);
       
