@@ -222,69 +222,88 @@ const ChatPage = () => {
   const captureFromClientWebcam = async () => {
     if (!hasPermission) {
       const permitted = await requestCameraPermission();
-      if (!permitted) return null;
+      if (!permitted) {
+        console.log("No camera permission, returning neutral");
+        return "neutral";
+      }
     }
     
     return new Promise(async (resolve, reject) => {
       try {
-        // Get a new stream if we don't have one
-        let stream = webcamStream;
-        if (!stream) {
+        // Get a new stream every time to ensure fresh capture
+        let stream;
+        try {
           stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          setWebcamStream(stream);
+          
+          // Create video element to capture frame
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          
+          // Wait for video to be ready
+          video.onloadedmetadata = () => {
+            video.play();
+            
+            // Give the camera a moment to adjust
+            setTimeout(() => {
+              try {
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                // Draw video frame on canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                // Get image data
+                const imageData = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // Release resources
+                video.pause();
+                video.srcObject = null;
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Send image to server for emotion detection
+                fetch(`${API_URL}/webcam-capture`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ image: imageData })
+                })
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                  }
+                  return response.json();
+                })
+                .then(data => {
+                  if (data.error) {
+                    console.error("Emotion detection error:", data.error);
+                    resolve("neutral");
+                  } else {
+                    console.log("Detected emotion:", data.emotion);
+                    resolve(data.emotion || "neutral");
+                  }
+                })
+                .catch(err => {
+                  console.error("Error sending image or parsing response:", err);
+                  resolve("neutral");
+                });
+              } catch (canvasError) {
+                console.error("Canvas error:", canvasError);
+                resolve("neutral");
+              }
+            }, 500); // Give camera 500ms to adjust
+          };
+        } catch (streamError) {
+          console.error("Stream error:", streamError);
+          resolve("neutral");
         }
-        
-        // Create video element to capture frame
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.play();
-        
-        // Wait for video to load
-        video.onloadeddata = () => {
-          // Create canvas
-          const canvas = document.createElement('canvas');
-          canvas.width = video.videoWidth;
-          canvas.height = video.videoHeight;
-          
-          // Draw video frame on canvas
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(video, 0, 0);
-          
-          // Get image data
-          const imageData = canvas.toDataURL('image/jpeg');
-          
-          // Release resources
-          video.pause();
-          video.srcObject = null;
-          
-          // Send image to server for emotion detection
-          fetch(`${API_URL}/webcam-capture`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ image: imageData })
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.error) {
-              console.error("Emotion detection error:", data.error);
-              resolve("neutral");
-            } else {
-              console.log("Detected emotion:", data.emotion);
-              resolve(data.emotion);
-            }
-          })
-          .catch(err => {
-            console.error("Error sending image:", err);
-            resolve("neutral");
-          });
-        };
       } catch (error) {
-        console.error("Client webcam error:", error);
-        reject(error);
+        console.error("Client webcam capture error:", error);
+        resolve("neutral");
       }
     });
   };
-
   // Server-side webcam capture
   const captureFromServerWebcam = async () => {
     try {
