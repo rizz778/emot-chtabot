@@ -244,7 +244,7 @@ const lipSyncMessage = async (message, text) => {
 };
 
 // ------------------------------------------------
-
+const API_URL = "https://emot-chtabot.onrender.com";
 const captureImageFromWebcam = async () => {
   return new Promise((resolve, reject) => {
     const imagePath = path.join(__dirname, "webcam_image.jpg");
@@ -259,22 +259,189 @@ const captureImageFromWebcam = async () => {
   });
 };
 
-const detectEmotion = async () => {
-  try {
-    const response = await fetch("http://localhost:5000/capture");
-    const data = await response.json();
-    if (data.emotion) {
-      console.log("Detected emotion:", data.emotion);
-      return data.emotion; // Return the detected emotion
-    } else {
-      console.error("No emotion detected in the response.");
+
+  // Check which webcam mode to use (client or server)
+  const checkWebcamSupport = async () => {
+    try {
+      const response = await fetch(`${API_URL}/check-webcam-support`);
+      const data = await response.json();
+      setWebcamMode(data.mode);
+      console.log(`Using ${data.mode}-side webcam capture`);
+    } catch (error) {
+      console.error("Could not determine webcam mode:", error);
+      setWebcamMode('client'); // Default to client-side
+    }
+  };
+
+  // Request camera permissions
+  const requestCameraPermission = async () => {
+    try {
+      // This will trigger the browser permission dialog
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true,
+        audio: false 
+      });
+      
+      // If we got here, permission was granted
+      setHasPermission(true);
+      setWebcamStream(stream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      } else {
+        // We don't need the stream right now - close it
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Camera permission error:", error);
+      setHasPermission(false);
+      
+      // Show notification after a short delay to ensure it's seen
+      setTimeout(() => {
+        notification.warning({
+          message: "Camera Access Required",
+          description: "Camera access is needed for emotion detection. Click 'Test Camera' to enable access.",
+          duration: 10,
+          icon: <ExclamationCircleOutlined style={{ color: '#faad14' }} />
+        });
+      }, 1000);
+      
+      return false;
+    }
+  };
+
+  // Client-side webcam capture
+  const captureFromClientWebcam = async () => {
+    if (!hasPermission) {
+      const permitted = await requestCameraPermission();
+      if (!permitted) {
+        console.log("No camera permission, returning neutral");
+        return "neutral";
+      }
+    }
+    
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Get a new stream every time to ensure fresh capture
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          
+          // Create video element to capture frame
+          const video = document.createElement('video');
+          video.srcObject = stream;
+          
+          // Wait for video to be ready
+          video.onloadedmetadata = () => {
+            video.play();
+            
+            // Give the camera a moment to adjust
+            setTimeout(() => {
+              try {
+                // Create canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                
+                // Draw video frame on canvas
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(video, 0, 0);
+                
+                // Get image data
+                const imageData = canvas.toDataURL('image/jpeg', 0.9);
+                
+                // Release resources
+                video.pause();
+                video.srcObject = null;
+                stream.getTracks().forEach(track => track.stop());
+                
+                // Send image to server for emotion detection
+                fetch(`${API_URL}/webcam-capture`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ image: imageData })
+                })
+                .then(response => {
+                  if (!response.ok) {
+                    throw new Error(`Server responded with ${response.status}`);
+                  }
+                  return response.json();
+                })
+                .then(data => {
+                  if (data.error) {
+                    console.error("Emotion detection error:", data.error);
+                    resolve("neutral");
+                  } else {
+                    console.log("Detected emotion:", data.emotion);
+                    resolve(data.emotion || "neutral");
+                  }
+                })
+                .catch(err => {
+                  console.error("Error sending image or parsing response:", err);
+                  resolve("neutral");
+                });
+              } catch (canvasError) {
+                console.error("Canvas error:", canvasError);
+                resolve("neutral");
+              }
+            }, 500); // Give camera 500ms to adjust
+          };
+        } catch (streamError) {
+          console.error("Stream error:", streamError);
+          resolve("neutral");
+        }
+      } catch (error) {
+        console.error("Client webcam capture error:", error);
+        resolve("neutral");
+      }
+    });
+  };
+  // Server-side webcam capture
+  const captureFromServerWebcam = async () => {
+    try {
+      const response = await fetch(`${API_URL}/capture`);
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        console.error("Server capture error:", data.error);
+        return "neutral";
+      }
+      
+      console.log("Server detected emotion:", data.emotion);
+      return data.emotion;
+    } catch (error) {
+      console.error("Server webcam error:", error);
       return "neutral";
     }
-  } catch (error) {
-    console.error("Error detecting emotion:", error.message);
-    return "neutral";
-  }
-};
+  };
+
+  // General capture function that decides which method to use
+  const handleCapture = async () => {
+    setLoading(true);
+    try {
+      let emotion;
+      
+      if (webcamMode === 'client') {
+        emotion = await captureFromClientWebcam();
+      } else {
+        emotion = await captureFromServerWebcam();
+      }
+      
+      console.log("Detected emotion:", emotion);
+      return emotion || "neutral";
+    } catch (error) {
+      console.error("Capture error:", error);
+      return "neutral";
+    } finally {
+      setLoading(false);
+    }
+  };
 // ------------------------------------------------
 
 const generateTextWithHuggingFace = async (prompt) => {
@@ -351,7 +518,7 @@ app.post("/chat", async (req, res) => {
   // --------------------------------------
   let detectedEmotion = "neutral";
   try {
-    detectedEmotion = await detectEmotion();
+    detectedEmotion = await handleCapture();
   } catch (error) {
     console.error("Error detecting emotion, defaulting to neutral");
   }
