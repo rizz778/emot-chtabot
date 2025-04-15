@@ -70,7 +70,7 @@ const ProfilePage = () => {
         }
 
         // Call API to delete the profile picture from Cloudinary
-        const response = await fetch('https://emot-chtabot.onrender-1.com/api/profile/delete-picture', {
+        const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile/delete-picture', {
           method: 'DELETE',
           headers: {
             'Authorization': `Bearer ${token}`, // Include token for authentication
@@ -151,7 +151,7 @@ const ProfilePage = () => {
         throw new Error('No authentication token found');
       }
   
-      const response = await fetch('https://emot-chtabot.onrender-1.com/api/profile/upload-picture', {
+      const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile/upload-picture', {
         method: 'POST',
         body: formData,
         headers: {
@@ -202,7 +202,7 @@ const ProfilePage = () => {
     }
 
     // Make the API call to update the profile
-    const response = await fetch('https://emot-chtabot.onrender-1.com/api/profile', {
+    const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -252,7 +252,7 @@ const ProfilePage = () => {
         return;
       }
 
-      const response = await fetch('https://emot-chtabot.onrender-1.com/api/profile', {
+      const response = await fetch('https://emot-chtabot-1.onrender.com/api/profile', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`, // Include token for authentication

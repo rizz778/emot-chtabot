@@ -25,6 +25,7 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
 
 if not API_KEY or not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or not TWILIO_PHONE_NUMBER:
     raise ValueError("Missing API credentials in .env")
@@ -36,17 +37,22 @@ twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
 # Initialize Flask app
 app = Flask(__name__)
-app.secret_key = os.getenv("FLASK_SECRET_KEY")
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "default-secret-key")
 
 # Enhanced CORS configuration to fix cross-origin issues
-CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ALLOWED_ORIGINS}}, 
+     supports_credentials=True, 
+     expose_headers=["Content-Type", "Authorization"])
 
 # Explicitly handle OPTIONS for preflight requests
 @app.after_request
 def after_request(response):
     response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
     response.headers.add('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Allow-Origin', '*')
+    if request.headers.get('Origin') and request.headers.get('Origin') in ALLOWED_ORIGINS:
+        response.headers.add('Access-Control-Allow-Origin', request.headers.get('Origin'))
+    else:
+        response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
 # Create directories for audio files and images
@@ -98,8 +104,6 @@ User Input: "{user_input}"
 Previous Conversation:
 {history_text}
 """
-
-    print(f"[DEBUG] Sending to model:\n{distress_prompt}")
 
     try:
         response = model.generate_content(distress_prompt)
@@ -232,6 +236,98 @@ def get_ngrok_url():
         print("Error fetching ngrok URL:", str(e))
         return None
 
+def process_webcam_image(image_data):
+    """Process base64 image data from webcam"""
+    try:
+        # Decode base64 image
+        image_data = image_data.split(',')[1] if ',' in image_data else image_data
+        image_bytes = base64.b64decode(image_data)
+        
+        # Convert to numpy array
+        nparr = np.frombuffer(image_bytes, np.uint8)
+        
+        # Decode image
+        frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        # Save image for analysis
+        cv2.imwrite(IMAGE_PATH, frame)
+        
+        return True
+    except Exception as e:
+        print(f"Error processing webcam image: {e}")
+        return False
+
+# Routes
+@app.route('/')
+def home():
+    return render_template("index.html")
+
+@app.route('/capture', methods=['GET', 'OPTIONS'])
+def capture_endpoint():
+    """Handles GET requests when server-side webcam capture is used"""
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    try:
+        # Server-side capturing
+        image_data, error = capture_image()
+        if error:
+            return jsonify({'error': error}), 500
+
+        # Analyze emotion
+        try:
+            result = DeepFace.analyze(
+                img_path=IMAGE_PATH,
+                actions=['emotion'],
+                enforce_detection=False
+            )
+            detected_emotion = result[0]['dominant_emotion']
+        except Exception as e:
+            return jsonify({'error': f"Emotion detection failed: {str(e)}"}), 500
+
+        return jsonify({
+            'emotion': detected_emotion,
+            'image_base64': image_data
+        })
+
+    except Exception as e:
+        print(f"[SERVER ERROR] {str(e)}")
+        return jsonify({'error': 'Internal server error'}), 500
+
+@app.route('/webcam-capture', methods=['POST', 'OPTIONS'])
+def webcam_capture():
+    """Handles POST requests when client-side webcam capture is used"""
+    if request.method == 'OPTIONS':
+        return '', 200
+    
+    try:
+        data = request.get_json()
+        image_data = data.get('image')
+        
+        if not image_data:
+            return jsonify({'error': 'No image data received'}), 400
+        
+        # Process the image
+        if not process_webcam_image(image_data):
+            return jsonify({'error': 'Failed to process image'}), 500
+        
+        # Analyze emotion
+        try:
+            result = DeepFace.analyze(
+                img_path=IMAGE_PATH,
+                actions=['emotion'],
+                enforce_detection=False
+            )
+            detected_emotion = result[0]['dominant_emotion']
+            return jsonify({'emotion': detected_emotion})
+        except Exception as e:
+            print(f"Emotion detection error: {e}")
+            return jsonify({'emotion': 'neutral', 'error': 'Could not detect emotion clearly'})
+    
+    except Exception as e:
+        print(f"Webcam capture error: {e}")
+        return jsonify({'error': str(e)}), 500
+
 def capture_image():
     """Captures an image from the webcam without GUI functions."""
     cap = cv2.VideoCapture(0)
@@ -264,42 +360,6 @@ def capture_image():
     img_base64 = base64.b64encode(buffer).decode('utf-8')
     
     return img_base64, None
-# Routes
-
-@app.route('/')
-def home():
-    return render_template("index.html")  # HTML page to trigger capture
-
-@app.route('/capture', methods=['GET', 'OPTIONS'])
-def capture_and_predict():
-    if request.method == 'OPTIONS':
-        return '', 200
-        
-    try:
-        # (1) Capture image (no GUI)
-        image_data, error = capture_image()
-        if error:
-            return jsonify({'error': error}), 500
-
-        # (2) Analyze emotion
-        try:
-            result = DeepFace.analyze(
-                img_path=IMAGE_PATH,  # or use a temp file
-                actions=['emotion'],
-                enforce_detection=False  # Don't fail if no face detected
-            )
-            detected_emotion = result[0]['dominant_emotion']
-        except Exception as e:
-            return jsonify({'error': f"Emotion detection failed: {str(e)}"}), 500
-
-        return jsonify({
-            'emotion': detected_emotion,
-            'image_base64': image_data  # Send base64 to frontend
-        })
-
-    except Exception as e:
-        print(f"[SERVER ERROR] {str(e)}")
-        return jsonify({'error': 'Internal server error'}), 500
 
 @app.route('/init-conversation', methods=['POST', 'OPTIONS'])
 def init_conversation():
@@ -438,11 +498,15 @@ def make_call():
         encoded_response = urllib.parse.quote(response_text)
 
         ngrok_url = get_ngrok_url()  # Fetch latest ngrok URL dynamically
-        if not ngrok_url:
-            return jsonify({"error": "Ngrok is not running. Start ngrok first!"}), 500
+        
+        # Use environment variable for public URL if available, otherwise try ngrok
+        public_url = os.getenv("PUBLIC_URL", ngrok_url)
+        
+        if not public_url:
+            return jsonify({"error": "Public URL not configured. Set PUBLIC_URL environment variable or start ngrok."}), 500
 
         # Generate TwiML URL
-        twiml_url = f"{ngrok_url}/twiml?message={encoded_response}"
+        twiml_url = f"{public_url}/twiml?message={encoded_response}"
         print("Generated TwiML URL:", twiml_url)
 
         call = twilio_client.calls.create(
@@ -470,5 +534,24 @@ def twiml_response():
 
     return Response(str(response), mimetype='text/xml')
 
+@app.route('/check-webcam-support', methods=['GET'])
+def check_webcam_support():
+    """Check if server-side webcam is available"""
+    try:
+        cap = cv2.VideoCapture(0)
+        if not cap.isOpened():
+            cap.release()
+            return jsonify({"supported": False, "mode": "client"})
+        
+        ret, _ = cap.read()
+        cap.release()
+        
+        if ret:
+            return jsonify({"supported": True, "mode": "server"})
+        else:
+            return jsonify({"supported": False, "mode": "client"})
+    except:
+        return jsonify({"supported": False, "mode": "client"})
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5000)), debug=False)

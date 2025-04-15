@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Layout,
   Menu,
@@ -11,7 +11,13 @@ import {
 } from "antd";
 
 import { motion } from "framer-motion";
-import { DollarOutlined, PhoneOutlined } from "@ant-design/icons";
+import {
+  DollarOutlined,
+  PhoneOutlined,
+  CameraOutlined,
+  InfoCircleOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
 import {
   MessageOutlined,
   PlusOutlined,
@@ -27,7 +33,84 @@ import { useNavigate } from "react-router-dom";
 import Loader from "../components/Loader.jsx";
 const { Header, Sider, Content } = Layout;
 
+// Component for testing camera
+const CameraTest = ({ isVisible, onClose }) => {
+  const videoRef = useRef(null);
+  const [stream, setStream] = useState(null);
+  
+  useEffect(() => {
+    if (isVisible) {
+      startCamera();
+    } else {
+      stopCamera();
+    }
+    
+    return () => {
+      stopCamera();
+    };
+  }, [isVisible]);
+  
+  const startCamera = async () => {
+    try {
+      const videoStream = await navigator.mediaDevices.getUserMedia({ 
+        video: true 
+      });
+      
+      setStream(videoStream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = videoStream;
+      }
+    } catch (error) {
+      console.error("Camera error:", error);
+      notification.error({
+        message: "Camera Access Failed",
+        description: "Please check your browser settings and allow camera access.",
+        duration: 5
+      });
+    }
+  };
+  
+  const stopCamera = () => {
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
+      setStream(null);
+    }
+    
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+  };
+  
+  return (
+    <Modal
+      title="Camera Test"
+      open={isVisible}
+      onCancel={onClose}
+      footer={[
+        <Button key="close" onClick={onClose}>
+          Close
+        </Button>
+      ]}
+    >
+      <div style={{ textAlign: 'center' }}>
+        <p>If you can see yourself, your camera is working properly.</p>
+        <video 
+          ref={videoRef}
+          autoPlay
+          playsInline
+          style={{ width: '100%', maxHeight: '300px', borderRadius: '8px' }}
+        />
+      </div>
+    </Modal>
+  );
+};
+
 const ChatPage = () => {
+  // API URL configuration - replace with environment variables in production
+  const API_URL = "https://emot-chtabot.onrender.com";
+  const BACKEND_URL ="https://emot-chtabot-1.onrender.com";
+
   const [userMessage, setUserMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -40,6 +123,11 @@ const ChatPage = () => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const [userDetails, setUserDetails] = useState(null);
+  const videoRef = useRef(null);
+  const [isCameraTestVisible, setCameraTestVisible] = useState(false);
+  const [webcamMode, setWebcamMode] = useState('client'); // 'client' or 'server'
+  const [hasPermission, setHasPermission] = useState(false);
+  const [webcamStream, setWebcamStream] = useState(null);
 
   // Call form states
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -65,9 +153,11 @@ const ChatPage = () => {
   }, [listening]);
 
   useEffect(() => {
+    checkWebcamSupport();
     fetchUserProfile();
     fetchUserDetails();
     fetchSessions();
+    requestCameraPermission(); // Request camera access when page loads
   }, []);
 
   useEffect(() => {
@@ -75,6 +165,170 @@ const ChatPage = () => {
       fetchMessages();
     }
   }, [activeSession]);
+
+  // Check which webcam mode to use (client or server)
+  const checkWebcamSupport = async () => {
+    try {
+      const response = await fetch(`${API_URL}/check-webcam-support`);
+      const data = await response.json();
+      setWebcamMode(data.mode);
+      console.log(`Using ${data.mode}-side webcam capture`);
+    } catch (error) {
+      console.error("Could not determine webcam mode:", error);
+      setWebcamMode('client'); // Default to client-side
+    }
+  };
+
+  // Request camera permissions
+  const requestCameraPermission = async () => {
+    try {
+      // This will trigger the browser permission dialog
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: true,
+        audio: false 
+      });
+      
+      // If we got here, permission was granted
+      setHasPermission(true);
+      setWebcamStream(stream);
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      } else {
+        // We don't need the stream right now - close it
+        stream.getTracks().forEach(track => track.stop());
+      }
+      
+      return true;
+    } catch (error) {
+      console.error("Camera permission error:", error);
+      setHasPermission(false);
+      
+      // Show notification after a short delay to ensure it's seen
+      setTimeout(() => {
+        notification.warning({
+          message: "Camera Access Required",
+          description: "Camera access is needed for emotion detection. Click 'Test Camera' to enable access.",
+          duration: 10,
+          icon: <ExclamationCircleOutlined style={{ color: '#faad14' }} />
+        });
+      }, 1000);
+      
+      return false;
+    }
+  };
+
+  // Client-side webcam capture
+  const captureFromClientWebcam = async () => {
+    if (!hasPermission) {
+      const permitted = await requestCameraPermission();
+      if (!permitted) return null;
+    }
+    
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Get a new stream if we don't have one
+        let stream = webcamStream;
+        if (!stream) {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true });
+          setWebcamStream(stream);
+        }
+        
+        // Create video element to capture frame
+        const video = document.createElement('video');
+        video.srcObject = stream;
+        video.play();
+        
+        // Wait for video to load
+        video.onloadeddata = () => {
+          // Create canvas
+          const canvas = document.createElement('canvas');
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          
+          // Draw video frame on canvas
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(video, 0, 0);
+          
+          // Get image data
+          const imageData = canvas.toDataURL('image/jpeg');
+          
+          // Release resources
+          video.pause();
+          video.srcObject = null;
+          
+          // Send image to server for emotion detection
+          fetch(`${API_URL}/webcam-capture`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ image: imageData })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.error) {
+              console.error("Emotion detection error:", data.error);
+              resolve("neutral");
+            } else {
+              console.log("Detected emotion:", data.emotion);
+              resolve(data.emotion);
+            }
+          })
+          .catch(err => {
+            console.error("Error sending image:", err);
+            resolve("neutral");
+          });
+        };
+      } catch (error) {
+        console.error("Client webcam error:", error);
+        reject(error);
+      }
+    });
+  };
+
+  // Server-side webcam capture
+  const captureFromServerWebcam = async () => {
+    try {
+      const response = await fetch(`${API_URL}/capture`);
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.error) {
+        console.error("Server capture error:", data.error);
+        return "neutral";
+      }
+      
+      console.log("Server detected emotion:", data.emotion);
+      return data.emotion;
+    } catch (error) {
+      console.error("Server webcam error:", error);
+      return "neutral";
+    }
+  };
+
+  // General capture function that decides which method to use
+  const handleCapture = async () => {
+    setLoading(true);
+    try {
+      let emotion;
+      
+      if (webcamMode === 'client') {
+        emotion = await captureFromClientWebcam();
+      } else {
+        emotion = await captureFromServerWebcam();
+      }
+      
+      console.log("Detected emotion:", emotion);
+      return emotion || "neutral";
+    } catch (error) {
+      console.error("Capture error:", error);
+      return "neutral";
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleVoiceMessage = async (voiceInput) => {
     resetTranscript();
@@ -109,7 +363,7 @@ const ChatPage = () => {
     try {
       const lastFiveMessages = [...messages.slice(-3), userMessage]; // Include the latest message
 
-      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
+      const aiResponse = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -188,13 +442,13 @@ const ChatPage = () => {
 
       // Store both user and bot messages to backend
       await axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        `${BACKEND_URL}/api/chat/sessions/${activeSession}/messages`,
         userMessage,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       await axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        `${BACKEND_URL}/api/chat/sessions/${activeSession}/messages`,
         { ...botMessage, jsx: undefined },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -213,7 +467,7 @@ const ChatPage = () => {
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get("https://emot-chtabot-1.onrender.com/api/profile", {
+      const response = await axios.get(`${BACKEND_URL}/api/profile`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -227,11 +481,12 @@ const ChatPage = () => {
       console.error("Failed to fetch user details:", error);
     }
   };
+
   const fetchUserDetails = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "https://emot-chtabot-1.onrender.com/api/auth/details",
+        `${BACKEND_URL}/api/auth/details`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -241,11 +496,12 @@ const ChatPage = () => {
       console.error("Failed to fetch user details:", error);
     }
   };
+
   const fetchSessions = async () => {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+        `${BACKEND_URL}/api/chat/sessions`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -263,7 +519,7 @@ const ChatPage = () => {
         localStorage.setItem("activeSession", response.data[0]._id);
       } else {
         const newSession = await axios.post(
-          "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+          `${BACKEND_URL}/api/chat/sessions`,
           { sessionName: "Session 1" },
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -276,12 +532,13 @@ const ChatPage = () => {
       console.error("Failed to fetch sessions:", error);
     }
   };
+
   const fetchMessages = async () => {
     if (!activeSession) return;
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}`,
+        `${BACKEND_URL}/api/chat/sessions/${activeSession}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -309,7 +566,7 @@ const ChatPage = () => {
       }
 
       const response = await axios.post(
-        "https://emot-chtabot-1.onrender.com/api/chat/sessions",
+        `${BACKEND_URL}/api/chat/sessions`,
         { sessionName: `Session ${chatSessions.length + 1}` },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -335,7 +592,7 @@ const ChatPage = () => {
         try {
           // Call the model service directly
           const initialGreetingResponse = await fetch(
-            "https://emot-chtabot.onrender.com/init-conversation",
+            `${API_URL}/init-conversation`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -359,6 +616,7 @@ const ChatPage = () => {
             const botGreeting = {
               sender: "bot",
               text: greetingData.message,
+              timestamp: new Date().toISOString(),
             };
 
             // Add to UI
@@ -367,7 +625,7 @@ const ChatPage = () => {
 
             // Save to backend
             await axios.post(
-              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+              `${BACKEND_URL}/api/chat/sessions/${sessionId}/messages`,
               botGreeting,
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -380,7 +638,7 @@ const ChatPage = () => {
         try {
           // Call the model service directly
           const initialGreetingResponse = await fetch(
-            "https://emot-chtabot.onrender.com/init-conversation",
+            `${API_URL}/init-conversation`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -413,7 +671,7 @@ const ChatPage = () => {
 
             // Save to backend
             await axios.post(
-              `https://emot-chtabot-1.onrender.com/api/chat/sessions/${sessionId}/messages`,
+              `${BACKEND_URL}/api/chat/sessions/${sessionId}/messages`,
               botGreeting,
               { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -463,12 +721,10 @@ const ChatPage = () => {
       return;
     }
 
-   
-
     const detectedEmotion = await handleCapture();
     const userMessage = {
       sender: "user",
-      emotion: detectedEmotion||"nuetral",
+      emotion: detectedEmotion || "neutral",
       text: trimmedInput,
       timestamp: new Date().toISOString(),
     };
@@ -480,7 +736,7 @@ const ChatPage = () => {
     try {
       const lastFiveMessages = messages.slice(-3);
 
-      const aiResponse = await fetch("https://emot-chtabot.onrender.com/chat", {
+      const aiResponse = await fetch(`${API_URL}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -564,13 +820,13 @@ const ChatPage = () => {
 
       // Save both user and bot message
       axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        `${BACKEND_URL}/api/chat/sessions/${activeSession}/messages`,
         userMessage,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       axios.post(
-        `https://emot-chtabot-1.onrender.com/api/chat/sessions/${activeSession}/messages`,
+        `${BACKEND_URL}/api/chat/sessions/${activeSession}/messages`,
         { ...botMessage, jsx: undefined }, // remove JSX before sending to backend
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -624,7 +880,7 @@ const ChatPage = () => {
     }
 
     try {
-      const response = await axios.post("https://emot-chtabot.onrender.com/make_call", {
+      const response = await axios.post(`${API_URL}/make_call`, {
         phone: phoneNumber,
         message: userMessage,
       });
@@ -646,98 +902,98 @@ const ChatPage = () => {
       antdMessage.error("Error making call.");
     }
   };
-
-  const handleCapture = async () => {
-    setLoading(true);
-    try {
-      const response = await fetch("https://emot-chtabot.onrender.com/capture");
-      const data = await response.json();
-
-      console.log(data.emotion);
-      return data.emotion;
-    } catch (error) {
-      console.error("Error:", error);
-      return null;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
+    <>
     <Layout>
       <Sider
-        width={250}
-        collapsible
-        collapsedWidth={50}
-        onCollapse={(collapsed) => setCollapsed(collapsed)}
-        style={{
-          height: "90vh",
-          background: "#f9a8d4",
-          color: "#fff",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
-        ></div>
-        <Menu
-          theme="light"
-          mode="inline"
-          selectedKeys={[activeSession]}
-          onClick={({ key }) => {
-            setActiveSession(key);
-            localStorage.setItem("activeSession", key);
-            fetchMessages(key);
-          }}
-          items={chatSessions.map((session) => ({
-            key: session._id,
-            icon: <MessageOutlined />,
-            label: session.sessionName,
-          }))}
-        />
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleNewSession}
-          style={{
-            backgroundColor: "#ff4caf",
-            borderColor: "#d9363e",
-            color: "white",
-            fontWeight: "bold",
-            borderRadius: "8px",
-            padding: "10px 16px",
-            height: "2.5rem",
-            marginBottom: "10px",
-          }}
-          hoverable="true"
-        >
-          {!collapsed && <span>New Chat</span>}
-        </Button>
+  width={250}
+  collapsible
+  collapsedWidth={50}
+  onCollapse={(collapsed) => setCollapsed(collapsed)}
+  style={{
+    height: "90vh",
+    background: "#f9a8d4",
+    color: "#fff",
+    overflow: "hidden",
+  }}
+>
+  <div
+    style={{ marginBottom: "16px", fontSize: "16px", fontWeight: "bold" }}
+  ></div>
+  <Menu
+    theme="light"
+    mode="inline"
+    selectedKeys={[activeSession]}
+    onClick={({ key }) => {
+      setActiveSession(key);
+      localStorage.setItem("activeSession", key);
+      fetchMessages(key);
+    }}
+    items={chatSessions.map((session) => ({
+      key: session._id,
+      icon: <MessageOutlined />,
+      label: session.sessionName,
+    }))}
+  />
+  <Button
+    type="primary"
+    icon={<PlusOutlined />}
+    onClick={handleNewSession}
+    style={{
+      backgroundColor: "#ff4caf",
+      borderColor: "#d9363e",
+      color: "white",
+      fontWeight: "bold",
+      borderRadius: "8px",
+      padding: "10px 16px",
+      height: "2.5rem",
+      marginBottom: "10px",
+    }}
+  >
+    {!collapsed && <span>New Chat</span>}
+  </Button>
 
-        {/* Call button */}
-        <Button
-          type="primary"
-          icon={<PhoneOutlined />}
-          onClick={() => setIsModalVisible(true)}
-          style={{
-            backgroundColor: "#007AFF",
-            borderColor: "#0056b3",
-            color: "white",
-            fontWeight: "bold",
-            borderRadius: "8px",
-            padding: "10px 16px",
-            height: "2.5rem",
-            width: "100%",
-          }}
-        >
-          {!collapsed && <span>Make a Call</span>}
-        </Button>
+  <Button
+    type="primary"
+    icon={<PhoneOutlined />}
+    onClick={() => setIsModalVisible(true)}
+    style={{
+      backgroundColor: "#007AFF",
+      borderColor: "#0056b3",
+      color: "white",
+      fontWeight: "bold",
+      borderRadius: "8px",
+      padding: "10px 16px",
+      height: "2.5rem",
+      width: "100%",
+    }}
+  >
+    {!collapsed && <span>Make a Call</span>}
+  </Button>
 
-        <Button onClick={handleCapture} disabled={loading}>
-          {loading ? "Detecting..." : "Capture Emotion"}
-        </Button>
-      </Sider>
+  <Button
+    type="primary"
+    icon={<CameraOutlined />}
+    onClick={() => setCameraTestVisible(true)} // Open the CameraTest modal
+    style={{
+      backgroundColor: "#4CAF50",
+      borderColor: "#388E3C",
+      color: "white",
+      fontWeight: "bold",
+      borderRadius: "8px",
+      padding: "10px 16px",
+      height: "2.5rem",
+      width: "100%",
+      marginTop: "10px",
+    }}
+  >
+    {!collapsed && <span>Test Camera</span>}
+  </Button>
 
+  <Button onClick={handleCapture} disabled={loading}>
+    {loading ? "Detecting..." : "Capture Emotion"}
+  </Button>
+</Sider>
       <Layout>
         <Content className="chat-content">
           <motion.div className="chat-messages">
@@ -836,6 +1092,11 @@ const ChatPage = () => {
         />
       </Modal>
     </Layout>
+    <CameraTest
+    isVisible={isCameraTestVisible}
+    onClose={() => setCameraTestVisible(false)} // Close the modal
+  />
+  </>
   );
 };
 
