@@ -1,6 +1,6 @@
-import os
-from gem_rag_new import app
+# wsgi.py
+from gem_rag_new import app  # make sure gem_rag_new.py defines app = Flask(__name__) or similar
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8080))  # Use Render's PORT or default to 5000
-    app.run(host="0.0.0.0", port=port)
+# This is what Gunicorn looks for
+application = app
+
