@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Card, Typography, Space, Result } from 'antd';
+import { Button, Card, Typography, Space, Result, List } from 'antd';
 import { LeftOutlined, RightOutlined } from '@ant-design/icons';
 import './TestPage.css'; // Assuming you'll add CSS for animations
 
@@ -49,18 +49,68 @@ const questions = [
   },
 ];
 
+// Personalized suggestions based on score ranges
+const getSuggestions = (score) => {
+  if (score <= 4) {
+    return [
+      "Continue maintaining your daily routine and healthy habits",
+      "Practice gratitude journaling to maintain positive outlook",
+      "Stay connected with your support network"
+    ];
+  } else if (score <= 9) {
+    return [
+      "Incorporate regular physical activity into your routine",
+      "Practice mindfulness meditation for 10 minutes daily",
+      "Ensure you're getting enough sleep and maintaining a consistent sleep schedule",
+      "Consider talking to a trusted friend about how you're feeling"
+    ];
+  } else if (score <= 14) {
+    return [
+      "Schedule a check-up with your primary care physician",
+      "Try to identify and challenge negative thought patterns",
+      "Establish a daily routine that includes physical activity",
+      "Consider using a mood tracking app to identify patterns",
+      "Limit alcohol and avoid recreational drugs"
+    ];
+  } else if (score <= 19) {
+    return [
+      "Consider speaking with a mental health professional",
+      "Practice stress-reduction techniques like deep breathing or progressive muscle relaxation",
+      "Establish regular sleep patterns and healthy eating habits",
+      "Set small, achievable goals each day",
+      "Limit exposure to negative news and social media"
+    ];
+  } else {
+    return [
+      "Make an appointment with a mental health professional as soon as possible",
+      "If you have thoughts of harming yourself, call a crisis hotline immediately",
+      "Inform a trusted friend or family member about how you're feeling",
+      "Focus on basic self-care: sleep, nutrition, and gentle exercise",
+      "Remember that depression is treatable and help is available"
+    ];
+  }
+};
+
 const TestPage = () => {
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState(new Array(questions.length).fill(null));
   const [score, setScore] = useState(0);
   const [completed, setCompleted] = useState(false);
+  const [answeredPoints, setAnsweredPoints] = useState(new Array(questions.length).fill(0));
 
   const handleAnswerChange = (answer, points) => {
     const updatedAnswers = [...answers];
     updatedAnswers[currentQuestion] = answer;
-
+    
+    // Update points for this specific question
+    const updatedPoints = [...answeredPoints];
+    // Subtract the previous points for this question if any
+    const totalScore = score - updatedPoints[currentQuestion] + points;
+    updatedPoints[currentQuestion] = points;
+    
     setAnswers(updatedAnswers);
-    setScore(score + points);
+    setAnsweredPoints(updatedPoints);
+    setScore(totalScore);
   };
 
   const nextQuestion = () => {
@@ -79,14 +129,16 @@ const TestPage = () => {
 
   // Assessment at the end
   const getAssessment = () => {
-    if (score <= 10) {
-      return "You seem to have a low level of depression. Keep maintaining a positive outlook!";
-    } else if (score <= 20) {
-      return "You are showing signs of mild depression. Consider seeking support if you feel overwhelmed.";
-    } else if (score <= 30) {
-      return "You may be experiencing moderate depression. It could be helpful to talk to a professional.";
+    if (score <= 4) {
+      return "Minimal or no depression. Keep maintaining a positive outlook!";
+    } else if (score <= 9) {
+      return "Mild depression. Consider implementing some self-care strategies.";
+    } else if (score <= 14) {
+      return "Moderate depression. It could be helpful to talk to a healthcare provider.";
+    } else if (score <= 19) {
+      return "Moderately severe depression. Consider seeking professional support.";
     } else {
-      return "You may be experiencing severe depression. Please seek help from a mental health professional as soon as possible.";
+      return "Severe depression. Please seek help from a mental health professional as soon as possible.";
     }
   };
 
@@ -98,13 +150,37 @@ const TestPage = () => {
           Answer the following questions to assess your symptoms of depression.
         </Paragraph>
 
+        {/* Progress indicator */}
+        {!completed && (
+          <div className="progress-indicator">
+            Question {currentQuestion + 1} of {questions.length}
+          </div>
+        )}
+
         {/* Animated Question Section */}
         {completed ? (
-          <Result
-            status="success"
-            title="Test Completed"
-            subTitle={`Your score: ${score} \n\nAssessment: ${getAssessment()}`}
-          />
+          <div className="result-container">
+            <Result
+              status="success"
+              title="Test Completed"
+              subTitle={`Your score: ${score} out of ${questions.length * 3}`}
+            />
+            <div className="assessment">
+              <Title level={4}>Assessment:</Title>
+              <Paragraph>{getAssessment()}</Paragraph>
+            </div>
+            <div className="personalized-suggestions">
+              <Title level={4}>Personalized Suggestions:</Title>
+              <List
+                bordered
+                dataSource={getSuggestions(score)}
+                renderItem={item => <List.Item>{item}</List.Item>}
+              />
+            </div>
+            <Paragraph className="disclaimer" type="secondary">
+              Note: This is a screening tool and not a diagnostic instrument. Please consult with a healthcare professional for proper evaluation and treatment.
+            </Paragraph>
+          </div>
         ) : (
           <div className="question-container">
             <div className="question">
@@ -126,7 +202,7 @@ const TestPage = () => {
 
         {/* Navigation Buttons */}
         {!completed && (
-          <Space size="large">
+          <Space size="large" className="navigation-buttons">
             <Button 
               type="default" 
               icon={<LeftOutlined />} 
@@ -138,9 +214,8 @@ const TestPage = () => {
 
             <Button 
               type="primary" 
-              icon={<RightOutlined />} 
               onClick={nextQuestion} 
-              disabled={currentQuestion === questions.length - 1}
+              disabled={answers[currentQuestion] === null}
             >
               {currentQuestion === questions.length - 1 ? "Finish" : "Next"}
             </Button>
