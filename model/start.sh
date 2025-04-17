@@ -4,5 +4,5 @@
 apt-get update && apt-get install -y libgl1
 
 # Start Gunicorn server
-gunicorn --bind 0.0.0.0:8080 wsgi:application
+gunicorn --bind 0.0.0.0:5000 wsgi:application
 
