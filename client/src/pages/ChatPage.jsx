@@ -1006,12 +1006,12 @@ const ChatPage = () => {
       marginTop: "10px",
     }}
   >
-    {!collapsed && <span>Test Camera</span>}
+    {!collapsed && <span>Capture Emotion</span>}
   </Button>
 
-  <Button onClick={handleCapture} disabled={loading}>
+  {/* <Button onClick={handleCapture} disabled={loading}>
     {loading ? "Detecting..." : "Capture Emotion"}
-  </Button>
+  </Button> */}
 </Sider>
       <Layout>
         <Content className="chat-content">
