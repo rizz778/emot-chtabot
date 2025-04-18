@@ -29,7 +29,7 @@ const fileExists = async (filePath) => {
 
 dotenv.config();
 
-const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to .env
+const mistralApiKey = process.env.MISTRAL_API_KEY; // Add your Mistral API key to .env
 
 // Function to convert text to speech using ResponsiveVoice API
 // Map language codes to ResponsiveVoice voices
@@ -443,34 +443,38 @@ const captureImageFromWebcam = async () => {
   };
 // ------------------------------------------------
 
-const generateTextWithHuggingFace = async (prompt) => {
-  console.log("Generating text with Hugging Face...");
+// Updated function to use Mistral AI's API directly
+const generateTextWithMistralAI = async (prompt) => {
+  console.log("Generating text with Mistral AI...");
   const response = await fetch(
-    "https://api-inference.huggingface.co/models/mistralai/mistral-7b-instruct-v0.3",
+    "https://api.mistral.ai/v1/chat/completions",
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${huggingFaceToken}`,
+        Authorization: `Bearer ${mistralApiKey}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        inputs: prompt,
-        parameters: {
-          max_length: 1000,
-          temperature: 0.6,
-          return_full_text: false,
-        },
+        model: "mistral-large-latest", // You can adjust the model as needed
+        messages: [
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.6,
+        max_tokens: 1000,
       }),
     }
   );
 
   if (!response.ok) {
-    throw new Error(`Hugging Face API error: ${response.statusText}`);
+    throw new Error(`Mistral AI API error: ${response.statusText}`);
   }
 
   const data = await response.json();
-  console.log("Generated text:", data[0].generated_text);
-  return data[0].generated_text;
+  console.log("Generated text:", data.choices[0].message.content);
+  return data.choices[0].message.content;
 };
 
 app.post("/chat", async (req, res) => {
@@ -498,7 +502,7 @@ app.post("/chat", async (req, res) => {
     return;
   }
 
-  if (!huggingFaceToken) {
+  if (!mistralApiKey) {
     console.log("API keys missing, sending error response");
     res.send({
       messages: [
@@ -549,10 +553,23 @@ Format your response as follows:
 `;
     // -------------------------------------------------------
 
-    const generatedText = await generateTextWithHuggingFace(prompt);
+    const generatedText = await generateTextWithMistralAI(prompt);
 
     // Parse the generated text as JSON
-    let messages = JSON.parse(generatedText);
+    let messages;
+    try {
+      // Try to parse the entire response as JSON
+      messages = JSON.parse(generatedText);
+    } catch (parseError) {
+      // If that fails, try to extract JSON from the text (Mistral might include explanatory text)
+      const jsonMatch = generatedText.match(/\[[\s\S]*\]/);
+      if (jsonMatch) {
+        messages = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error("Could not parse JSON from response: " + generatedText);
+      }
+    }
+    
     console.log("Parsed messages:", messages);
     if (messages.messages) {
       messages = messages.messages; // Handle cases where the response is nested
