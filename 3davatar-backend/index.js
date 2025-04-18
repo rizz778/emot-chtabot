@@ -526,6 +526,7 @@ app.post("/chat", async (req, res) => {
   try {
     const prompt = `You are a virtual therapist.
 Always reply with a JSON array of messages, with a maximum of 3 messages.
+Do not include any headers in your response, ONLY respond in the json array as asked.
 Each message must have text, facialExpression, and animation properties.
 The different facial expressions are: smile, sad, angry, surprised, funnyFace, and default.
 The different animations are: Talking_0, Talking_1, Talking_2, Crying, Laughing, Rumba, Idle, Terrified, and Angry.
