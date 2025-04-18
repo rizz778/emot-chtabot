@@ -11,3 +11,4 @@ __pycache__/
 *.pyo
 *.pyd
 node_modules/
+deepface_env/
