@@ -1,3 +1,5 @@
+
+
 import axios from "axios";
 import { exec } from "child_process";
 import cors from "cors";
@@ -14,9 +16,12 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 
+
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const audiosDir = path.resolve(__dirname, "audios");
+
 
 const fileExists = async (filePath) => {
   try {
@@ -27,9 +32,12 @@ const fileExists = async (filePath) => {
   }
 };
 
+
 dotenv.config();
 
-const mistralApiKey = process.env.MISTRAL_API_KEY; // Add your Mistral API key to .env
+
+const huggingFaceToken = process.env.HF_TOKEN; // Add your Hugging Face token to .env
+
 
 // Function to convert text to speech using ResponsiveVoice API
 // Map language codes to ResponsiveVoice voices
@@ -50,10 +58,12 @@ const languageToInstruction = {
   de: "German (Deutsch)",
 };
 
+
 // Function to get the appropriate voice for a given language
 const getVoiceForLanguage = (language) => {
   return languageToVoice[language] || "US English Female"; // Default to English if language is not found
 };
+
 
 // Function to convert text to speech using ResponsiveVoice API
 async function textToSpeech(text, language, outputFilename) {
@@ -66,11 +76,13 @@ async function textToSpeech(text, language, outputFilename) {
     )}&key=uJKFIn5M`;
     const response = await axios.get(url, { responseType: "arraybuffer" });
 
+
     if (fileExists(outputFilename)) {
       console.log(
         `File ${outputFilename} already exists. Replacing it with new content.`
       );
     }
+
 
     writeFileSync(outputFilename, response.data);
     console.log(`Audio file saved as ${outputFilename}`);
@@ -79,12 +91,14 @@ async function textToSpeech(text, language, outputFilename) {
   }
 }
 
+
 const app = express();
 const port = 3000;
 const allowedOrigins = [
   "http://localhost:5173", // Frontend during development
   "https://emot-chtabot-2.onrender.com", // Deployed frontend
 ];
+
 
 app.use(
   cors({
@@ -102,10 +116,12 @@ app.use(
 app.use(express.json());
 ffmpeg.setFfmpegPath(ffmpegPath);
 
+
 app.get("/", (req, res) => {
   console.log("GET / called");
   res.send("Hello World!");
 });
+
 
 const getAudioDuration = async (filePath) => {
   try {
@@ -116,6 +132,7 @@ const getAudioDuration = async (filePath) => {
     return null;
   }
 };
+
 
 const phonemeToViseme = {
   p: "B",
@@ -149,8 +166,10 @@ const phonemeToViseme = {
   u: "X",
 };
 
+
 const generateTimedPhonemes = async (text, audioPath) => {
   console.log("Processing text:", text);
+
 
   const phonemes = phonemize(text);
   console.log("Phonemize Output:", phonemes);
@@ -159,6 +178,7 @@ const generateTimedPhonemes = async (text, audioPath) => {
     return null;
   }
 
+
   const phonemeArray = phonemes.split(" ");
   console.log("Phonemize Array Output:", phonemeArray);
   if (phonemeArray.length === 0) {
@@ -166,16 +186,21 @@ const generateTimedPhonemes = async (text, audioPath) => {
     return null;
   }
 
+
   let totalDuration = text.length * 0.1; // Default estimated duration
+
 
   if (audioPath && (await fileExists(audioPath))) {
     totalDuration = (await getAudioDuration(audioPath)) || 1.5;
   }
 
+
   console.log(`Total estimated duration: ${totalDuration}s`);
+
 
   const numPhonemes = phonemeArray.length;
   const phonemeDuration = totalDuration / numPhonemes;
+
 
   let startTime = 0;
   const mouthCues = phonemeArray.map((phoneme) => {
@@ -194,10 +219,12 @@ const generateTimedPhonemes = async (text, audioPath) => {
     return entry;
   });
 
+
   console.log("Returning Data:", {
     metadata: { soundFile: audioPath, duration: totalDuration },
     mouthCues,
   });
+
 
   return {
     metadata: {
@@ -207,6 +234,7 @@ const generateTimedPhonemes = async (text, audioPath) => {
     mouthCues,
   };
 };
+
 
 const convertMp3ToWav = (mp3File, wavFile) => {
   return new Promise((resolve, reject) => {
@@ -225,13 +253,16 @@ const convertMp3ToWav = (mp3File, wavFile) => {
   });
 };
 
+
 const lipSyncMessage = async (message, text) => {
   const time = new Date().getTime();
   console.log(`Starting phoneme extraction for message: "${text}"`);
 
+
   const mp3File = `audios/message_${message}.mp3`;
   const wavFile = `audios/message_${message}.wav`;
   const jsonFile = `audios/message_${message}.json`;
+
 
   try {
     await convertMp3ToWav(mp3File, wavFile);
@@ -242,6 +273,7 @@ const lipSyncMessage = async (message, text) => {
     console.error("Error during lip sync process:", error);
   }
 };
+
 
 // ------------------------------------------------
 const API_URL = "https://emot-chtabot.onrender.com";
@@ -260,6 +292,8 @@ const captureImageFromWebcam = async () => {
 };
 
 
+
+
   // Check which webcam mode to use (client or server)
   const checkWebcamSupport = async () => {
     try {
@@ -273,31 +307,32 @@ const captureImageFromWebcam = async () => {
     }
   };
 
+
   // Request camera permissions
   const requestCameraPermission = async () => {
     try {
       // This will trigger the browser permission dialog
-      const stream = await navigator.mediaDevices.getUserMedia({ 
+      const stream = await navigator.mediaDevices.getUserMedia({
         video: true,
-        audio: false 
+        audio: false
       });
-      
+     
       // If we got here, permission was granted
       setHasPermission(true);
       setWebcamStream(stream);
-      
+     
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       } else {
         // We don't need the stream right now - close it
         stream.getTracks().forEach(track => track.stop());
       }
-      
+     
       return true;
     } catch (error) {
       console.error("Camera permission error:", error);
       setHasPermission(false);
-      
+     
       // Show notification after a short delay to ensure it's seen
       setTimeout(() => {
         notification.warning({
@@ -306,10 +341,11 @@ const captureImageFromWebcam = async () => {
           duration: 10,
         });
       }, 1000);
-      
+     
       return false;
     }
   };
+
 
   // Client-side webcam capture
   const captureFromClientWebcam = async () => {
@@ -320,22 +356,22 @@ const captureImageFromWebcam = async () => {
         return "neutral";
       }
     }
-    
+   
     return new Promise(async (resolve, reject) => {
       try {
         // Get a new stream every time to ensure fresh capture
         let stream;
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: true });
-          
+         
           // Create video element to capture frame
           const video = document.createElement('video');
           video.srcObject = stream;
-          
+         
           // Wait for video to be ready
           video.onloadedmetadata = () => {
             video.play();
-            
+           
             // Give the camera a moment to adjust
             setTimeout(() => {
               try {
@@ -343,19 +379,19 @@ const captureImageFromWebcam = async () => {
                 const canvas = document.createElement('canvas');
                 canvas.width = video.videoWidth;
                 canvas.height = video.videoHeight;
-                
+               
                 // Draw video frame on canvas
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(video, 0, 0);
-                
+               
                 // Get image data
                 const imageData = canvas.toDataURL('image/jpeg', 0.9);
-                
+               
                 // Release resources
                 video.pause();
                 video.srcObject = null;
                 stream.getTracks().forEach(track => track.stop());
-                
+               
                 // Send image to server for emotion detection
                 fetch(`${API_URL}/webcam-capture`, {
                   method: 'POST',
@@ -404,14 +440,14 @@ const captureImageFromWebcam = async () => {
       if (!response.ok) {
         throw new Error(`Server responded with ${response.status}`);
       }
-      
+     
       const data = await response.json();
-      
+     
       if (data.error) {
         console.error("Server capture error:", data.error);
         return "neutral";
       }
-      
+     
       console.log("Server detected emotion:", data.emotion);
       return data.emotion;
     } catch (error) {
@@ -420,18 +456,19 @@ const captureImageFromWebcam = async () => {
     }
   };
 
+
   // General capture function that decides which method to use
   const handleCapture = async () => {
     setLoading(true);
     try {
       let emotion;
-      
+     
       if (webcamMode === 'client') {
         emotion = await captureFromClientWebcam();
       } else {
         emotion = await captureFromServerWebcam();
       }
-      
+     
       console.log("Detected emotion:", emotion);
       return emotion || "neutral";
     } catch (error) {
@@ -443,39 +480,39 @@ const captureImageFromWebcam = async () => {
   };
 // ------------------------------------------------
 
-// Updated function to use Mistral AI's API directly with mistral-7b-instruct model
-const generateTextWithMistralAI = async (prompt) => {
-  console.log("Generating text with Mistral AI (mistral-7b-instruct)...");
+
+const generateTextWithHuggingFace = async (prompt) => {
+  console.log("Generating text with Hugging Face...");
   const response = await fetch(
-    "https://api.mistral.ai/v1/chat/completions",
+    "https://api-inference.huggingface.co/models/mistralai/mistral-7b-instruct-v0.3",
     {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${mistralApiKey}`,
+        Authorization: `Bearer ${huggingFaceToken}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "mistral-7b-instruct", // Specifically using mistral-7b-instruct model
-        messages: [
-          {
-            role: "user",
-            content: prompt
-          }
-        ],
-        temperature: 0.6,
-        max_tokens: 1000,
+        inputs: prompt,
+        parameters: {
+          max_length: 1000,
+          temperature: 0.6,
+          return_full_text: false,
+        },
       }),
     }
   );
 
+
   if (!response.ok) {
-    throw new Error(`Mistral AI API error: ${response.status} - ${response.statusText}`);
+    throw new Error(`Hugging Face API error: ${response.statusText}`);
   }
 
+
   const data = await response.json();
-  console.log("Generated text:", data.choices[0].message.content);
-  return data.choices[0].message.content;
+  console.log("Generated text:", data[0].generated_text);
+  return data[0].generated_text;
 };
+
 
 app.post("/chat", async (req, res) => {
   const { message, language = "en" } = req.body; // Accept language from frontend
@@ -485,6 +522,7 @@ app.post("/chat", async (req, res) => {
     "and language:",
     language
   );
+
 
   if (!message) {
     console.log("No user message received, sending default response");
@@ -502,7 +540,8 @@ app.post("/chat", async (req, res) => {
     return;
   }
 
-  if (!mistralApiKey) {
+
+  if (!huggingFaceToken) {
     console.log("API keys missing, sending error response");
     res.send({
       messages: [
@@ -518,6 +557,7 @@ app.post("/chat", async (req, res) => {
     return;
   }
 
+
   // --------------------------------------
   let detectedEmotion = "neutral";
   try {
@@ -526,6 +566,7 @@ app.post("/chat", async (req, res) => {
     console.error("Error detecting emotion, defaulting to neutral");
   }
   // ------------------------------------------
+
 
   try {
     const prompt = `You are a virtual therapist.
@@ -539,8 +580,10 @@ Respond in the user's selected language (${
       languageToInstruction[language] || "English"
     }).
 
+
 Respond to the following user message with a valid JSON array of messages:
 User message: "${message}"
+
 
 Format your response as follows:
 [
@@ -553,27 +596,17 @@ Format your response as follows:
 `;
     // -------------------------------------------------------
 
-    const generatedText = await generateTextWithMistralAI(prompt);
+
+    const generatedText = await generateTextWithHuggingFace(prompt);
+
 
     // Parse the generated text as JSON
-    let messages;
-    try {
-      // Try to parse the entire response as JSON
-      messages = JSON.parse(generatedText);
-    } catch (parseError) {
-      // If that fails, try to extract JSON from the text (Mistral might include explanatory text)
-      const jsonMatch = generatedText.match(/\[[\s\S]*\]/);
-      if (jsonMatch) {
-        messages = JSON.parse(jsonMatch[0]);
-      } else {
-        throw new Error("Could not parse JSON from response: " + generatedText);
-      }
-    }
-    
+    let messages = JSON.parse(generatedText);
     console.log("Parsed messages:", messages);
     if (messages.messages) {
       messages = messages.messages; // Handle cases where the response is nested
     }
+
 
     // Generate audio and lip sync for each message
     for (let i = 0; i < messages.length; i++) {
@@ -588,6 +621,7 @@ Format your response as follows:
       console.log(`Audio and lipsync generated for message ${i}`);
     }
 
+
     res.send({ messages });
   } catch (error) {
     console.error("Error generating response:", error);
@@ -595,11 +629,13 @@ Format your response as follows:
   }
 });
 
+
 const readJsonTranscript = async (file) => {
   console.log(`Reading JSON transcript from file: ${file}`);
   const data = await fs.readFile(file, "utf8");
   return JSON.parse(data);
 };
+
 
 const audioFileToBase64 = async (file) => {
   console.log(`Converting audio file to base64: ${file}`);
@@ -607,6 +643,16 @@ const audioFileToBase64 = async (file) => {
   return data.toString("base64");
 };
 
+
 app.listen(port, () => {
   console.log(`Sentio listening on port ${port}`);
 });
+
+
+
+
+
+
+
+
+
