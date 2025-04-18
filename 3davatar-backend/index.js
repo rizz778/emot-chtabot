@@ -443,9 +443,9 @@ const captureImageFromWebcam = async () => {
   };
 // ------------------------------------------------
 
-// Updated function to use Mistral AI's API directly
+// Updated function to use Mistral AI's API directly with mistral-7b-instruct model
 const generateTextWithMistralAI = async (prompt) => {
-  console.log("Generating text with Mistral AI...");
+  console.log("Generating text with Mistral AI (mistral-7b-instruct)...");
   const response = await fetch(
     "https://api.mistral.ai/v1/chat/completions",
     {
@@ -455,7 +455,7 @@ const generateTextWithMistralAI = async (prompt) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "mistral-large-latest", // You can adjust the model as needed
+        model: "mistral-7b-instruct", // Specifically using mistral-7b-instruct model
         messages: [
           {
             role: "user",
@@ -469,7 +469,7 @@ const generateTextWithMistralAI = async (prompt) => {
   );
 
   if (!response.ok) {
-    throw new Error(`Mistral AI API error: ${response.statusText}`);
+    throw new Error(`Mistral AI API error: ${response.status} - ${response.statusText}`);
   }
 
   const data = await response.json();
