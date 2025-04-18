@@ -1,0 +1,23 @@
+{
+    "services": [
+      {
+        "name": "client",
+        "path": "client",
+        "buildCommand": "npm run build",
+        "startCommand": "npm run dev"
+      },
+      {
+        "name": "server",
+        "path": "server",
+        "buildCommand": "npm install",
+        "startCommand": "npm start"
+      },
+      {
+        "name": "model",
+        "path": "model",
+        "buildCommand": "pip install -r requirements.txt",
+        "startCommand": "gunicorn -b 0.0.0.0:$PORT wsgi:app"
+      }
+    ]
+  }
+  
