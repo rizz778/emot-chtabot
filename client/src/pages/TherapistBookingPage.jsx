@@ -1,289 +1,323 @@
 import React, { useState, useEffect } from 'react';
-import BlockchainService from './BlockchainService.jsx';
+import { format } from 'date-fns';
+import BlockchainService from './BlockchainService';
+import { ethers } from 'ethers';
 
-function TherapistBookingPage() {
-  const [isConnected, setIsConnected] = useState(false);
+const TherapistBookingPage = () => {
   const [therapists, setTherapists] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedTherapist, setSelectedTherapist] = useState(null);
-  const [bookingDate, setBookingDate] = useState('');
-  const [bookingTime, setBookingTime] = useState('');
-  const [duration, setDuration] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
-  const [myAppointments, setMyAppointments] = useState([]);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [bookingStatus, setBookingStatus] = useState(null);
+  const [userAppointments, setUserAppointments] = useState([]);
+  const [showAppointments, setShowAppointments] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState('Disconnected');
 
-  // Initialize blockchain connection
   useEffect(() => {
-    async function connectToBlockchain() {
+    async function initializeBlockchain() {
       try {
-        console.log("Connecting to blockchain...");
-        const connected = await BlockchainService.initialize();
-        setIsConnected(connected);
-        
-        if (connected) {
-          console.log("Blockchain connected successfully!");
+        const initialized = await BlockchainService.initialize();
+        if (initialized) {
+          setConnectionStatus('Connected');
           loadTherapists();
-          loadAppointments();
         } else {
-          console.log("Failed to connect to blockchain.");
+          setConnectionStatus('Connection Failed');
+          // Not showing error message in UI
         }
       } catch (err) {
-        console.error("Error connecting to blockchain:", err);
-        setError(err.message);
+        console.error('Blockchain initialization error:', err);
+        setConnectionStatus('Connection Error');
+        // Not showing error message in UI
+        setLoading(false);
       }
     }
-    
-    connectToBlockchain();
+
+    initializeBlockchain();
   }, []);
 
-  // Load therapists from the blockchain
   const loadTherapists = async () => {
     try {
-      console.log("Loading therapists...");
-      setIsLoading(true);
+      setLoading(true);
       const therapistList = await BlockchainService.getAllTherapists();
-      console.log("Therapists loaded:", therapistList);
       setTherapists(therapistList);
+      setLoading(false);
     } catch (err) {
-      console.error("Failed to load therapists:", err);
-      setError("Failed to load therapists: " + err.message);
-    } finally {
-      setIsLoading(false);
+      console.error('Error loading therapists:', err);
+      // Not showing error message in UI
+      setLoading(false);
     }
   };
 
-  // Load user's appointments
-  const loadAppointments = async () => {
+  const loadUserAppointments = async () => {
     try {
-      console.log("Loading appointments...");
-      setIsLoading(true);
+      setLoading(true);
       const appointments = await BlockchainService.getClientAppointments();
-      console.log("Appointments loaded:", appointments);
-      setMyAppointments(appointments);
+      setUserAppointments(appointments);
+      setShowAppointments(true);
+      setLoading(false);
     } catch (err) {
-      console.error("Failed to load appointments:", err);
-      setError("Failed to load appointments: " + err.message);
-    } finally {
-      setIsLoading(false);
+      console.error('Error loading appointments:', err);
+      // Not showing error message in UI
+      setLoading(false);
     }
   };
 
-  // Handle booking submission
-  const handleBooking = async (e) => {
+  const handleTherapistSelect = (therapist) => {
+    setSelectedTherapist(therapist);
+    setBookingStatus(null);
+  };
+
+  const handleBookAppointment = async (e) => {
     e.preventDefault();
     
-    if (!selectedTherapist || !bookingDate || !bookingTime) {
-      console.log("Booking details are incomplete.");
-      setError("Please fill in all booking details");
+    if (!selectedTherapist || !selectedDate || !startTime || !endTime) {
+      // Not showing validation errors in UI
       return;
     }
-    
+
     try {
-      console.log("Booking appointment...");
-      setIsLoading(true);
-      setError('');
-      setSuccessMessage('');
+      setLoading(true);
+      setBookingStatus(null);
+
+      // Convert date and times to timestamps
+      const startDateTime = new Date(`${selectedDate}T${startTime}`);
+      const endDateTime = new Date(`${selectedDate}T${endTime}`);
       
-      // Calculate start and end times in Unix timestamp (seconds)
-      const [hours, minutes] = bookingTime.split(':').map(Number);
-      const startDate = new Date(bookingDate);
-      startDate.setHours(hours, minutes, 0, 0);
-      
-      const startTime = Math.floor(startDate.getTime() / 1000);
-      const endTime = startTime + (duration * 60 * 60); // Add hours in seconds
-      
-      console.log("Booking details:", {
-        therapistId: selectedTherapist.id,
-        startTime,
-        endTime,
-      });
-      
-      // Book appointment on blockchain
+      if (startDateTime >= endDateTime) {
+        // Not showing validation errors in UI
+        setLoading(false);
+        return;
+      }
+
+      const startTimestamp = Math.floor(startDateTime.getTime() / 1000);
+      const endTimestamp = Math.floor(endDateTime.getTime() / 1000);
+
       const txHash = await BlockchainService.bookAppointment(
         selectedTherapist.id,
-        startTime,
-        endTime
+        startTimestamp,
+        endTimestamp
       );
+
+      // Reset form but don't show success message
+      setSelectedDate('');
+      setStartTime('');
+      setEndTime('');
       
-      console.log("Appointment booked successfully! Transaction:", txHash);
-      setSuccessMessage(`Appointment booked successfully! Transaction: ${txHash}`);
+      // Reload user appointments
+      await loadUserAppointments();
       
-      // Reset form
-      setSelectedTherapist(null);
-      setBookingDate('');
-      setBookingTime('');
-      setDuration(1);
-      
-      // Reload appointments
-      await loadAppointments();
     } catch (err) {
-      console.error("Failed to book appointment:", err);
-      setError("Failed to book appointment: " + err.message);
+      console.error('Booking error:', err);
+      // Not showing error message in UI
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Handle appointment cancellation
   const handleCancelAppointment = async (appointmentId) => {
     try {
-      console.log("Cancelling appointment:", appointmentId);
-      setIsLoading(true);
-      
+      setLoading(true);
       const txHash = await BlockchainService.cancelAppointment(appointmentId);
       
-      console.log("Appointment cancelled successfully! Transaction:", txHash);
-      setSuccessMessage(`Appointment cancelled successfully! Transaction: ${txHash}`);
+      // No success message shown
       
       // Reload appointments
-      await loadAppointments();
+      await loadUserAppointments();
     } catch (err) {
-      console.error("Failed to cancel appointment:", err);
-      setError("Failed to cancel appointment: " + err.message);
+      console.error('Cancellation error:', err);
+      // Not showing error message in UI
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Connect to MetaMask if not connected
-  const connectWallet = async () => {
-    try {
-      console.log("Connecting wallet...");
-      const connected = await BlockchainService.initialize();
-      setIsConnected(connected);
-      
-      if (connected) {
-        console.log("Wallet connected successfully!");
-        loadTherapists();
-        loadAppointments();
-      } else {
-        console.log("Failed to connect wallet.");
-      }
-    } catch (err) {
-      console.error("Error connecting wallet:", err);
-      setError(err.message);
-    }
+  // Format date for the input element
+  const formatDateForInput = (date) => {
+    return format(date, 'yyyy-MM-dd');
   };
+
+  // Get today's date in the format for the date input min attribute
+  const today = formatDateForInput(new Date());
 
   return (
-    <div className="therapist-booking-page">
-      <h1>Book a Therapist Session</h1>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-3xl font-bold mb-6">Therapist Booking System</h1>
       
-      {!isConnected ? (
-        <div className="connect-wallet">
-          <p>Please connect your wallet to access the booking system.</p>
-          <button onClick={connectWallet}>Connect Wallet</button>
-        </div>
-      ) : (
-        <div className="booking-container">
-          {error && <div className="error-message">{error}</div>}
-          {successMessage && <div className="success-message">{successMessage}</div>}
+      <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+        <p className="text-lg">
+          Blockchain Connection Status: <span className={`font-bold ${connectionStatus === 'Connected' ? 'text-green-600' : 'text-red-600'}`}>
+            {connectionStatus}
+          </span>
+        </p>
+      </div>
+      
+      {/* Error messages removed */}
+      
+      {/* Status messages removed */}
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left Column - Therapist List */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Available Therapists</h2>
           
-          <div className="booking-form-container">
-            <h2>Book a New Appointment</h2>
-            <form onSubmit={handleBooking}>
-              <div className="form-group">
-                <label>Select Therapist:</label>
-                <select 
-                  value={selectedTherapist ? selectedTherapist.id : ''} 
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    const therapist = therapists.find(t => t.id === id);
-                    setSelectedTherapist(therapist);
-                  }}
-                  required
+          {loading && therapists.length === 0 ? (
+            <p className="text-gray-600">Loading therapists...</p>
+          ) : therapists.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {therapists.map((therapist) => (
+                <li 
+                  key={therapist.id}
+                  className={`py-4 cursor-pointer hover:bg-gray-50 ${selectedTherapist?.id === therapist.id ? 'bg-blue-50' : ''}`}
+                  onClick={() => handleTherapistSelect(therapist)}
                 >
-                  <option value="">-- Select a Therapist --</option>
-                  {therapists.map(therapist => (
-                    <option key={therapist.id} value={therapist.id}>
-                      {therapist.name} - {therapist.specialization} (ETH {therapist.hourlyRate}/hour)
-                    </option>
-                  ))}
-                </select>
+                  <h3 className="text-lg font-medium">{therapist.name}</h3>
+                  <p className="text-gray-600">{therapist.specialization}</p>
+                  <p className="text-gray-800 font-medium mt-1">{therapist.hourlyRate} ETH/hour</p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-600">No therapists available.</p>
+          )}
+        </div>
+        
+        {/* Middle Column - Booking Form */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Book an Appointment</h2>
+          
+          {selectedTherapist ? (
+            <form onSubmit={handleBookAppointment}>
+              <div className="mb-4">
+                <p className="font-medium">Selected Therapist:</p>
+                <p>{selectedTherapist.name} - {selectedTherapist.specialization}</p>
+                <p className="font-medium mt-1">{selectedTherapist.hourlyRate} ETH/hour</p>
               </div>
               
-              <div className="form-group">
-                <label>Date:</label>
-                <input 
-                  type="date" 
-                  value={bookingDate} 
-                  onChange={(e) => setBookingDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Date:</label>
+                <input
+                  type="date"
+                  min={today}
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
                   required
                 />
               </div>
               
-              <div className="form-group">
-                <label>Time:</label>
-                <input 
-                  type="time" 
-                  value={bookingTime} 
-                  onChange={(e) => setBookingTime(e.target.value)}
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Start Time:</label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
                   required
                 />
               </div>
               
-              <div className="form-group">
-                <label>Duration (hours):</label>
-                <select 
-                  value={duration} 
-                  onChange={(e) => setDuration(Number(e.target.value))}
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">End Time:</label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  className="w-full p-2 border border-gray-300 rounded"
                   required
-                >
-                  {[1, 2, 3, 4].map(h => (
-                    <option key={h} value={h}>{h} hour{h > 1 ? 's' : ''}</option>
-                  ))}
-                </select>
+                />
               </div>
               
-              <div className="form-group">
-                <label>Total Cost:</label>
-                <p>
-                  {selectedTherapist 
-                    ? `ETH ${(parseFloat(selectedTherapist.hourlyRate) * duration).toFixed(4)}`
-                    : 'Select a therapist to see cost'
-                  }
-                </p>
-              </div>
+              {startTime && endTime && selectedDate && (
+                <div className="mb-4 p-3 bg-blue-50 rounded">
+                  <p className="font-medium">Estimated Cost:</p>
+                  {(() => {
+                    try {
+                      const start = new Date(`${selectedDate}T${startTime}`);
+                      const end = new Date(`${selectedDate}T${endTime}`);
+                      const hours = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60)));
+                      const rate = parseFloat(selectedTherapist.hourlyRate);
+                      const totalCost = hours * rate;
+                      return <p>{totalCost.toFixed(6)} ETH</p>;
+                    } catch (err) {
+                      return <p>Please select valid times</p>;
+                    }
+                  })()}
+                </div>
+              )}
               
-              <button type="submit" disabled={isLoading}>
-                {isLoading ? 'Processing...' : 'Book Appointment'}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 disabled:bg-blue-400"
+              >
+                {loading ? 'Processing...' : 'Book Appointment'}
               </button>
             </form>
-          </div>
-          
-          <div className="my-appointments">
-            <h2>My Appointments</h2>
-            {myAppointments.length === 0 ? (
-              <p>You don't have any appointments yet.</p>
-            ) : (
-              <ul className="appointments-list">
-                {myAppointments.map(appointment => (
-                  <li key={appointment.id} className="appointment-item">
-                    <div className="appointment-details">
-                      <h3>Appointment with {appointment.therapistName}</h3>
-                      <p>Date: {appointment.startTime.toLocaleDateString()}</p>
-                      <p>Time: {appointment.startTime.toLocaleTimeString()} - {appointment.endTime.toLocaleTimeString()}</p>
-                      <p>Status: {appointment.isCancelled ? 'Cancelled' : 'Active'}</p>
-                    </div>
-                    {!appointment.isCancelled && (
-                      <button 
-                        onClick={() => handleCancelAppointment(appointment.id)}
-                        disabled={isLoading}
-                      >
-                        Cancel Appointment
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          ) : (
+            <p className="text-gray-600">Please select a therapist to book an appointment.</p>
+          )}
         </div>
-      )}
+        
+        {/* Right Column - User's Appointments */}
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4">Your Appointments</h2>
+          
+          {!showAppointments ? (
+            <button
+              onClick={loadUserAppointments}
+              disabled={loading}
+              className="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700 disabled:bg-green-400 mb-4"
+            >
+              {loading ? 'Loading...' : 'Show My Appointments'}
+            </button>
+          ) : loading ? (
+            <p className="text-gray-600">Loading your appointments...</p>
+          ) : userAppointments.length > 0 ? (
+            <ul className="divide-y divide-gray-200">
+              {userAppointments.map((appointment) => (
+                <li key={appointment.id} className="py-4">
+                  <h3 className="text-lg font-medium">{appointment.therapistName}</h3>
+                  <p className="text-gray-600">
+                    {format(new Date(appointment.startTime), 'MMM dd, yyyy')}
+                  </p>
+                  <p className="text-gray-600">
+                    {format(new Date(appointment.startTime), 'h:mm a')} - 
+                    {format(new Date(appointment.endTime), 'h:mm a')}
+                  </p>
+                  <p className={`${appointment.isCancelled ? 'text-red-600' : 'text-green-600'} font-medium`}>
+                    {appointment.isCancelled ? 'Cancelled' : 'Active'}
+                  </p>
+                  
+                  {!appointment.isCancelled && (
+                    <button
+                      onClick={() => handleCancelAppointment(appointment.id)}
+                      className="mt-2 bg-red-600 text-white py-1 px-3 rounded hover:bg-red-700 text-sm"
+                    >
+                      Cancel
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-gray-600">You don't have any appointments yet.</p>
+          )}
+          
+          {showAppointments && (
+            <button
+              onClick={loadUserAppointments}
+              className="mt-4 w-full bg-gray-200 text-gray-800 py-2 px-4 rounded hover:bg-gray-300"
+            >
+              Refresh Appointments
+            </button>
+          )}
+        </div>
+      </div>
     </div>
   );
-}
+};
 
 export default TherapistBookingPage;

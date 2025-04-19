@@ -5,11 +5,11 @@ import {Edit} from 'react-feather';
 const ProfilePage = () => {
   // Mock user data based on the schema
   const [user, setUser] = useState({
-    name: "John Doe",
+    name: "Suvir Arora",
     age: 25,
     gender: "Male",
     preferredLanguage: "English",
-    currentMood: "Anxious",
+    currentMood: "Neutral",
     stressFrequency: "Often",
     diagnosedCondition: "None",
     triggers: ["Work Pressure", "Lack of Sleep"],

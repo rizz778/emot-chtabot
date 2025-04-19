@@ -4,7 +4,7 @@ import TherapistBookingABI from '../contracts/TherapistBooking.json'; // This wi
 
 class BlockchainService {
   constructor() {
-    this.contractAddress = "0x7451dA88a97bF959d5Db5b9D1099185eFe5a0d76"; // Replace after deployment
+    this.contractAddress = "0x9953d9249674E37eF34174cdE4cd4B28E75C18d3"; // Replace after deployment
     this.provider = null;
     this.signer = null;
     this.contract = null;
@@ -72,29 +72,65 @@ class BlockchainService {
       return false;
     }
   }
-  
-
   async getAllTherapists() {
     if (!this.isInitialized) await this.initialize();
-    const therapistCount = Number(await this.contract.therapistCount());
-    const therapists = [];
-    console.log("Therapist Count:", therapistCount);
-
-    for (let i = 1; i <= therapistCount; i++) {
-      const therapist = await this.contract.therapists(i);
-      if (therapist.name === "" || !therapist.isActive) continue;
-
-      therapists.push({
-        id: therapist.id.toString(),
-        name: therapist.name,
-        specialization: therapist.specialization,
-        hourlyRate: ethers.formatEther(therapist.hourlyRate)
-      });
+    try {
+      const therapistCount = Number(await this.contract.therapistCount());
+      console.log("Raw therapist count:", therapistCount);
+      const therapists = [];
+  
+      for (let i = 1; i <= therapistCount; i++) {
+        console.log(`Fetching therapist ID: ${i}`);
+        const therapist = await this.contract.therapists(i);
+        console.log(`Raw therapist data for ID ${i}:`, therapist);
+        
+        // Deep inspect the therapist object
+        console.log(`Therapist ID ${i} details:`, {
+          id: therapist.id,
+          idType: typeof therapist.id,
+          name: therapist.name,
+          nameType: typeof therapist.name,
+          specialization: therapist.specialization,
+          hourlyRate: therapist.hourlyRate,
+          hourlyRateType: typeof therapist.hourlyRate,
+          isActive: therapist.isActive,
+          isActiveType: typeof therapist.isActive
+        });
+        
+        if (therapist.name === "" || !therapist.isActive) {
+          console.log(`Skipping therapist ID ${i}: inactive or empty name`);
+          continue;
+        }
+  
+        try {
+          const formattedRate = ethers.formatEther(therapist.hourlyRate);
+          console.log(`Formatted hourly rate for ID ${i}: ${formattedRate}`);
+          
+          therapists.push({
+            id: therapist.id.toString(),
+            name: therapist.name,
+            specialization: therapist.specialization,
+            hourlyRate: formattedRate
+          });
+        } catch (error) {
+          console.error(`Error formatting hourly rate for therapist ID ${i}:`, error);
+          // Try fallback method if formatting fails
+          therapists.push({
+            id: therapist.id.toString(),
+            name: therapist.name,
+            specialization: therapist.specialization,
+            hourlyRate: therapist.hourlyRate.toString() // Just convert to string without formatting
+          });
+        }
+      }
+      
+      console.log("Processed therapists:", therapists);
+      return therapists;
+    } catch (error) {
+      console.error("Error fetching therapists:", error);
+      return [];
     }
-    console.log("Therapists:", therapists);
-    return therapists;
   }
-
   async bookAppointment(therapistId, startTime, endTime) {
     if (!this.isInitialized) await this.initialize();
     const therapist = await this.contract.therapists(therapistId);

@@ -128,7 +128,7 @@ export const UI = ({ hidden, ...props }) => {
               />
             </svg>
           </button>
-          <button
+          {/* <button
             onClick={handleCapture}
             disabled={isCapturing}
             className={`p-4 rounded-md bg-pink-500 hover:bg-pink-600 text-white ${
@@ -154,7 +154,7 @@ export const UI = ({ hidden, ...props }) => {
                 d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z"
               />
             </svg>
-          </button>
+          </button> */}
           <select
             value={selectedLanguage}
             onChange={handleLanguageChange}
